@@ -13,6 +13,8 @@ from starlette.responses import StreamingResponse, JSONResponse
 
 from app.helper import load_key, private_bytes, public_key
 
+# todo: initialize certificate (or should be done by user, and passed through "volumes"?)
+
 app = FastAPI()
 
 URL = '192.168.178.196'

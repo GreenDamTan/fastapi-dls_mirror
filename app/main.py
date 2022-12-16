@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
-from starlette.responses import StreamingResponse
+from starlette.responses import StreamingResponse, JSONResponse
 
 from app.helper import load_key, private_bytes, public_key
 
@@ -26,6 +26,11 @@ SITE_KEY_PUB = public_key(SITE_KEY_FILE)
 @app.get('/')
 async def index():
     return {'hello': 'world'}
+
+
+@app.get('/status')
+async def status(request: Request):
+    return JSONResponse({'status': 'up'})
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py

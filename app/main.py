@@ -235,8 +235,9 @@ async def lease(request: Request):
     # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
     response = {
         "active_lease_list": [
-            "BE276D7B-2CDB-11EC-9838-061A22468B59", # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE 2
-            "BE276EFE-2CDB-11EC-9838-061A22468B59", # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE 1
+            "BE276D7B-2CDB-11EC-9838-061A22468B59",  # 'BE276D7B-2CDB-11EC-9838-061A22468B59','BDFBE16D-2CDB-11EC-9838-061A22468B59' => 'NVIDIA Virtual PC','NVIDIA Virtual PC'
+            "BE276EFE-2CDB-11EC-9838-061A22468B59",  # 'BE276EFE-2CDB-11EC-9838-061A22468B59','BDFBE308-2CDB-11EC-9838-061A22468B59' => 'NVIDIA RTX Virtual Workstation','NVIDIA RTX Virtual Workstation'
+            "BE276FF0-2CDB-11EC-9838-061A22468B59",  # 'BE276FF0-2CDB-11EC-9838-061A22468B59','BDFBE405-2CDB-11EC-9838-061A22468B59' => 'NVIDIA vGaming','NVIDIA vGaming'
         ],
         "sync_timestamp": cur_time,
         "prompts": None

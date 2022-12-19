@@ -2,6 +2,7 @@ from base64 import b64encode
 from hashlib import sha256
 from uuid import uuid4
 from os.path import join, dirname
+from os import getenv
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 import json
@@ -20,8 +21,9 @@ app = FastAPI()
 
 LEASE_EXPIRE_DELTA = relativedelta(minutes=15)  # days=90
 
-URL = '192.168.178.196'
-SITE_KEY_XID = '00000000-0000-0000-0000-000000000000'
+DLS_URL = getenv('DLS_URL', 'localhost')
+DLS_PORT = getenv('DLS_PORT', 443)
+SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
@@ -66,12 +68,12 @@ async def client_token():
                     "idx": 0,
                     "d_name": "DLS",
                     "svc_port_map": [
-                        {"service": "auth", "port": 443},
-                        {"service": "lease", "port": 443}
+                        {"service": "auth", "port": DLS_PORT},
+                        {"service": "lease", "port": DLS_PORT}
                     ]
                 }
             ],
-            "node_url_list": [{"idx": 0, "url": URL, "url_qr": URL, "svc_port_set_idx": 0}]
+            "node_url_list": [{"idx": 0, "url": DLS_URL, "url_qr": DLS_URL, "svc_port_set_idx": 0}]
         },
         "service_instance_public_key_configuration": {
             "service_instance_public_key_me": service_instance_public_key_me,

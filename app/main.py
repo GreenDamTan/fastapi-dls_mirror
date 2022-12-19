@@ -12,7 +12,7 @@ from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.responses import StreamingResponse, JSONResponse
 
-from app.helper import load_key, private_bytes, public_key
+from helper import load_key, private_bytes, public_key
 
 # todo: initialize certificate (or should be done by user, and passed through "volumes"?)
 

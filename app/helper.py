@@ -1,6 +1,5 @@
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKeyWithSerialization
-from cryptography.hazmat.primitives.serialization import load_pem_private_key, Encoding, PrivateFormat, PublicFormat, \
-    NoEncryption
+from Crypto.PublicKey import RSA
+from Crypto.PublicKey.RSA import RsaKey
 
 
 def load_file(filename) -> bytes:
@@ -9,20 +8,13 @@ def load_file(filename) -> bytes:
     return content
 
 
-def load_key(filename) -> RSAPrivateKeyWithSerialization:
-    return load_pem_private_key(data=load_file(filename), password=None)
+def load_key(filename) -> RsaKey:
+    return RSA.import_key(extern_key=load_file(filename), passphrase=None)
 
 
-def private_bytes(rsa: RSAPrivateKeyWithSerialization) -> bytes:
-    return rsa.private_bytes(
-        encoding=Encoding.PEM,
-        format=PrivateFormat.TraditionalOpenSSL,
-        encryption_algorithm=NoEncryption()
-    )
+def private_bytes(rsa: RsaKey) -> bytes:
+    return rsa.export_key(format='PEM', passphrase=None, protection=None)
 
 
-def public_key(rsa: RSAPrivateKeyWithSerialization) -> bytes:
-    return rsa.public_key().public_bytes(
-        encoding=Encoding.PEM,
-        format=PublicFormat.SubjectPublicKeyInfo
-    )
+def public_key(rsa: RsaKey) -> bytes:
+    return rsa.public_key().export_key(format='PEM')

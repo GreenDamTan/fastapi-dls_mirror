@@ -167,8 +167,7 @@ async def token(request: Request):
     payload = jwt.decode(token=j['auth_code'], key=key)
 
     # validate the code challenge
-    if payload['challenge'] != b64encode(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode(
-        'utf-8'):
+    if payload['challenge'] != b64encode(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
         raise HTTPException(status_code=403, detail='expected challenge did not match verifier')
 
     cur_time = datetime.utcnow()

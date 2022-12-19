@@ -85,7 +85,7 @@ async def client_token():
     data = jwt.encode(payload, key=key, headers=None, algorithm='RS256')
 
     response = StreamingResponse(iter([data]), media_type="text/plain")
-    response.headers["Content-Disposition"] = "attachment; filename=client_token.tok"
+    response.headers["Content-Disposition"] = f'attachment; filename=client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
     return response
 
 

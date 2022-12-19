@@ -18,6 +18,8 @@ from helper import load_key, private_bytes, public_key
 
 app = FastAPI()
 
+LEASE_EXPIRE_DELTA = relativedelta(minutes=15)  # days=90
+
 URL = '192.168.178.196'
 SITE_KEY_FILE = load_key('/opt/fastapi-dls/site.key')
 SITE_KEY_XID = '00000000-0000-0000-0000-000000000000'
@@ -216,7 +218,7 @@ async def lessor(request: Request):
             "lease": {
                 "ref": scope_ref,
                 "created": cur_time,
-                "expires": cur_time + relativedelta(minutes=15),  # days=90
+                "expires": cur_time + LEASE_EXPIRE_DELTA,
                 "recommended_lease_renewal": 0.15,
                 "offline_lease": "true",
                 "license_type": "CONCURRENT_COUNTED_SINGLE"
@@ -245,6 +247,25 @@ async def lease(request: Request):
         ],
         "sync_timestamp": cur_time,
         "prompts": None
+    }
+
+    return response
+
+
+# venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
+@app.put('/leasing/v1/lease/{lease_ref}')
+async def lease_renew(request: Request, lease_ref: str):
+    print('> renew')
+
+    cur_time = datetime.utcnow()
+
+    response = {
+        "lease_ref": lease_ref,
+        "expires": cur_time + LEASE_EXPIRE_DELTA,
+        "recommended_lease_renewal": 0.16,
+        "offline_lease": True,
+        "prompts": None,
+        "sync_timestamp": cur_time
     }
 
     return response

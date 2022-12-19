@@ -1,7 +1,7 @@
 from base64 import b64encode
 from hashlib import sha256
 from uuid import uuid4
-
+from os.path import join, dirname
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 import json
@@ -22,8 +22,8 @@ LEASE_EXPIRE_DELTA = relativedelta(minutes=15)  # days=90
 
 URL = '192.168.178.196'
 SITE_KEY_XID = '00000000-0000-0000-0000-000000000000'
-INSTANCE_KEY_RSA = load_key('cert/instance.private.pem')
-INSTANCE_KEY_PUB = load_key('cert/instance.public.pem')
+INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
+INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
 
 @app.get('/')
@@ -291,7 +291,7 @@ if __name__ == '__main__':
 
     print(f'> Starting dev-server ...')
 
-    ssl_keyfile = 'cert/webserver.key'
-    ssl_certfile = 'cert/webserver.crt'
+    ssl_keyfile = join(dirname(__file__), 'cert/webserver.key')
+    ssl_certfile = join(dirname(__file__), 'cert/webserver.crt')
 
     uvicorn.run('main:app', host='0.0.0.0', port=443, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile, reload=True)

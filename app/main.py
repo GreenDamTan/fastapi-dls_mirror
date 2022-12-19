@@ -41,13 +41,18 @@ async def status(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
 @app.get('/client-token')
 async def client_token():
-    service_instance_public_key_me = {
-        "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
-        "exp": INSTANCE_KEY_PUB.public_key().e,
-    }
-
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
+
+    service_instance_public_key_configuration = {
+        "service_instance_public_key_me": {
+            "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
+            "exp": INSTANCE_KEY_PUB.public_key().e,
+        },
+        "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
+        "key_retention_mode": "LATEST_ONLY"
+    }
+
     payload = {
         "jti": str(uuid4()),
         "iss": "NLS Service Instance",
@@ -56,13 +61,10 @@ async def client_token():
         "nbf": timegm(cur_time.timetuple()),
         "exp": timegm(exp_time.timetuple()),
         "update_mode": "ABSOLUTE",
-        "scope_ref_list": [
-            "482f24b5-0a60-4ec2-a63a-9ed00bc2534e"
-            # todo: "scope_ref_list" should be a unique client id (which identifies leases, etc.)
-        ],
+        "scope_ref_list": [str(uuid4())],
         "fulfillment_class_ref_list": [],
         "service_instance_configuration": {
-            "nls_service_instance_ref": "b43d6e46-d6d0-4943-8b8d-c66a5f6e0d38",
+            "nls_service_instance_ref": "00000000-0000-0000-0000-000000000000",
             "svc_port_set_list": [
                 {
                     "idx": 0,
@@ -75,11 +77,7 @@ async def client_token():
             ],
             "node_url_list": [{"idx": 0, "url": DLS_URL, "url_qr": DLS_URL, "svc_port_set_idx": 0}]
         },
-        "service_instance_public_key_configuration": {
-            "service_instance_public_key_me": service_instance_public_key_me,
-            "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
-            "key_retention_mode": "LATEST_ONLY"
-        }
+        "service_instance_public_key_configuration": service_instance_public_key_configuration,
     }
 
     key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
@@ -101,14 +99,7 @@ async def auth(request: Request, status_code=201):
     cur_time = datetime.utcnow()
     response = {
         "origin_ref": j['candidate_origin_ref'],
-        "environment": {
-            "fingerprint": {"mac_address_list": ["e4:b9:7a:e5:7b:ff"]},
-            "guest_driver_version": "guest_driver_version",
-            "hostname": "myhost",
-            "os_platform": "os_platform",
-            "os_version": "os_version",
-            "ip_address_list": ["192.168.1.129"]
-        },
+        "environment": j['environment'],
         "svc_port_set_list": None,
         "node_url_list": None,
         "node_query_order": None,

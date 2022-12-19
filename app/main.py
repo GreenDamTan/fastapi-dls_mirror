@@ -234,9 +234,11 @@ async def lease(request: Request):
     cur_time = datetime.utcnow()
     # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
     response = {
-        # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE
         "active_lease_list": [
-            "BE276D7B-2CDB-11EC-9838-061A22468B59"
+            "BE276D7B-2CDB-11EC-9838-061A22468B59", # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE
+            "BE276EFE-2CDB-11EC-9838-061A22468B59", # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE
+            "BE277164-2CDB-11EC-9838-061A22468B59", # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE
+            "BE277214-2CDB-11EC-9838-061A22468B59", # GRID-Virtual-WS 2.0 CONCURRENT_COUNTED_SINGLE
         ],
         "sync_timestamp": cur_time,
         "prompts": None

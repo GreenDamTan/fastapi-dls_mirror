@@ -286,7 +286,18 @@ async def lease_remove(request: Request, status_code=200):
 if __name__ == '__main__':
     import uvicorn
 
-    ssl_keyfile = 'key.pem'
-    ssl_certfile = 'cert.pem'
+    ###
+    #
+    # Running `python app/main.py` assumes that the user created a keypair, e.g. with openssl.
+    #
+    # openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout app/cert/webserver.key -out app/cert/webserver.crt
+    #
+    ###
 
-    uvicorn.run('main:app', host='0.0.0.0', port=443, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile)
+
+    print(f'> Starting dev-server ...')
+
+    ssl_keyfile = 'cert/webserver.key'
+    ssl_certfile = 'cert/webserver.crt'
+
+    uvicorn.run('main:app', host='0.0.0.0', port=443, ssl_keyfile=ssl_keyfile, ssl_certfile=ssl_certfile, reload=True)

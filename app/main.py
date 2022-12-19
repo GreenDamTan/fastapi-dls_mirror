@@ -95,6 +95,7 @@ async def auth(request: Request, status_code=201):
     body = body.decode('utf-8')
     j = json.loads(body)
     # {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
+    print(f'> [  origin  ]: {j}')
 
     cur_time = datetime.utcnow()
     response = {
@@ -116,7 +117,8 @@ async def code(request: Request):
     body = await request.body()
     body = body.decode('utf-8')
     j = json.loads(body)
-    # {"code_challenge":"QhDaArKDQwFeQ5Jq4Dn5hy37ODF8Jq3igXCXvWEgs5I","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
+    # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
+    print(f'> [   code   ]: {j}')
 
     cur_time = datetime.utcnow()
     expires = cur_time + relativedelta(days=1)
@@ -198,6 +200,7 @@ async def lessor(request: Request):
     body = body.decode('utf-8')
     j = json.loads(body)
     # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
+    print(f'> [  lessor  ]: {j}')
 
     cur_time = datetime.utcnow()
     # todo: keep track of leases, to return correct list on '/leasing/v1/lessor/leases'
@@ -245,8 +248,9 @@ async def lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
 async def lease_renew(request: Request, lease_ref: str):
-    cur_time = datetime.utcnow()
+    print(f'> [  renew   ]: {lease_ref}')
 
+    cur_time = datetime.utcnow()
     response = {
         "lease_ref": lease_ref,
         "expires": cur_time + LEASE_EXPIRE_DELTA,

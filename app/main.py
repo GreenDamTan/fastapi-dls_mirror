@@ -5,7 +5,8 @@ from uuid import uuid4
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
 from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
@@ -45,7 +46,7 @@ async def client_token():
     },
 
     cur_time = datetime.utcnow()
-    exp_time = cur_time + timedelta(days=1)
+    exp_time = cur_time + relativedelta(years=12)
     payload = {
         "jti": str(uuid4()),
         "iss": "NLS Service Instance",
@@ -126,7 +127,7 @@ async def code(request: Request):
     # {"code_challenge":"QhDaArKDQwFeQ5Jq4Dn5hy37ODF8Jq3igXCXvWEgs5I","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
 
     cur_time = datetime.utcnow()
-    expires = cur_time + timedelta(days=1)
+    expires = cur_time + relativedelta(days=1)
 
     payload = {
         'iat': timegm(cur_time.timetuple()),
@@ -171,7 +172,7 @@ async def token(request: Request):
         raise HTTPException(status_code=403, detail='expected challenge did not match verifier')
 
     cur_time = datetime.utcnow()
-    access_expires_on = cur_time + timedelta(days=1)
+    access_expires_on = cur_time + relativedelta(days=1)
 
     new_payload = {
         'iat': timegm(cur_time.timetuple()),
@@ -216,7 +217,7 @@ async def lessor(request: Request):
             "lease": {
                 "ref": scope_ref,
                 "created": cur_time,
-                "expires": cur_time + timedelta(days=90),
+                "expires": cur_time + relativedelta(minutes=15),  # days=90
                 "recommended_lease_renewal": 0.15,
                 "offline_lease": "true",
                 "license_type": "CONCURRENT_COUNTED_SINGLE"

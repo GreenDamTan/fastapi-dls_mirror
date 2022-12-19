@@ -252,8 +252,6 @@ async def lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
 async def lease_renew(request: Request, lease_ref: str):
-    print('> renew')
-
     cur_time = datetime.utcnow()
 
     response = {
@@ -290,7 +288,6 @@ if __name__ == '__main__':
     # openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout app/cert/webserver.key -out app/cert/webserver.crt
     #
     ###
-
 
     print(f'> Starting dev-server ...')
 

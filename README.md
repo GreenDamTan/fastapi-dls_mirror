@@ -16,5 +16,5 @@ nvidia-smi -q | grep "License"
 
 ### Windows
 
-Download file and place it into `:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
+Download file and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
 Now restart `NvContainerLocalSystem` service. 

@@ -84,13 +84,14 @@ async def client_token():
     data = jws.sign(payload, key=key, headers=None, algorithm='RS256')
 
     response = StreamingResponse(iter([data]), media_type="text/plain")
-    response.headers["Content-Disposition"] = f'attachment; filename=client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
+    filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
+    response.headers["Content-Disposition"] = f'attachment; filename={filename}'
     return response
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 @app.post('/auth/v1/origin')
-async def auth(request: Request, status_code=201):
+async def auth(request: Request):
     body = await request.body()
     body = body.decode('utf-8')
     j = json.loads(body)
@@ -248,7 +249,7 @@ async def lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
 async def lease_renew(request: Request, lease_ref: str):
-    print(f'> [  renew   ]: {lease_ref}')
+    print(f'> [  renew   ]: lease: {lease_ref}')
 
     cur_time = datetime.utcnow()
     response = {

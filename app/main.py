@@ -21,8 +21,8 @@ app = FastAPI()
 
 LEASE_EXPIRE_DELTA = relativedelta(minutes=15)  # days=90
 
-DLS_URL = getenv('DLS_URL', 'localhost')
-DLS_PORT = getenv('DLS_PORT', 443)
+DLS_URL = str(getenv('DLS_URL', 'localhost'))
+DLS_PORT = int(getenv('DLS_PORT', '443'))
 SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))

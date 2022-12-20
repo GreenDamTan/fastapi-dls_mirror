@@ -1,0 +1,30 @@
+cache:
+  key: one-key-to-rule-them-all
+
+build:
+  image: docker:dind
+  interruptible: true
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH
+  tags: [ docker ]
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+
+test:
+  stage: test
+  script:
+    - echo "Nothing to do ..."
+
+deploy:
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
+    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:${CI_BUILD_REF}
+    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:latest
+    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:${CI_BUILD_REF}
+    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:latest

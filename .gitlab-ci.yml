@@ -24,7 +24,7 @@ deploy:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
-    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:${CI_BUILD_REF}
-    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:latest
-    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:${CI_BUILD_REF}
-    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_PATH}:latest
+    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${CI_BUILD_REF}
+    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
+    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${CI_BUILD_REF}
+    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest

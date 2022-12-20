@@ -30,7 +30,7 @@ INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
 @app.get('/')
 async def index():
-    return {'hello': 'world'}
+    return JSONResponse({'hello': 'world'})
 
 
 @app.get('/status')
@@ -106,9 +106,9 @@ async def auth(request: Request):
         "node_url_list": None,
         "node_query_order": None,
         "prompts": None,
-        "sync_timestamp": cur_time
+        "sync_timestamp": cur_time.isoformat()
     }
-    return response
+    return JSONResponse(response)
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
@@ -142,10 +142,10 @@ async def code(request: Request):
 
     response = {
         "auth_code": auth_code,
-        "sync_timestamp": datetime.utcnow(),
+        "sync_timestamp": cur_time.isoformat(),
         "prompts": None
     }
-    return response
+    return JSONResponse(response)
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
@@ -187,12 +187,12 @@ async def token(request: Request):
     auth_token = jwt.encode(new_payload, key=key, headers=headers, algorithm='RS256')
 
     response = {
-        "expires": access_expires_on,
+        "expires": access_expires_on.isoformat(),
         "auth_token": auth_token,
-        "sync_timestamp": cur_time,
+        "sync_timestamp": cur_time.isoformat(),
     }
 
-    return response
+    return JSONResponse(response)
 
 
 @app.post('/leasing/v1/lessor')
@@ -211,8 +211,8 @@ async def lessor(request: Request):
             "ordinal": 0,
             "lease": {
                 "ref": scope_ref,
-                "created": cur_time,
-                "expires": cur_time + LEASE_EXPIRE_DELTA,
+                "created": cur_time.isoformat(),
+                "expires": (cur_time + LEASE_EXPIRE_DELTA).isoformat(),
                 "recommended_lease_renewal": 0.15,
                 "offline_lease": "true",
                 "license_type": "CONCURRENT_COUNTED_SINGLE"
@@ -222,11 +222,11 @@ async def lessor(request: Request):
     response = {
         "lease_result_list": lease_result_list,
         "result_code": "SUCCESS",
-        "sync_timestamp": cur_time,
+        "sync_timestamp": cur_time.isoformat(),
         "prompts": None
     }
 
-    return response
+    return JSONResponse(response)
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
@@ -239,11 +239,11 @@ async def lease(request: Request):
         "active_lease_list": [
             "BE276D7B-2CDB-11EC-9838-061A22468B59"
         ],
-        "sync_timestamp": cur_time,
+        "sync_timestamp": cur_time.isoformat(),
         "prompts": None
     }
 
-    return response
+    return JSONResponse(response)
 
 
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
@@ -254,14 +254,14 @@ async def lease_renew(request: Request, lease_ref: str):
     cur_time = datetime.utcnow()
     response = {
         "lease_ref": lease_ref,
-        "expires": cur_time + LEASE_EXPIRE_DELTA,
+        "expires": (cur_time + LEASE_EXPIRE_DELTA).isoformat(),
         "recommended_lease_renewal": 0.16,
         "offline_lease": True,
         "prompts": None,
-        "sync_timestamp": cur_time
+        "sync_timestamp": cur_time.isoformat(),
     }
 
-    return response
+    return JSONResponse(response)
 
 
 @app.delete('/leasing/v1/lessor/leases')
@@ -270,10 +270,10 @@ async def lease_remove(request: Request, status_code=200):
     response = {
         "released_lease_list": None,
         "release_failure_list": None,
-        "sync_timestamp": cur_time,
+        "sync_timestamp": cur_time.isoformat(),
         "prompts": None
     }
-    return response
+    return JSONResponse(response)
 
 
 if __name__ == '__main__':

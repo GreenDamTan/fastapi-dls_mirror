@@ -91,7 +91,7 @@ async def client_token():
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 @app.post('/auth/v1/origin')
-async def auth(request: Request):
+async def auth_origin(request: Request):
     body = await request.body()
     body = body.decode('utf-8')
     j = json.loads(body)
@@ -114,7 +114,7 @@ async def auth(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 @app.post('/auth/v1/code')
-async def code(request: Request):
+async def auth_code(request: Request):
     body = await request.body()
     body = body.decode('utf-8')
     j = json.loads(body)
@@ -151,7 +151,7 @@ async def code(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 @app.post('/auth/v1/token')
-async def token(request: Request):
+async def auth_token(request: Request):
     body = await request.body()
     body = body.decode('utf-8')
     j = json.loads(body)
@@ -196,7 +196,7 @@ async def token(request: Request):
 
 
 @app.post('/leasing/v1/lessor')
-async def lessor(request: Request):
+async def leasing_lessor(request: Request):
     body = await request.body()
     body = body.decode('utf-8')
     j = json.loads(body)
@@ -231,7 +231,7 @@ async def lessor(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.get('/leasing/v1/lessor/leases')
-async def lease(request: Request):
+async def leasing_lessor_lease(request: Request):
     cur_time = datetime.utcnow()
     # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
     response = {
@@ -248,7 +248,7 @@ async def lease(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
-async def lease_renew(request: Request, lease_ref: str):
+async def leasing_lease_renew(request: Request, lease_ref: str):
     print(f'> [  renew   ]: lease: {lease_ref}')
 
     cur_time = datetime.utcnow()
@@ -265,7 +265,7 @@ async def lease_renew(request: Request, lease_ref: str):
 
 
 @app.delete('/leasing/v1/lessor/leases')
-async def lease_remove(request: Request, status_code=200):
+async def leasing_lessor_lease_remove(request: Request):
     cur_time = datetime.utcnow()
     response = {
         "released_lease_list": None,

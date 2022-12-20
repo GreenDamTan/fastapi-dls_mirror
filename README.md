@@ -16,6 +16,14 @@ openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webse
 docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/app/cert collinwebdesigns/fastapi-dls:latest
 ```
 
+# Configuration
+
+| Variable            | Default     | Usage                                                                     |
+|---------------------|-------------|---------------------------------------------------------------------------|
+| `DLS_URL`           | `localhost` | Used in client-token to tell guest driver where dls instance is reachable |
+| `DLS_PORT`          | `443`       | Used in client-token to tell guest driver where dls instance is reachable |
+| `LEASE_EXPIRE_DAYS` | `90`        | Lease time in days                                                        |
+
 # Installation
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**

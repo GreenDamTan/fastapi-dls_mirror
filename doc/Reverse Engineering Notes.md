@@ -54,6 +54,10 @@ Command:
 
 - `/etc/dls/config/decryptor/decryptor`
 
+```shell
+ docker exec -it <container-id> /etc/dls/config/decryptor/decryptor > /tmp/private-key.pem
+```
+
 ```
 -----BEGIN RSA PRIVATE KEY-----
 ...
@@ -75,8 +79,9 @@ base64-content...
 **Decrypt database password**
 
 ```
-cat /etc/dls/config/dls_db_password.bin | base64 -d > /etc/dls/config/dls_db_password.bin.raw
-openssl rsautl -decrypt -inkey /tmp/private-key.pem -in /etc/dls/config/dls_db_password.bin.raw
+cd /var/lib/docker/volumes/configurations/_data
+cat dls_db_password.bin | base64 -d > dls_db_password.bin.raw
+openssl rsautl -decrypt -inkey /tmp/private-key.pem -in dls_db_password.bin.raw
 ```
 
 # Database

@@ -18,11 +18,12 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 # Configuration
 
-| Variable            | Default     | Usage                                                                     |
-|---------------------|-------------|---------------------------------------------------------------------------|
-| `DLS_URL`           | `localhost` | Used in client-token to tell guest driver where dls instance is reachable |
-| `DLS_PORT`          | `443`       | Used in client-token to tell guest driver where dls instance is reachable |
-| `LEASE_EXPIRE_DAYS` | `90`        | Lease time in days                                                        |
+| Variable            | Default               | Usage                                                                                 |
+|---------------------|-----------------------|---------------------------------------------------------------------------------------|
+| `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
+| `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
+| `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
+| `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
 
 # Installation
 

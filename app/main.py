@@ -31,7 +31,7 @@ def load_key(filename) -> RsaKey:
 
 app, db = FastAPI(), dataset.connect('sqlite:///db.sqlite')
 
-LEASE_EXPIRE_DELTA = relativedelta(minutes=15)  # days=90
+LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
 
 DLS_URL = str(getenv('DLS_URL', 'localhost'))
 DLS_PORT = int(getenv('DLS_PORT', '443'))

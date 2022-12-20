@@ -3,3 +3,4 @@ uvicorn[standard]==0.20.0
 python-jose==3.3.0
 pycryptodome==3.16.0
 python-dateutil==2.8.2
+dataset==1.5.2

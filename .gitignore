@@ -1,4 +1,5 @@
 .DS_Store
 venv/
 .idea/
+app/*.sqlite*
 app/cert/*.*

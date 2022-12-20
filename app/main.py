@@ -5,6 +5,7 @@ from os.path import join, dirname
 from os import getenv
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
+from fastapi.encoders import jsonable_encoder
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -58,6 +59,18 @@ async def index():
 @app.get('/status')
 async def status(request: Request):
     return JSONResponse({'status': 'up'})
+
+
+@app.get('/-/origins')
+async def _origins(request: Request):
+    response = list(map(lambda x: jsonable_encoder(x), db['origin'].all()))
+    return JSONResponse(response)
+
+
+@app.get('/-/leases')
+async def _leases(request: Request):
+    response = list(map(lambda x: jsonable_encoder(x), db['lease'].all()))
+    return JSONResponse(response)
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py

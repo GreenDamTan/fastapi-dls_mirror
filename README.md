@@ -2,6 +2,24 @@
 
 Minimal Delegated License Service (DLS).
 
+## Endpoints
+
+### `GET /`
+
+Just a simple *hello world* endpoint.
+
+### `GET /status`
+
+Status endpoint, used for *healthcheck*.
+
+### `GET /-/origins`
+
+List registered origins.
+
+### `GET /-/leases`
+
+List current leases.
+
 # Setup (Docker)
 
 **Run this on the Docker-Host**

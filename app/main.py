@@ -12,8 +12,19 @@ from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.responses import StreamingResponse, JSONResponse
+from Crypto.PublicKey import RSA
+from Crypto.PublicKey.RSA import RsaKey
 
-from helper import load_key, private_bytes, public_key
+
+def load_file(filename) -> bytes:
+    with open(filename, 'rb') as file:
+        content = file.read()
+    return content
+
+
+def load_key(filename) -> RsaKey:
+    return RSA.import_key(extern_key=load_file(filename), passphrase=None)
+
 
 # todo: initialize certificate (or should be done by user, and passed through "volumes"?)
 

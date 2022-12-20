@@ -4,9 +4,9 @@ COPY requirements.txt /tmp/requirements.txt
 
 RUN apk update \
  && apk add --no-cache --virtual build-deps gcc g++ python3-dev musl-dev \
- && apk add --no-cache postgresql postgresql-dev mariadb-connector-c-dev \
+ && apk add --no-cache curl postgresql postgresql-dev mariadb-connector-c-dev sqlite-dev \
  && pip install --no-cache-dir --upgrade uvicorn \
- && pip install --no-cache-dir psycopg2==2.9.3 mysqlclient==2.1.1 pysqlite3==0.4.7 \
+ && pip install --no-cache-dir psycopg2==2.9.5 mysqlclient==2.1.1 pysqlite3==0.5.0 \
  && pip install --no-cache-dir -r /tmp/requirements.txt \
  && apk del build-deps
 

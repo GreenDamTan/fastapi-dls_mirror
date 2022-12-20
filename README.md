@@ -2,6 +2,24 @@
 
 Minimal Delegated License Service (DLS).
 
+## Endpoints
+
+### `GET /`
+
+Just a simple *hello world* endpoint.
+
+### `GET /status`
+
+Status endpoint, used for *healthcheck*.
+
+### `GET /-/origins`
+
+List registered origins.
+
+### `GET /-/leases`
+
+List current leases.
+
 # Setup (Docker)
 
 **Run this on the Docker-Host**
@@ -18,11 +36,12 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 # Configuration
 
-| Variable            | Default     | Usage                                                                     |
-|---------------------|-------------|---------------------------------------------------------------------------|
-| `DLS_URL`           | `localhost` | Used in client-token to tell guest driver where dls instance is reachable |
-| `DLS_PORT`          | `443`       | Used in client-token to tell guest driver where dls instance is reachable |
-| `LEASE_EXPIRE_DAYS` | `90`        | Lease time in days                                                        |
+| Variable            | Default               | Usage                                                                                 |
+|---------------------|-----------------------|---------------------------------------------------------------------------------------|
+| `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
+| `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
+| `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
+| `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
 
 # Installation
 
@@ -59,28 +78,60 @@ Currently, there are no known issues.
 
 ## Windows
 
-On Windows there is currently a problem returning the license. As you can see the license is installed successfully
-after
-a few minutes. About the time of the first *lease period* the driver gets a *Mismatch between client and server with
-respect to licenses held*.
+On Windows on some machines there are running two or more instances of `NVIDIA Display Container LS`. This causes a
+problem on licensing flow. As you can see in the logs below, there are two lines with `NLS initialized`, each prefixed
+with `<1>` and `<2>`. So it is possible, that *daemon 1* fetches a valid license through dls-service, and *daemon 2*
+only
+gets a valid local license.
 
 <details>
   <summary>Log</summary>
 
+**Display-Container-LS**
+
 ```
-Tue Dec 20 05:55:52 2022:<2>:NLS initialized
-Tue Dec 20 05:55:57 2022:<2>:Mismatch between client and server with respect to licenses held. Returning the licenses
-Tue Dec 20 05:55:58 2022:<2>:License returned successfully. (Info: 192.168.178.33)
-Tue Dec 20 05:56:20 2022:<2>:Mismatch between client and server with respect to licenses held. Returning the licenses
-Tue Dec 20 05:56:21 2022:<2>:License returned successfully. (Info: 192.168.178.33)
-Tue Dec 20 05:56:46 2022:<2>:Mismatch between client and server with respect to licenses held. Returning the licenses
-Tue Dec 20 05:56:47 2022:<2>:License returned successfully. (Info: 192.168.178.33)
-Tue Dec 20 05:56:54 2022:<1>:License renewed successfully. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-20 5:11:54 GMT)
-Tue Dec 20 05:57:17 2022:<2>:Mismatch between client and server with respect to licenses held. Returning the licenses
-Tue Dec 20 05:57:18 2022:<2>:License returned successfully. (Info: 192.168.178.33)
-Tue Dec 20 05:59:20 2022:<1>:License renewed successfully. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-20 5:14:20 GMT)
-Tue Dec 20 06:01:45 2022:<1>:License renewed successfully. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-20 5:16:45 GMT)
-Tue Dec 20 06:04:10 2022:<1>:License renewed successfully. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-20 5:19:10 GMT)
+Tue Dec 20 17:25:11 2022:<1>:NLS initialized
+Tue Dec 20 17:25:12 2022:<2>:NLS initialized
+Tue Dec 20 17:25:16 2022:<1>:Valid GRID license not found. GPU features and performance will be restricted. To enable full functionality please configure licensing details.
+Tue Dec 20 17:25:17 2022:<1>:License acquired successfully. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-21 16:25:16 GMT)
+Tue Dec 20 17:25:17 2022:<2>:Valid GRID license not found. GPU features and performance will be restricted. To enable full functionality please configure licensing details.
+Tue Dec 20 17:25:38 2022:<2>:License acquired successfully from local trusted store. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-21 16:25:16 GMT)
+```
+
+**fastapi-dls**
+
+``` 
+> [  origin  ]: 41720000-FA43-4000-9472-0000E8660000: {'candidate_origin_ref': '41720000-FA43-4000-9472-0000E8660000', 'environment': {'fingerprint': {'mac_address_list': ['5E:F0:79:E6:DE:E1']}, 'hostname': 'PC-Windows', 'ip_address_list': ['2003:a:142e:c800::1cc', 'fdfe:7fcd:e30f:40f5:ad5c:e67b:49a6:cfb3', 'fdfe:7fcd:e30f:40f5:6409:db1c:442b:f90b', 'fe80::a32e:f736:8988:fe45', '192.168.178.110'], 'guest_driver_version': '527.41', 'os_platform': 'Windows 10 Pro', 'os_version': '10.0.19045', 'host_driver_version': '525.60.12', 'gpu_id_list': ['1E3010DE-133210DE'], 'client_platform_id': '00000000-0000-0000-0000-000000000113', 'hv_platform': 'Unknown', 'cpu_sockets': 1, 'physical_cores': 8}, 'registration_pending': False, 'update_pending': False}
+> [  origin  ]: 41720000-FA43-4000-9472-0000E8660000: {'candidate_origin_ref': '41720000-FA43-4000-9472-0000E8660000', 'environment': {'fingerprint': {'mac_address_list': ['5E:F0:79:E6:DE:E1']}, 'hostname': 'PC-Windows', 'ip_address_list': ['2003:a:142e:c800::1cc', 'fdfe:7fcd:e30f:40f5:ad5c:e67b:49a6:cfb3', 'fdfe:7fcd:e30f:40f5:6409:db1c:442b:f90b', 'fe80::a32e:f736:8988:fe45', '192.168.178.110'], 'guest_driver_version': '527.41', 'os_platform': 'Windows 10 Pro', 'os_version': '10.0.19045', 'host_driver_version': '525.60.12', 'gpu_id_list': ['1E3010DE-133210DE'], 'client_platform_id': '00000000-0000-0000-0000-000000000113', 'hv_platform': 'Unknown', 'cpu_sockets': 1, 'physical_cores': 8}, 'registration_pending': False, 'update_pending': False}
+> [   code   ]: 41720000-FA43-4000-9472-0000E8660000: {'code_challenge': 'bTwcOn17SD5mtwmFdKDgufnceGXeGYcnFfMHqmjtReo', 'origin_ref': '41720000-FA43-4000-9472-0000E8660000'}
+> [   code   ]: 41720000-FA43-4000-9472-0000E8660000: {'code_challenge': 'FCVDfgKmgr+lyvSpOxr4fZnDZv8VrNtNEAZPUuLAr7A', 'origin_ref': '41720000-FA43-4000-9472-0000E8660000'}
+> [   auth   ]: 41720000-FA43-4000-9472-0000E8660000 (bTwcOn17SD5mtwmFdKDgufnceGXeGYcnFfMHqmjtReo): {'auth_code': 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzE1NTcwMzMsImV4cCI6MTY3MTU1NzkzMywiY2hhbGxlbmdlIjoiYlR3Y09uMTdTRDVtdHdtRmRLRGd1Zm5jZUdYZUdZY25GZk1IcW1qdFJlbyIsIm9yaWdpbl9yZWYiOiJiVHdjT24xN1NENW10d21GZEtEZ3VmbmNlR1hlR1ljbkZmTUhxbWp0UmVvIiwia2V5X3JlZiI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCJ9.m5M4h9HRYWkItHEdYGApJVM7TgBH0qyDXCxPkaG2-Km5SviRMk0_3er5Myjq3rYGlr88JBviA07Pc3cr7fV-tDAXaSGalxLNfFtVRcnzqbtgnkodep1PHRUXYkiQgfaJ36m02zZucu4qMyYfQTpZ_-x67eycFKyN9T9cRJ4PYFe5W_6_zjzz6D0qeLACDhXt4ns980URttKfn2vACE8gPP5-EC-7lSY1g1mAWJKB_X9OlYRFE2mkCxnde6z5I2qmCXE_awimkigjo5LYvDcjCz60QDsOD2Ojgz4Y9xgjPbKnup4c2orKTWLUfT8_o4toKbaSfuLzPtD-41b3E8NqHQ', 'code_verifier': 'NCkAAB0+AACEHAAAIAAAAEoWAACAGAAArGwAAOkkAABfTgAAK0oAADFiAAANXAAAHzwAAKg4AAC/GwAAkxsAAEJHAABiDwAAaC8AAFMYAAAOLAAAFUkAAEheAAALOwAAHmwAAIJtAABpKwAArmsAAGM8AABnVwAA5FkAAP8mAAA'}
+> [   auth   ]: 41720000-FA43-4000-9472-0000E8660000 (FCVDfgKmgr+lyvSpOxr4fZnDZv8VrNtNEAZPUuLAr7A): {'auth_code': 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzE1NTcwMzQsImV4cCI6MTY3MTU1NzkzNCwiY2hhbGxlbmdlIjoiRkNWRGZnS21ncitseXZTcE94cjRmWm5EWnY4VnJOdE5FQVpQVXVMQXI3QSIsIm9yaWdpbl9yZWYiOiJGQ1ZEZmdLbWdyK2x5dlNwT3hyNGZabkRadjhWck50TkVBWlBVdUxBcjdBIiwia2V5X3JlZiI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCJ9.it_UKCHLLd25g19zqryZ6_ePrkHljXJ3uX-hNdu-pcmnYD9ODOVl2u5bRxOrP6S2EUO4WLZIuvLOhbFBUHfZfXFRmmCv4NDJoZx36Qn6zszePK9Bngej40Qf8Wu3JGXMVrwfC6WNW6WFeUT-s9jos5e1glFk_E3ZhOYQjXljWOcfcNvZ-PVJFBi5OzyQqLuL43GQH_PSF66N2gq0OyKgxTvg2q6SzGD3YAxsbjy2mD0YOUv8pW8Dr_9L4hmnNHg2DdM_lCwmy4qIBaDkAQDq8VCw1-4RcXROiLlYwhvHRalsXnmREPXaOUiUrr8rrCX8jgc7Fcd1uhY5jnouWbwEAg', 'code_verifier': 'tFAAAKQSAAAqOQAAhykAANJxAAA9PQAAyFwAALNsAAB/VQAA4GQAAB5fAAA2JgAApWIAAKMeAAB3YwAAggQAAPsEAAAuAgAAblIAABR/AAAfAgAAenoAAKZ3AABUTQAA5CQAANkTAAC8JwAAvUQAAO0yAAA3awAAegIAAD1iAAA'}
+> [  leases  ]: 41720000-FA43-4000-9472-0000E8660000 (bTwcOn17SD5mtwmFdKDgufnceGXeGYcnFfMHqmjtReo): found 0 active leases
+> [  leases  ]: 41720000-FA43-4000-9472-0000E8660000 (FCVDfgKmgr+lyvSpOxr4fZnDZv8VrNtNEAZPUuLAr7A): found 0 active leases
+> [  create  ]: 41720000-FA43-4000-9472-0000E8660000 (bTwcOn17SD5mtwmFdKDgufnceGXeGYcnFfMHqmjtReo): create leases for scope_ref_list ['1e9335d0-049d-48b2-b719-e551c859f9f9']
+```
+
+in comparison to linux
+
+**nvidia-grid.service**
+
+```
+Dec 20 17:53:32 ubuntu-grid-server nvidia-gridd[10354]: vGPU Software package (0)
+Dec 20 17:53:32 ubuntu-grid-server nvidia-gridd[10354]: Ignore service provider and node-locked licensing
+Dec 20 17:53:32 ubuntu-grid-server nvidia-gridd[10354]: NLS initialized
+Dec 20 17:53:32 ubuntu-grid-server nvidia-gridd[10354]: Acquiring license. (Info: 192.168.178.110; NVIDIA RTX Virtual Workstation)
+Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired successfully. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2022-12-21 16:53:33 GMT)
+```
+
+**fastapi-dls**
+
+```
+> [  origin  ]: B210CF72-FEC7-4440-9499-1156D1ACD13A: {'candidate_origin_ref': 'B210CF72-FEC7-4440-9499-1156D1ACD13A', 'environment': {'fingerprint': {'mac_address_list': ['d6:30:d8:de:46:a7']}, 'hostname': 'ubuntu-grid-server', 'ip_address_list': ['192.168.178.114', 'fdfe:7fcd:e30f:40f5:d430:d8ff:fede:46a7', '2003:a:142e:c800::642', 'fe80::d430:d8ff:fede:46a7%ens18'], 'guest_driver_version': '525.60.13', 'os_platform': 'Ubuntu 20.04', 'os_version': '20.04.5 LTS (Focal Fossa)', 'host_driver_version': '525.60.12', 'gpu_id_list': ['1E3010DE-133210DE'], 'client_platform_id': '00000000-0000-0000-0000-000000000105', 'hv_platform': 'LINUX_KVM', 'cpu_sockets': 1, 'physical_cores': 16}, 'registration_pending': False, 'update_pending': False}
+> [   code   ]: B210CF72-FEC7-4440-9499-1156D1ACD13A: {'code_challenge': 'hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro', 'origin_ref': 'B210CF72-FEC7-4440-9499-1156D1ACD13A'}
+> [   auth   ]: B210CF72-FEC7-4440-9499-1156D1ACD13A (hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro): {'auth_code': 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzE1NTUyMTIsImV4cCI6MTY3MTU1NjExMiwiY2hhbGxlbmdlIjoiaFlTS0k0a3BaY1dxUGF0TTVTYzlSU0N1ek1leXoycGlUbXJSUUtubkhybyIsIm9yaWdpbl9yZWYiOiJoWVNLSTRrcFpjV3FQYXRNNVNjOVJTQ3V6TWV5ejJwaVRtclJRS25uSHJvIiwia2V5X3JlZiI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCJ9.G5GvGEBNMUga25EeaJeAbDk9yZuLBLyj5e0OzVfIjS70UOvDb-SvLSEhBv9vZ_rxjTtaWGQGK0iK8VnLce8KfqsxZzael6B5WqfwyQiok3WWIaQarrZZXKihWhgF49zYAIZx_0js1iSjoF9-vNSj8zan7j-miOCOssfPzGgfJqvWNnhR6_2YkCQgJssHMjGT1QxaJBZDVOuvY0ND7r6jxlS_Xze1nWtau1mtC6bu2hM8cxbYUtM-XOC8welCZ8ZOCKkutmVix0weV3TVNfR5vuBUz1QS6B9YC8R-eVVBhN2hl4j7kGZLmZ4TpyLViYEUVZsqGBayVIPeN2BhtqTO9g', 'code_verifier': 'IDiWUb62sjsNYuU/YtZ5YJdvvxE70gR9vEPOQo9+lh/DjMt1c6egVQRyXB0FAaASNB4/ME8YQjGQ1xUOS7ZwI4tjHDBbUXFBvt2DVu8jOlkDmZsNeI2IfQx5HRkz1nRIUlpqUC/m01gAQRYAuR6dbUyrkW8bq9B9cOLSbWzjJ0E'}
+> [  leases  ]: B210CF72-FEC7-4440-9499-1156D1ACD13A (hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro): found 0 active leases
+> [  create  ]: B210CF72-FEC7-4440-9499-1156D1ACD13A (hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro): create leases for scope_ref_list ['f27e8e79-a662-4e35-a728-7ea14341f0cb']
 ```
 
 </details>

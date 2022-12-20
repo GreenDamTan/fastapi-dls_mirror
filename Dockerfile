@@ -12,5 +12,5 @@ RUN apk update \
 
 COPY app /app
 
-HEALTHCHECK --start-period=30s --interval=10s --timeout=5s --retries=3 CMD curl --fail http://localhost/status || exit 1
+HEALTHCHECK --start-period=30s --interval=10s --timeout=5s --retries=3 CMD curl --insecure --fail https://localhost/status || exit 1
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "443", "--app-dir", "/app", "--proxy-headers", "--ssl-keyfile", "/app/cert/webserver.key", "--ssl-certfile", "/app/cert/webserver.crt"]

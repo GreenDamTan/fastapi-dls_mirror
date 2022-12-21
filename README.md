@@ -10,7 +10,7 @@ Just a simple *hello world* endpoint.
 
 ### `GET /status`
 
-Status endpoint, used for *healthcheck*.
+Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
 ### `GET /-/origins`
 

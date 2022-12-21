@@ -17,6 +17,11 @@ import dataset
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
 
+logger = logging.getLogger()
+dotenv_values('version.env')
+
+VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
+
 
 def load_file(filename) -> bytes:
     with open(filename, 'rb') as file:
@@ -60,7 +65,7 @@ async def index():
 
 @app.get('/status')
 async def status(request: Request):
-    return JSONResponse({'status': 'up'})
+    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
 
 
 @app.get('/-/origins')

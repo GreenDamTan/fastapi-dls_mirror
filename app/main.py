@@ -48,7 +48,7 @@ jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), al
 def get_token(request: Request) -> dict:
     authorization_header = request.headers['authorization']
     token = authorization_header.split(' ')[1]
-    return jwt.decode(token=token, key=jwt_decode_key, algorithms='RS256', options={'verify_aud': False})
+    return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
 @app.get('/')
@@ -114,7 +114,7 @@ async def client_token():
         "service_instance_public_key_configuration": service_instance_public_key_configuration,
     }
 
-    content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm='RS256')
+    content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
     response = StreamingResponse(iter([content]), media_type="text/plain")
     filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
@@ -126,7 +126,7 @@ async def client_token():
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 # {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
 @app.post('/auth/v1/origin')
-async def auth_origin(request: Request):
+async def auth_v1_origin(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
 
     origin_ref = j['candidate_origin_ref']
@@ -159,7 +159,7 @@ async def auth_origin(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
 @app.post('/auth/v1/code')
-async def auth_code(request: Request):
+async def auth_v1_code(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
 
     origin_ref = j['origin_ref']
@@ -178,7 +178,7 @@ async def auth_code(request: Request):
         'kid': SITE_KEY_XID
     }
 
-    auth_code = jws.sign(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm='RS256')
+    auth_code = jws.sign(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
     db['auth'].delete(origin_ref=origin_ref, expires={'<=': cur_time - delta})
     db['auth'].insert(dict(origin_ref=origin_ref, code_challenge=j['code_challenge'], expires=expires))
@@ -196,7 +196,7 @@ async def auth_code(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 # {"auth_code":"...","code_verifier":"..."}
 @app.post('/auth/v1/token')
-async def auth_token(request: Request):
+async def auth_v1_token(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
     payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
 
@@ -223,7 +223,7 @@ async def auth_token(request: Request):
         'kid': SITE_KEY_XID,
     }
 
-    auth_token = jwt.encode(new_payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm='RS256')
+    auth_token = jwt.encode(new_payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
     response = {
         "expires": access_expires_on.isoformat(),
@@ -236,7 +236,7 @@ async def auth_token(request: Request):
 
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
 @app.post('/leasing/v1/lessor')
-async def leasing_lessor(request: Request):
+async def leasing_v1_lessor(request: Request):
     j, token = json.loads((await request.body()).decode('utf-8')), get_token(request)
 
     code_challenge = token['origin_ref']
@@ -280,7 +280,7 @@ async def leasing_lessor(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
 @app.get('/leasing/v1/lessor/leases')
-async def leasing_lessor_lease(request: Request):
+async def leasing_v1_lessor_lease(request: Request):
     token = get_token(request)
 
     code_challenge = token['origin_ref']
@@ -301,7 +301,7 @@ async def leasing_lessor_lease(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
-async def leasing_lease_renew(request: Request, lease_ref: str):
+async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     token = get_token(request)
 
     code_challenge = token['origin_ref']
@@ -330,7 +330,7 @@ async def leasing_lease_renew(request: Request, lease_ref: str):
 
 
 @app.delete('/leasing/v1/lessor/leases')
-async def leasing_lessor_lease_remove(request: Request):
+async def leasing_v1_lessor_lease_remove(request: Request):
     token = get_token(request)
 
     code_challenge = token['origin_ref']

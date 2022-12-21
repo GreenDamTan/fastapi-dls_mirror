@@ -12,7 +12,7 @@ from dateutil.relativedelta import relativedelta
 from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
-from starlette.responses import StreamingResponse, JSONResponse
+from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
 import dataset
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
@@ -53,7 +53,9 @@ def get_token(request: Request) -> dict:
 
 @app.get('/')
 async def index():
-    return JSONResponse({'hello': 'world'})
+    from markdown import markdown
+    content = load_file('../README.md').decode('utf-8')
+    return HTMLResponse(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 
 
 @app.get('/status')

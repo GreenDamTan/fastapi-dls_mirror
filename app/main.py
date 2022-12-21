@@ -158,7 +158,7 @@ async def auth_v1_origin(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
 
     origin_ref = j['candidate_origin_ref']
-    print(f'> [  origin  ]: {origin_ref}: {j}')
+    logging.info(f'> [  origin  ]: {origin_ref}: {j}')
 
     data = dict(
         origin_ref=origin_ref,
@@ -191,7 +191,7 @@ async def auth_v1_code(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
 
     origin_ref = j['origin_ref']
-    print(f'> [   code   ]: {origin_ref}: {j}')
+    logging.info(f'> [   code   ]: {origin_ref}: {j}')
 
     cur_time = datetime.utcnow()
     delta = relativedelta(minutes=15)
@@ -231,7 +231,7 @@ async def auth_v1_token(request: Request):
     code_challenge = payload['origin_ref']
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-    print(f'> [   auth   ]: {origin_ref} ({code_challenge}): {j}')
+    logging.info(f'> [   auth   ]: {origin_ref} ({code_challenge}): {j}')
 
     # validate the code challenge
     if payload['challenge'] != b64enc(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
@@ -272,7 +272,7 @@ async def leasing_v1_lessor(request: Request):
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
 
-    print(f'> [  create  ]: {origin_ref} ({code_challenge}): create leases for scope_ref_list {scope_ref_list}')
+    logging.info(f'> [  create  ]: {origin_ref} ({code_challenge}): create leases for scope_ref_list {scope_ref_list}')
 
     cur_time = datetime.utcnow()
     lease_result_list = []
@@ -315,7 +315,7 @@ async def leasing_v1_lessor_lease(request: Request):
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
     active_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
-    print(f'> [  leases  ]: {origin_ref} ({code_challenge}): found {len(active_lease_list)} active leases')
+    logging.info(f'> [  leases  ]: {origin_ref} ({code_challenge}): found {len(active_lease_list)} active leases')
 
     cur_time = datetime.utcnow()
     response = {
@@ -335,7 +335,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     code_challenge = token['origin_ref']
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-    print(f'> [  renew   ]: {origin_ref} ({code_challenge}): renew {lease_ref}')
+    logging.info(f'> [  renew   ]: {origin_ref} ({code_challenge}): renew {lease_ref}')
 
     if db['lease'].count(origin_ref=origin_ref, lease_ref=lease_ref) == 0:
         raise HTTPException(status_code=404, detail='requested lease not available')
@@ -366,7 +366,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
     released_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
     deletions = db['lease'].delete(origin_ref=origin_ref)
-    print(f'> [  remove  ]: {origin_ref} ({code_challenge}): removed {deletions} leases')
+    logging.info(f'> [  remove  ]: {origin_ref} ({code_challenge}): removed {deletions} leases')
 
     cur_time = datetime.utcnow()
     response = {
@@ -389,7 +389,7 @@ if __name__ == '__main__':
     #
     ###
 
-    print(f'> Starting dev-server ...')
+    logging.info(f'> Starting dev-server ...')
 
     ssl_keyfile = join(dirname(__file__), 'cert/webserver.key')
     ssl_certfile = join(dirname(__file__), 'cert/webserver.crt')

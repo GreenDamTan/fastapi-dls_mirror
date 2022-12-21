@@ -5,7 +5,7 @@ from uuid import uuid4
 from os.path import join, dirname
 from os import getenv
 
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 from fastapi.encoders import jsonable_encoder
@@ -22,7 +22,7 @@ from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
 
 logger = logging.getLogger()
-dotenv_values('version.env')
+load_dotenv('version.env')
 
 VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
 

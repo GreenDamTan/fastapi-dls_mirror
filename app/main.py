@@ -22,7 +22,7 @@ from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
 
 logger = logging.getLogger()
-load_dotenv('version.env')
+load_dotenv('../version.env')
 
 VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
 

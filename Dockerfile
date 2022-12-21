@@ -11,7 +11,7 @@ RUN apk update \
  && apk del build-deps
 
 COPY app /app
-COPY version.env /app/version.env
+COPY version.env /version.env
 COPY README.md /README.md
 
 HEALTHCHECK --start-period=30s --interval=10s --timeout=5s --retries=3 CMD curl --insecure --fail https://localhost/status || exit 1

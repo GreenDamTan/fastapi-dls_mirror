@@ -81,10 +81,12 @@ volumes:
 
 | Variable            | Default               | Usage                                                                                 |
 |---------------------|-----------------------|---------------------------------------------------------------------------------------|
+| `DEBUG`             | `false`               | Toggles `fastapi` debug mode                                                          |
 | `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
 | `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
 | `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
 | `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
 
 # Installation
 

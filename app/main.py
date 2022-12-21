@@ -1,8 +1,11 @@
+import logging
 from base64 import b64encode as b64enc
 from hashlib import sha256
 from uuid import uuid4
 from os.path import join, dirname
 from os import getenv
+
+from dotenv import dotenv_values
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 from fastapi.encoders import jsonable_encoder
@@ -12,6 +15,7 @@ from dateutil.relativedelta import relativedelta
 from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
 import dataset
 from Crypto.PublicKey import RSA
@@ -35,7 +39,13 @@ def load_key(filename) -> RsaKey:
 
 # todo: initialize certificate (or should be done by user, and passed through "volumes"?)
 
-app, db = FastAPI(), dataset.connect(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+__details = dict(
+    title='FastAPI-DLS',
+    description='Minimal Delegated License Service (DLS).',
+    version=VERSION,
+)
+
+app, db = FastAPI(**__details), dataset.connect(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
 
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
@@ -46,8 +56,21 @@ SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
+CORS_ORIGINS = getenv('CORS_ORIGINS').split(',') if (getenv('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
+
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS512)
+
+app.debug = DEBUG
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 
 def get_token(request: Request) -> dict:

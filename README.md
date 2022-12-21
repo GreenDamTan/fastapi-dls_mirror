@@ -6,7 +6,7 @@ Minimal Delegated License Service (DLS).
 
 ### `GET /`
 
-Just a simple *hello world* endpoint.
+HTML rendered README.md.
 
 ### `GET /status`
 

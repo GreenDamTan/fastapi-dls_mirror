@@ -20,6 +20,14 @@ List registered origins.
 
 List current leases.
 
+### `GET /client-token`
+
+Generate client token, (see [installation](#installation)).
+
+### Others
+
+There are some more internal api endpoints for handling authentication and lease process.
+
 # Setup (Docker)
 
 **Run this on the Docker-Host**

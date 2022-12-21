@@ -6,11 +6,15 @@ Minimal Delegated License Service (DLS).
 
 ### `GET /`
 
-Just a simple *hello world* endpoint.
+HTML rendered README.md.
 
 ### `GET /status`
 
-Status endpoint, used for *healthcheck*.
+Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
+
+### `GET /docs`
+
+OpenAPI specifications rendered from `GET /openapi.json`.
 
 ### `GET /-/origins`
 
@@ -20,6 +24,14 @@ List registered origins.
 
 List current leases.
 
+### `GET /client-token`
+
+Generate client token, (see [installation](#installation)).
+
+### Others
+
+There are some more internal api endpoints for handling authentication and lease process.
+
 # Setup (Docker)
 
 **Run this on the Docker-Host**
@@ -28,20 +40,57 @@ List current leases.
 WORKING_DIR=/opt/docker/fastapi-dls/cert
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
+# create instance private and public key for singing JWT's
 openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
 openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
+# create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
-docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/app/cert collinwebdesigns/fastapi-dls:latest
+```
+
+**Start container**
+
+```shell
+docker volume create dls-db
+docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/app/cert -v dls-db:/app/database collinwebdesigns/fastapi-dls:latest
+```
+
+**Docker-Compose / Deploy stack**
+
+```yaml
+version: '3.9'
+
+x-dls-variables: &dls-variables
+  DLS_URL: localhost # REQUIRED
+  DLS_PORT: 443
+  LEASE_EXPIRE_DAYS: 90
+  DATABASE: sqlite:////app/database/db.sqlite
+
+services:
+  dls:
+    image: collinwebdesigns/fastapi-dls:latest
+    restart: always
+    environment:
+      <<: *dls-variables
+    ports:
+      - "443:443"
+    volumes:
+      - /opt/docker/fastapi-dls/cert:/app/cert
+      - dls-db:/app/database
+
+volumes:
+  dls-db:
 ```
 
 # Configuration
 
 | Variable            | Default               | Usage                                                                                 |
 |---------------------|-----------------------|---------------------------------------------------------------------------------------|
+| `DEBUG`             | `false`               | Toggles `fastapi` debug mode                                                          |
 | `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
 | `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
 | `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
 | `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
 
 # Installation
 

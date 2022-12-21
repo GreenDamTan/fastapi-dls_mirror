@@ -1,8 +1,11 @@
+import logging
 from base64 import b64encode as b64enc
 from hashlib import sha256
 from uuid import uuid4
 from os.path import join, dirname
 from os import getenv
+
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
 from fastapi.encoders import jsonable_encoder
@@ -12,10 +15,16 @@ from dateutil.relativedelta import relativedelta
 from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
-from starlette.responses import StreamingResponse, JSONResponse
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
 import dataset
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
+
+logger = logging.getLogger()
+load_dotenv('../version.env')
+
+VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
 
 
 def load_file(filename) -> bytes:
@@ -30,7 +39,13 @@ def load_key(filename) -> RsaKey:
 
 # todo: initialize certificate (or should be done by user, and passed through "volumes"?)
 
-app, db = FastAPI(), dataset.connect(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+__details = dict(
+    title='FastAPI-DLS',
+    description='Minimal Delegated License Service (DLS).',
+    version=VERSION,
+)
+
+app, db = FastAPI(**__details), dataset.connect(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
 
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
@@ -41,24 +56,39 @@ SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
+CORS_ORIGINS = getenv('CORS_ORIGINS').split(',') if (getenv('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
+
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS512)
+
+app.debug = DEBUG
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 
 def get_token(request: Request) -> dict:
     authorization_header = request.headers['authorization']
     token = authorization_header.split(' ')[1]
-    return jwt.decode(token=token, key=jwt_decode_key, algorithms='RS256', options={'verify_aud': False})
+    return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
 @app.get('/')
 async def index():
-    return JSONResponse({'hello': 'world'})
+    from markdown import markdown
+    content = load_file('../README.md').decode('utf-8')
+    return HTMLResponse(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 
 
 @app.get('/status')
 async def status(request: Request):
-    return JSONResponse({'status': 'up'})
+    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
 
 
 @app.get('/-/origins')
@@ -112,7 +142,7 @@ async def client_token():
         "service_instance_public_key_configuration": service_instance_public_key_configuration,
     }
 
-    content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm='RS256')
+    content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
     response = StreamingResponse(iter([content]), media_type="text/plain")
     filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
@@ -124,11 +154,11 @@ async def client_token():
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 # {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
 @app.post('/auth/v1/origin')
-async def auth_origin(request: Request):
+async def auth_v1_origin(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
 
     origin_ref = j['candidate_origin_ref']
-    print(f'> [  origin  ]: {origin_ref}: {j}')
+    logging.info(f'> [  origin  ]: {origin_ref}: {j}')
 
     data = dict(
         origin_ref=origin_ref,
@@ -157,11 +187,11 @@ async def auth_origin(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
 @app.post('/auth/v1/code')
-async def auth_code(request: Request):
+async def auth_v1_code(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
 
     origin_ref = j['origin_ref']
-    print(f'> [   code   ]: {origin_ref}: {j}')
+    logging.info(f'> [   code   ]: {origin_ref}: {j}')
 
     cur_time = datetime.utcnow()
     delta = relativedelta(minutes=15)
@@ -176,7 +206,7 @@ async def auth_code(request: Request):
         'kid': SITE_KEY_XID
     }
 
-    auth_code = jws.sign(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm='RS256')
+    auth_code = jws.sign(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
     db['auth'].delete(origin_ref=origin_ref, expires={'<=': cur_time - delta})
     db['auth'].insert(dict(origin_ref=origin_ref, code_challenge=j['code_challenge'], expires=expires))
@@ -194,14 +224,14 @@ async def auth_code(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 # {"auth_code":"...","code_verifier":"..."}
 @app.post('/auth/v1/token')
-async def auth_token(request: Request):
+async def auth_v1_token(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
     payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
 
     code_challenge = payload['origin_ref']
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-    print(f'> [   auth   ]: {origin_ref} ({code_challenge}): {j}')
+    logging.info(f'> [   auth   ]: {origin_ref} ({code_challenge}): {j}')
 
     # validate the code challenge
     if payload['challenge'] != b64enc(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
@@ -221,7 +251,7 @@ async def auth_token(request: Request):
         'kid': SITE_KEY_XID,
     }
 
-    auth_token = jwt.encode(new_payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm='RS256')
+    auth_token = jwt.encode(new_payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
     response = {
         "expires": access_expires_on.isoformat(),
@@ -234,7 +264,7 @@ async def auth_token(request: Request):
 
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
 @app.post('/leasing/v1/lessor')
-async def leasing_lessor(request: Request):
+async def leasing_v1_lessor(request: Request):
     j, token = json.loads((await request.body()).decode('utf-8')), get_token(request)
 
     code_challenge = token['origin_ref']
@@ -242,7 +272,7 @@ async def leasing_lessor(request: Request):
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
 
-    print(f'> [  create  ]: {origin_ref} ({code_challenge}): create leases for scope_ref_list {scope_ref_list}')
+    logging.info(f'> [  create  ]: {origin_ref} ({code_challenge}): create leases for scope_ref_list {scope_ref_list}')
 
     cur_time = datetime.utcnow()
     lease_result_list = []
@@ -278,14 +308,14 @@ async def leasing_lessor(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
 @app.get('/leasing/v1/lessor/leases')
-async def leasing_lessor_lease(request: Request):
+async def leasing_v1_lessor_lease(request: Request):
     token = get_token(request)
 
     code_challenge = token['origin_ref']
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
     active_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
-    print(f'> [  leases  ]: {origin_ref} ({code_challenge}): found {len(active_lease_list)} active leases')
+    logging.info(f'> [  leases  ]: {origin_ref} ({code_challenge}): found {len(active_lease_list)} active leases')
 
     cur_time = datetime.utcnow()
     response = {
@@ -299,13 +329,13 @@ async def leasing_lessor_lease(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
-async def leasing_lease_renew(request: Request, lease_ref: str):
+async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     token = get_token(request)
 
     code_challenge = token['origin_ref']
 
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-    print(f'> [  renew   ]: {origin_ref} ({code_challenge}): renew {lease_ref}')
+    logging.info(f'> [  renew   ]: {origin_ref} ({code_challenge}): renew {lease_ref}')
 
     if db['lease'].count(origin_ref=origin_ref, lease_ref=lease_ref) == 0:
         raise HTTPException(status_code=404, detail='requested lease not available')
@@ -328,7 +358,7 @@ async def leasing_lease_renew(request: Request, lease_ref: str):
 
 
 @app.delete('/leasing/v1/lessor/leases')
-async def leasing_lessor_lease_remove(request: Request):
+async def leasing_v1_lessor_lease_remove(request: Request):
     token = get_token(request)
 
     code_challenge = token['origin_ref']
@@ -336,7 +366,7 @@ async def leasing_lessor_lease_remove(request: Request):
     origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
     released_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
     deletions = db['lease'].delete(origin_ref=origin_ref)
-    print(f'> [  remove  ]: {origin_ref} ({code_challenge}): removed {deletions} leases')
+    logging.info(f'> [  remove  ]: {origin_ref} ({code_challenge}): removed {deletions} leases')
 
     cur_time = datetime.utcnow()
     response = {
@@ -359,7 +389,7 @@ if __name__ == '__main__':
     #
     ###
 
-    print(f'> Starting dev-server ...')
+    logging.info(f'> Starting dev-server ...')
 
     ssl_keyfile = join(dirname(__file__), 'cert/webserver.key')
     ssl_certfile = join(dirname(__file__), 'cert/webserver.crt')

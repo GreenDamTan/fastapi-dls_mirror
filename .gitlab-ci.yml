@@ -27,7 +27,7 @@ deploy:
   before_script:
     - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
     - source version.env
-    - Building docker image for commit "${COMMIT}" with version "${VERSION}"
+    - echo "Building docker image for commit ${COMMIT} with version ${VERSION}"
   script:
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
     - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}

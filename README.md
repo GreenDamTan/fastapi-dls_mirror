@@ -12,6 +12,10 @@ HTML rendered README.md.
 
 Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
+### `GET /docs`
+
+OpenAPI specifications rendered from `GET /openapi.json`.
+
 ### `GET /-/origins`
 
 List registered origins.

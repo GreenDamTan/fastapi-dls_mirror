@@ -1,0 +1,85 @@
+#!/bin/bash
+
+echo "> Install service ..."
+echo <<EOF >/etc/systemd/system/fastapi-dls.service
+[Unit]
+Description=Service for fastapi-dls
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/usr/share/fastapi-dls
+ExecStart=uvicorn \
+  --host $DLS_URL --port $DLS_PORT \
+  --app-dir /usr/share/fastapi-dls/app \
+  --ssl-keyfile /etc/fastapi-dls/webserver.key \
+  --ssl-certfile /opt/fastapi-dls/webserver.crt \
+  --proxy-headers
+EnvironmentFile=/etc/fastapi-dls.env
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+CONFIG_DIR=/etc/fastapi-dls
+
+echo "> Create config directory ..."
+mkdir -p $CONFIG_DIR
+
+echo "> Writing default config parameters ..."
+touch $CONFIG_DIR/fastapi-dls.env
+echo <<EOF >$CONFIG_DIR
+DLS_URL=127.0.0.1
+DLS_PORT=443
+LEASE_EXPIRE_DAYS=90
+DATABASE=sqlite:////usr/share/fastapi-dls/db.sqlite
+EOF
+
+echo "> Create dls-instance keypair ..."
+openssl genrsa -out $CONFIG_DIR/instance.private.pem 2048
+openssl rsa -in $CONFIG_DIR/instance.private.pem -outform PEM -pubout -out $CONFIG_DIR/instance.public.pem
+
+while true; do
+  read -p "> Do you wish to create self-signed webserver certificate? [y/n]" yn
+  case $yn in
+  [Yy]*)
+    openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout $CONFIG_DIR/webserver.key -out $CONFIG_DIR/webserver.crt
+    break
+    ;;
+  [Nn]*) break ;;
+  *) echo "Please answer [y] or [n]." ;;
+  esac
+done
+
+if [[ -f $CONFIG_DIR/webserver.key ]]; then
+  echo "> Starting service ..."
+  systemctl start fastapi-dls.service
+
+  if [ -x "$(command -v curl)" ]; then
+    echo "> Testing API ..."
+    curl --insecure -X GET https://127.0.0.1/status
+  else
+    echo "> Testing API failed, curl not available. Please test manually!"
+  fi
+fi
+
+cat <<EOF
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#                                                                             #
+#    fastapi-dls is now installed.                                            #
+#                                                                             #
+#    Service should be up and running.                                        #
+#      Webservice is listen to https://localhost                              #
+#                                                                             #
+#    Configuration is stored in ${CONFIG_DIR}/env                             #
+#                                                                             #
+#                                                                             #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+EOF

@@ -1,7 +1,28 @@
 cache:
   key: one-key-to-rule-them-all
 
-build:
+build:debian:
+  # debian:bullseye-slim
+  image: debian:bookworm-slim  # just to get "python3-jose" working
+  stage: build
+  before_script:
+    - apt-get update -qq && apt-get install -qq -y build-essential
+    - chmod 0755 -R .
+    # create build directory for .deb sources
+    - mkdir build
+    # copy install instructions
+    - cp -r DEBIAN build/
+    # copy app
+    - mkdir -p build/usr/share/
+    - cp -r app build/usr/share/fastapi-dls
+  script:
+    - dpkg -b . build.deb
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build.deb
+
+build:docker:
   image: docker:dind
   interruptible: true
   stage: build
@@ -15,10 +36,27 @@ build:
     - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
-test:
+test:debian:
+  image: debian:bookworm-slim
   stage: test
+  needs:
+    - job: build:debian
+      artifacts: true
+  before_script:
+    - apt-get update -qq && apt-get install -qq -y jq  # systemd
   script:
-    - echo "Nothing to do ..."
+    # test installation
+    - apt-get install -q -y ./build.deb --fix-missing
+    # copy example config from GitLab-CI-Variables
+    #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
+    #- systemctl daemon-reload
+    #- systemctl enable fastapi-dls.service
+    #- systemctl start fastapi-dls.service
+    #- if [ "`curl --insecure -s https://localhost:8000/status | jq .status`" != "up" ]; then exit 2; fi
+    #- systemctl stop fastapi-dls.service
+    #- systemctl disable fastapi-dls.service
+    - apt-get purge -qq -y fastapi-dls
+    - apt-get autoremove -qq -y && apt-get clean -qq
 
 deploy:
   stage: deploy

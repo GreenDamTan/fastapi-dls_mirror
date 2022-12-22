@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [[ -d /etc/fastapi-dls ]]; then
+  echo "> Removing config directory."
+  rm -r /etc/fastapi-dls
+fi
+
+# todo

@@ -9,7 +9,7 @@ build:
     - if: $CI_COMMIT_BRANCH
   tags: [ docker ]
   before_script:
-    - echo "COMMIT=`git rev-parse HEAD`" >> version.env
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
@@ -24,9 +24,13 @@ deploy:
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  before_script:
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    - source version.env
+    - echo "Building docker image for commit ${COMMIT} with version ${VERSION}"
   script:
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
-    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${CI_BUILD_REF}
+    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
     - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
-    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${CI_BUILD_REF}
+    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest

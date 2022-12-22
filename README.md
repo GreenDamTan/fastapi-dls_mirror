@@ -39,6 +39,11 @@ There are some more internal api endpoints for handling authentication and lease
 
 ## Docker
 
+Docker-Images are available here:
+
+- [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
+- GitLab-Registry: `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
+
 **Run this on the Docker-Host**
 
 ```shell

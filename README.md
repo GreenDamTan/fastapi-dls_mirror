@@ -175,7 +175,8 @@ WantedBy=multi-user.target
 EOF
 ```
 
-Now you have to run `systemctl daemon-reload`. After that you can start service with `systemctl start fastapi-dls.service`.
+Now you have to run `systemctl daemon-reload`. After that you can start service
+with `systemctl start fastapi-dls.service`.
 
 # Configuration
 

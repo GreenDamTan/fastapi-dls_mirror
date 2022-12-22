@@ -17,15 +17,17 @@ from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
-import dataset
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
+
+from orm import Origin, Lease, Auth
 
 logger = logging.getLogger()
 load_dotenv('../version.env')
 
 VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
-
 
 def load_file(filename) -> bytes:
     with open(filename, 'rb') as file:
@@ -45,7 +47,7 @@ __details = dict(
     version=VERSION,
 )
 
-app, db = FastAPI(**__details), dataset.connect(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+app, db = FastAPI(**__details), create_engine(url=str(getenv('DATABASE', 'sqlite:///db.sqlite')))
 
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
@@ -93,13 +95,17 @@ async def status(request: Request):
 
 @app.get('/-/origins')
 async def _origins(request: Request):
-    response = list(map(lambda x: jsonable_encoder(x), db['origin'].all()))
+    session = sessionmaker(autocommit=False, autoflush=False, bind=db)()
+    response = list(map(lambda x: jsonable_encoder(x), session.query(Origin).all()))
+    session.close()
     return JSONResponse(response)
 
 
 @app.get('/-/leases')
 async def _leases(request: Request):
-    response = list(map(lambda x: jsonable_encoder(x), db['lease'].all()))
+    session = sessionmaker(autocommit=False, autoflush=False, bind=db)()
+    response = list(map(lambda x: jsonable_encoder(x), session.query(Lease).all()))
+    session.close()
     return JSONResponse(response)
 
 
@@ -160,14 +166,14 @@ async def auth_v1_origin(request: Request):
     origin_ref = j['candidate_origin_ref']
     logging.info(f'> [  origin  ]: {origin_ref}: {j}')
 
-    data = dict(
+    data = Origin(
         origin_ref=origin_ref,
         hostname=j['environment']['hostname'],
         guest_driver_version=j['environment']['guest_driver_version'],
         os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
     )
 
-    db['origin'].upsert(data, ['origin_ref'])
+    Origin.create_or_update(db, data)
 
     cur_time = datetime.utcnow()
     response = {
@@ -208,8 +214,9 @@ async def auth_v1_code(request: Request):
 
     auth_code = jws.sign(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
-    db['auth'].delete(origin_ref=origin_ref, expires={'<=': cur_time - delta})
-    db['auth'].insert(dict(origin_ref=origin_ref, code_challenge=j['code_challenge'], expires=expires))
+    Auth.cleanup(db, origin_ref, cur_time - delta)
+    data = Auth(origin_ref=origin_ref, code_challenge=j['code_challenge'], expires=expires)
+    Auth.create(db, data)
 
     response = {
         "auth_code": auth_code,
@@ -230,7 +237,10 @@ async def auth_v1_token(request: Request):
 
     code_challenge = payload['origin_ref']
 
-    origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
+    entity = Auth.find_by_code_challenge(db, code_challenge)
+    if entity is None:
+        raise HTTPException(status_code=400, detail='code challenge not found')
+    origin_ref = entity.origin_ref
     logging.info(f'> [   auth   ]: {origin_ref} ({code_challenge}): {j}')
 
     # validate the code challenge
@@ -270,8 +280,10 @@ async def leasing_v1_lessor(request: Request):
     code_challenge = token['origin_ref']
     scope_ref_list = j['scope_ref_list']
 
-    origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-
+    entity = Auth.find_by_code_challenge(db, code_challenge)
+    if entity is None:
+        raise HTTPException(status_code=400, detail='code challenge not found')
+    origin_ref = entity.origin_ref
     logging.info(f'> [  create  ]: {origin_ref} ({code_challenge}): create leases for scope_ref_list {scope_ref_list}')
 
     cur_time = datetime.utcnow()
@@ -292,8 +304,8 @@ async def leasing_v1_lessor(request: Request):
             }
         })
 
-        data = dict(origin_ref=origin_ref, lease_ref=scope_ref, lease_created=cur_time, lease_expires=expires)
-        db['lease'].insert_ignore(data, ['origin_ref', 'lease_ref'])  # todo: handle update
+        data = Lease(origin_ref=origin_ref, lease_ref=scope_ref, lease_created=cur_time, lease_expires=expires)
+        Lease.create_or_update(db, data)
 
     response = {
         "lease_result_list": lease_result_list,
@@ -313,8 +325,11 @@ async def leasing_v1_lessor_lease(request: Request):
 
     code_challenge = token['origin_ref']
 
-    origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-    active_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
+    entity = Auth.find_by_code_challenge(db, code_challenge)
+    if entity is None:
+        raise HTTPException(status_code=400, detail='code challenge not found')
+    origin_ref = entity.origin_ref
+    active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     logging.info(f'> [  leases  ]: {origin_ref} ({code_challenge}): found {len(active_lease_list)} active leases')
 
     cur_time = datetime.utcnow()
@@ -334,10 +349,14 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     code_challenge = token['origin_ref']
 
-    origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
+    entity = Auth.find_by_code_challenge(db, code_challenge)
+    if entity is None:
+        raise HTTPException(status_code=400, detail='code challenge not found')
+    origin_ref = entity.origin_ref
     logging.info(f'> [  renew   ]: {origin_ref} ({code_challenge}): renew {lease_ref}')
 
-    if db['lease'].count(origin_ref=origin_ref, lease_ref=lease_ref) == 0:
+    entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
+    if entity is None:
         raise HTTPException(status_code=404, detail='requested lease not available')
 
     cur_time = datetime.utcnow()
@@ -351,8 +370,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
         "sync_timestamp": cur_time.isoformat(),
     }
 
-    data = dict(origin_ref=origin_ref, lease_ref=lease_ref, lease_expires=expires, lease_last_update=cur_time)
-    db['lease'].update(data, ['origin_ref', 'lease_ref'])
+    Lease.renew(db, entity, expires, cur_time)
 
     return JSONResponse(response)
 
@@ -363,9 +381,13 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
     code_challenge = token['origin_ref']
 
-    origin_ref = db['auth'].find_one(code_challenge=code_challenge)['origin_ref']
-    released_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
-    deletions = db['lease'].delete(origin_ref=origin_ref)
+    entity = Auth.find_by_code_challenge(db, code_challenge)
+    if entity is None:
+        raise HTTPException(status_code=400, detail='code challenge not found')
+    origin_ref = entity.origin_ref
+
+    released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
+    deletions = Lease.ceanup(db, origin_ref)
     logging.info(f'> [  remove  ]: {origin_ref} ({code_challenge}): removed {deletions} leases')
 
     cur_time = datetime.utcnow()

@@ -96,7 +96,7 @@ async def status(request: Request):
 
 @app.get('/-/origins')
 async def _origins(request: Request):
-    session = sessionmaker(autocommit=False, autoflush=False, bind=db)()
+    session = sessionmaker(bind=db)()
     response = list(map(lambda x: jsonable_encoder(x), session.query(Origin).all()))
     session.close()
     return JSONResponse(response)
@@ -104,7 +104,7 @@ async def _origins(request: Request):
 
 @app.get('/-/leases')
 async def _leases(request: Request):
-    session = sessionmaker(autocommit=False, autoflush=False, bind=db)()
+    session = sessionmaker(bind=db)()
     response = list(map(lambda x: jsonable_encoder(x), session.query(Lease).all()))
     session.close()
     return JSONResponse(response)

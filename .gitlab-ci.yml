@@ -19,6 +19,7 @@ test:
   image: python:3.10-alpine
   stage: test
   before_script:
+    - pip install -r requirements.txt
     - pip install pytest httpx
     - cd test
   script:

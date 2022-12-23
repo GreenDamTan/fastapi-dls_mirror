@@ -21,7 +21,8 @@ test:
   before_script:
     - pip install -r requirements.txt
     - pip install pytest httpx
-    - cd test
+    - openssl genrsa -out app/instance.private.pem 2048
+    - openssl rsa -in app/instance.private.pem -outform PEM -pubout -out app/instance.public.pem
   script:
     - pytest main.py
 

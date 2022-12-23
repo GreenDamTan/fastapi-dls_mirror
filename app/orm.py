@@ -60,66 +60,6 @@ class Origin(Base):
         session.close()
 
 
-class Auth(Base):
-    __tablename__ = "auth"
-
-    """
-    CREATE TABLE auth (
-        id INTEGER NOT NULL, 
-        origin_ref TEXT, 
-        code_challenge TEXT, 
-        expires DATETIME, 
-        PRIMARY KEY (id)
-    );
-    """
-
-    """
-    20|B210CF72-FEC7-4440-9499-1156D1ACD13A|p8oeBJPumrosywezCQ6VQvI/J2LZbMRK0s+OfsqzAiI|2022-12-21 05:00:57.467359
-    61|723EA079-7B0C-4E25-A8D4-DD3E89F9D177|9Nnv5FMtV9nF8qYRtCKG5lfF23HGvvNCQvpCh3FUITo|2022-12-22 05:08:40.713022
-    65|230b0000-a356-4000-8a2b-0000564c0000|9PivDr3PYRfcdUgODBR5+gi2ZdAbmPb07yTO05uui4A|2022-12-22 06:22:27.409642
-    66|41720000-FA43-4000-9472-0000E8660000|VnyasehSayRX/2OD3YyP8Xn9nsIBVefZpscnIIj2Rpk|2022-12-22 08:58:04.279664
-    67|41720000-FA43-4000-9472-0000E8660000|uisrxDFKB8KuD+JvtgT1ol5pNm/GKKlhO69u2ntg7z0|2022-12-22 08:59:37.509520
-    68|908B202D-CC43-420F-A2EF-FC092AAE8D38|VtWk7It+k33FxiGjm9rlSgAg1ZigfreFJd/0tt30FgQ|2022-12-22 09:43:56.680163
-    """
-
-    _table_args__ = (
-        # this can be db.PrimaryKeyConstraint if you want it to be a primary key
-        UniqueConstraint('origin_ref', 'code_challenge'),
-    )
-
-    origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref), primary_key=True, nullable=False, index=True)
-    code_challenge = Column(VARCHAR(length=43), primary_key=True, nullable=False)
-    expires = Column(DATETIME(), nullable=False)
-
-    def __repr__(self):
-        return f'Auth(origin_ref={self.origin_ref}, code_challenge={self.code_challenge}, expires={self.expires})'
-
-    @staticmethod
-    def create_statement(engine: Engine):
-        from sqlalchemy.schema import CreateTable
-        return CreateTable(Auth.__table__).compile(engine)
-
-    @staticmethod
-    def create(engine: Engine, auth: "Auth"):
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
-        session.add(auth)
-        session.flush()
-        session.close()
-
-    @staticmethod
-    def cleanup(engine: Engine, origin_ref: str, older_than: datetime.datetime):
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
-        session.execute(delete(Auth).where(and_(Auth.origin_ref == origin_ref, Auth.expires <= older_than)))
-        session.close()
-
-    @staticmethod
-    def find_by_code_challenge(engine: Engine, code_challenge: str) -> "Auth":
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
-        entity = session.query(Auth).filter(Auth.code_challenge == code_challenge).first()
-        session.close()
-        return entity
-
-
 class Lease(Base):
     __tablename__ = "lease"
 

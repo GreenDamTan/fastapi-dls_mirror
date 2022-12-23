@@ -22,7 +22,7 @@ from sqlalchemy.orm import sessionmaker
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
 
-from orm import Origin, Lease, Auth
+from orm import Origin, Lease
 
 logger = logging.getLogger()
 load_dotenv('../version.env')

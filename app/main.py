@@ -19,8 +19,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from Crypto.PublicKey import RSA
-from Crypto.PublicKey.RSA import RsaKey
+from Cryptodome.PublicKey import RSA  # Crypto | Cryptodome on Debian
+from Cryptodome.PublicKey.RSA import RsaKey  # Crypto | Cryptodome on Debian
 
 from orm import Origin, Lease, init as db_init
 

@@ -16,9 +16,13 @@ build:
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
 test:
+  image: python:3.10-alpine
   stage: test
+  before_script:
+    - pip install pytest httpx
+    - cd test
   script:
-    - echo "Nothing to do ..."
+    - pytest main.py
 
 deploy:
   stage: deploy

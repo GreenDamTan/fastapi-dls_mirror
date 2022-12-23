@@ -1,3 +1,6 @@
+from uuid import uuid4
+
+from jose import jwt
 from starlette.testclient import TestClient
 import importlib.util
 import sys
@@ -10,6 +13,8 @@ sys.modules[MODULE] = main
 spec.loader.exec_module(main)
 
 client = TestClient(main.app)
+
+ORIGIN_REF = str(uuid4())
 
 
 def test_index():
@@ -41,14 +46,25 @@ def test_auth_v1_origin():
             "host_driver_version": "host_driver_version"
         },
         "update_pending": False,
-        "candidate_origin_ref": "00112233-4455-6677-8899-aabbccddeeff"
+        "candidate_origin_ref": ORIGIN_REF,
     }
+
     response = client.post('/auth/v1/origin', json=payload)
     assert response.status_code == 200
+    assert response.json()['origin_ref'] == ORIGIN_REF
 
 
 def test_auth_v1_code():
-    pass
+    payload = {
+        "code_challenge": "0wmaiAMAlTIDyz4Fgt2/j0tXnGv72TYbbLs4ISRCZlY",
+        "origin_ref": ORIGIN_REF,
+    }
+
+    response = client.post('/auth/v1/code', json=payload)
+    assert response.status_code == 200
+
+    payload = jwt.get_unverified_claims(token=response.json()['auth_code'])
+    assert payload['origin_ref'] == ORIGIN_REF
 
 
 def test_auth_v1_token():

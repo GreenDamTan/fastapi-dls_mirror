@@ -2,15 +2,13 @@ from uuid import uuid4
 
 from jose import jwt
 from starlette.testclient import TestClient
-import importlib.util
 import sys
 
-MODULE, PATH = 'main.app', '../app/main.py'
+# add relative path to use packages as they were in the app/ dir
+sys.path.append('../')
+sys.path.append('../app')
 
-spec = importlib.util.spec_from_file_location(MODULE, PATH)
-main = importlib.util.module_from_spec(spec)
-sys.modules[MODULE] = main
-spec.loader.exec_module(main)
+from app import main
 
 client = TestClient(main.app)
 

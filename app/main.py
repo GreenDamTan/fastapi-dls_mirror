@@ -17,15 +17,17 @@ from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
-import dataset
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
+
+from orm import Origin, Lease, init as db_init
 
 logger = logging.getLogger()
 load_dotenv('../version.env')
 
 VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
-
 
 def load_file(filename) -> bytes:
     with open(filename, 'rb') as file:
@@ -45,7 +47,8 @@ __details = dict(
     version=VERSION,
 )
 
-app, db = FastAPI(**__details), dataset.connect(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+app, db = FastAPI(**__details), create_engine(url=str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+db_init(db)
 
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
@@ -94,13 +97,17 @@ async def status(request: Request):
 
 @app.get('/-/origins')
 async def _origins(request: Request):
-    response = list(map(lambda x: jsonable_encoder(x), db['origin'].all()))
+    session = sessionmaker(bind=db)()
+    response = list(map(lambda x: jsonable_encoder(x), session.query(Origin).all()))
+    session.close()
     return JSONResponse(response)
 
 
 @app.get('/-/leases')
 async def _leases(request: Request):
-    response = list(map(lambda x: jsonable_encoder(x), db['lease'].all()))
+    session = sessionmaker(bind=db)()
+    response = list(map(lambda x: jsonable_encoder(x), session.query(Lease).all()))
+    session.close()
     return JSONResponse(response)
 
 
@@ -159,14 +166,14 @@ async def auth_v1_origin(request: Request):
     origin_ref = j['candidate_origin_ref']
     logging.info(f'> [  origin  ]: {origin_ref}: {j}')
 
-    data = dict(
+    data = Origin(
         origin_ref=origin_ref,
         hostname=j['environment']['hostname'],
         guest_driver_version=j['environment']['guest_driver_version'],
         os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
     )
 
-    db['origin'].upsert(data, ['origin_ref'])
+    Origin.create_or_update(db, data)
 
     response = {
         "origin_ref": origin_ref,
@@ -279,8 +286,8 @@ async def leasing_v1_lessor(request: Request):
             }
         })
 
-        data = dict(origin_ref=origin_ref, lease_ref=scope_ref, lease_created=cur_time, lease_expires=expires)
-        db['lease'].insert_ignore(data, ['origin_ref', 'lease_ref'])  # todo: handle update
+        data = Lease(origin_ref=origin_ref, lease_ref=scope_ref, lease_created=cur_time, lease_expires=expires)
+        Lease.create_or_update(db, data)
 
     response = {
         "lease_result_list": lease_result_list,
@@ -320,14 +327,11 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     origin_ref = token['origin_ref']
     logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
 
-    if db['lease'].count(origin_ref=origin_ref, lease_ref=lease_ref) == 0:
+    entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
+    if entity is None:
         raise HTTPException(status_code=404, detail='requested lease not available')
 
     expires = cur_time + LEASE_EXPIRE_DELTA
-
-    data = dict(origin_ref=origin_ref, lease_ref=lease_ref, lease_expires=expires, lease_last_update=cur_time)
-    db['lease'].update(data, ['origin_ref', 'lease_ref'])
-
     response = {
         "lease_ref": lease_ref,
         "expires": expires.isoformat(),
@@ -336,6 +340,8 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
         "prompts": None,
         "sync_timestamp": cur_time.isoformat(),
     }
+
+    Lease.renew(db, entity, expires, cur_time)
 
     return JSONResponse(response)
 
@@ -346,8 +352,8 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
     origin_ref = token['origin_ref']
 
-    released_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
-    deletions = db['lease'].delete(origin_ref=origin_ref)
+    released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
+    deletions = Lease.ceanup(db, origin_ref)
     logging.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
 
     response = {

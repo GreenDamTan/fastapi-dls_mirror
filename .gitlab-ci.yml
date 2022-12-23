@@ -39,6 +39,8 @@ build:docker:
 test:
   image: python:3.10-slim-bullseye
   stage: test
+  variables:
+    DATABASE: sqlite:///../app/db.sqlite
   before_script:
     - pip install -r requirements.txt
     - pip install pytest httpx

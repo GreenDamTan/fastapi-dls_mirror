@@ -16,7 +16,7 @@ build:
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
 test:
-  image: python:3.10-alpine
+  image: python:3.10-slim-bullseye
   stage: test
   before_script:
     - pip install -r requirements.txt

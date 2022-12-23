@@ -23,6 +23,7 @@ test:
     - pip install pytest httpx
     - openssl genrsa -out app/instance.private.pem 2048
     - openssl rsa -in app/instance.private.pem -outform PEM -pubout -out app/instance.public.pem
+    - cd test
   script:
     - pytest main.py
 

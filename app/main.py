@@ -53,6 +53,7 @@ LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
 DLS_URL = str(getenv('DLS_URL', 'localhost'))
 DLS_PORT = int(getenv('DLS_PORT', '443'))
 SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
+INSTANCE_REF = '00000000-0000-0000-0000-000000000000'
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
@@ -109,15 +110,6 @@ async def client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
 
-    service_instance_public_key_configuration = {
-        "service_instance_public_key_me": {
-            "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
-            "exp": INSTANCE_KEY_PUB.public_key().e,
-        },
-        "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
-        "key_retention_mode": "LATEST_ONLY"
-    }
-
     payload = {
         "jti": str(uuid4()),
         "iss": "NLS Service Instance",
@@ -129,7 +121,7 @@ async def client_token():
         "scope_ref_list": [str(uuid4())],
         "fulfillment_class_ref_list": [],
         "service_instance_configuration": {
-            "nls_service_instance_ref": "00000000-0000-0000-0000-000000000000",
+            "nls_service_instance_ref": INSTANCE_REF,
             "svc_port_set_list": [
                 {
                     "idx": 0,
@@ -139,7 +131,14 @@ async def client_token():
             ],
             "node_url_list": [{"idx": 0, "url": DLS_URL, "url_qr": DLS_URL, "svc_port_set_idx": 0}]
         },
-        "service_instance_public_key_configuration": service_instance_public_key_configuration,
+        "service_instance_public_key_configuration": {
+            "service_instance_public_key_me": {
+                "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
+                "exp": INSTANCE_KEY_PUB.public_key().e,
+            },
+            "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
+            "key_retention_mode": "LATEST_ONLY"
+        },
     }
 
     content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)

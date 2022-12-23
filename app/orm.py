@@ -1,6 +1,6 @@
 import datetime
 
-from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, UniqueConstraint, update, and_, delete
+from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, UniqueConstraint, update, and_, delete, inspect
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.future import Engine
 from sqlalchemy.orm import sessionmaker
@@ -102,3 +102,13 @@ class Lease(Base):
         deletions = session.query(Lease).delete(Lease.origin_ref == origin_ref)
         session.close()
         return deletions
+
+
+def init(engine: Engine):
+    tables = [Origin, Lease]
+    db = inspect(engine)
+    session = sessionmaker(bind=engine)()
+    for table in tables:
+        if not db.dialect.has_table(engine.connect(), table.__tablename__):
+            session.execute(str(table.create_statement(engine)))
+    session.close()

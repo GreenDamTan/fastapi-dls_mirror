@@ -22,7 +22,7 @@ from sqlalchemy.orm import sessionmaker
 from Crypto.PublicKey import RSA
 from Crypto.PublicKey.RSA import RsaKey
 
-from orm import Origin, Lease
+from orm import Origin, Lease, init as db_init
 
 logger = logging.getLogger()
 load_dotenv('../version.env')
@@ -48,6 +48,7 @@ __details = dict(
 )
 
 app, db = FastAPI(**__details), create_engine(url=str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+db_init(db)
 
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))

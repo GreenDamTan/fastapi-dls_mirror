@@ -2,6 +2,9 @@
 
 Minimal Delegated License Service (DLS).
 
+This service can be used without internet connection.
+Only the clients need a connection to this service on configured port.
+
 ## Endpoints
 
 ### `GET /`
@@ -32,7 +35,14 @@ Generate client token, (see [installation](#installation)).
 
 There are some more internal api endpoints for handling authentication and lease process.
 
-# Setup (Docker)
+# Setup
+
+## Docker
+
+Docker-Images are available here:
+
+- [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
+- GitLab-Registry: `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
 
 **Run this on the Docker-Host**
 
@@ -80,6 +90,98 @@ services:
 volumes:
   dls-db:
 ```
+
+## Debian
+
+Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
+
+**Install requirements**
+
+```shell
+apt-get update && apt-get install git python3-venv python3-pip
+```
+
+**Install FastAPI-DLS**
+
+```shell
+WORKING_DIR=/opt/fastapi-dls
+mkdir -p $WORKING_DIR
+cd $WORKING_DIR
+git clone https://git.collinwebdesigns.de/oscar.krause/fastapi-dls .
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+deactivate
+```
+
+**Create keypair and webserver certificate**
+
+```shell
+WORKING_DIR=/opt/fastapi-dls/app/cert
+mkdir $WORKING_DIR
+cd $WORKING_DIR
+# create instance private and public key for singing JWT's
+openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
+openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
+# create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
+```
+
+**Test Service**
+
+```shell
+cd /opt/fastapi-dls/app
+/opt/fastapi-dls/venv/bin/uvicorn main:app \
+  --host 127.0.0.1 --port 443 \
+  --app-dir /opt/fastapi-dls/app \
+  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
+  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
+  --proxy-headers
+```
+
+**Create config file**
+
+```shell
+cat <<EOF > /etc/fastapi-dls.env
+DLS_URL=127.0.0.1
+DLS_PORT=443
+LEASE_EXPIRE_DAYS=90
+DATABASE=sqlite:////opt/fastapi-dls/app/db.sqlite
+EOF 
+```
+
+**Create service**
+
+```shell
+cat <<EOF >/etc/systemd/system/fastapi-dls.service
+[Unit]
+Description=Service for fastapi-dls
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/fastapi-dls/app
+ExecStart=/opt/fastapi-dls/venv/bin/uvicorn \
+  --host $DLS_URL --port $DLS_PORT \
+  --app-dir /opt/fastapi-dls/app \
+  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
+  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
+  --proxy-headers
+EnvironmentFile=/etc/fastapi-dls.env
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Now you have to run `systemctl daemon-reload`. After that you can start service
+with `systemctl start fastapi-dls.service`.
 
 # Configuration
 

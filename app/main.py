@@ -207,16 +207,12 @@ async def auth_v1_code(request: Request):
         'iat': timegm(cur_time.timetuple()),
         'exp': timegm(expires.timetuple()),
         'challenge': j['code_challenge'],
-        'origin_ref': j['code_challenge'],
+        'origin_ref': j['origin_ref'],
         'key_ref': SITE_KEY_XID,
         'kid': SITE_KEY_XID
     }
 
     auth_code = jws.sign(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
-
-    Auth.cleanup(db, origin_ref, cur_time - delta)
-    data = Auth(origin_ref=origin_ref, code_challenge=j['code_challenge'], expires=expires)
-    Auth.create(db, data)
 
     response = {
         "auth_code": auth_code,
@@ -235,13 +231,8 @@ async def auth_v1_token(request: Request):
     j = json.loads((await request.body()).decode('utf-8'))
     payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
 
-    code_challenge = payload['origin_ref']
-
-    entity = Auth.find_by_code_challenge(db, code_challenge)
-    if entity is None:
-        raise HTTPException(status_code=400, detail='code challenge not found')
-    origin_ref = entity.origin_ref
-    logging.info(f'> [   auth   ]: {origin_ref} ({code_challenge}): {j}')
+    origin_ref = payload['origin_ref']
+    logging.info(f'> [   auth   ]: {origin_ref}: {j}')
 
     # validate the code challenge
     if payload['challenge'] != b64enc(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
@@ -256,7 +247,7 @@ async def auth_v1_token(request: Request):
         'iss': 'https://cls.nvidia.org',
         'aud': 'https://cls.nvidia.org',
         'exp': timegm(access_expires_on.timetuple()),
-        'origin_ref': payload['origin_ref'],
+        'origin_ref': origin_ref,
         'key_ref': SITE_KEY_XID,
         'kid': SITE_KEY_XID,
     }
@@ -277,14 +268,9 @@ async def auth_v1_token(request: Request):
 async def leasing_v1_lessor(request: Request):
     j, token = json.loads((await request.body()).decode('utf-8')), get_token(request)
 
-    code_challenge = token['origin_ref']
+    origin_ref = token['origin_ref']
     scope_ref_list = j['scope_ref_list']
-
-    entity = Auth.find_by_code_challenge(db, code_challenge)
-    if entity is None:
-        raise HTTPException(status_code=400, detail='code challenge not found')
-    origin_ref = entity.origin_ref
-    logging.info(f'> [  create  ]: {origin_ref} ({code_challenge}): create leases for scope_ref_list {scope_ref_list}')
+    logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
     cur_time = datetime.utcnow()
     lease_result_list = []
@@ -323,14 +309,10 @@ async def leasing_v1_lessor(request: Request):
 async def leasing_v1_lessor_lease(request: Request):
     token = get_token(request)
 
-    code_challenge = token['origin_ref']
+    origin_ref = token['origin_ref']
 
-    entity = Auth.find_by_code_challenge(db, code_challenge)
-    if entity is None:
-        raise HTTPException(status_code=400, detail='code challenge not found')
-    origin_ref = entity.origin_ref
-    active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
-    logging.info(f'> [  leases  ]: {origin_ref} ({code_challenge}): found {len(active_lease_list)} active leases')
+    active_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
+    logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
 
     cur_time = datetime.utcnow()
     response = {
@@ -347,13 +329,8 @@ async def leasing_v1_lessor_lease(request: Request):
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     token = get_token(request)
 
-    code_challenge = token['origin_ref']
-
-    entity = Auth.find_by_code_challenge(db, code_challenge)
-    if entity is None:
-        raise HTTPException(status_code=400, detail='code challenge not found')
-    origin_ref = entity.origin_ref
-    logging.info(f'> [  renew   ]: {origin_ref} ({code_challenge}): renew {lease_ref}')
+    origin_ref = token['origin_ref']
+    logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
 
     entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
     if entity is None:
@@ -379,16 +356,11 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 async def leasing_v1_lessor_lease_remove(request: Request):
     token = get_token(request)
 
-    code_challenge = token['origin_ref']
-
-    entity = Auth.find_by_code_challenge(db, code_challenge)
-    if entity is None:
-        raise HTTPException(status_code=400, detail='code challenge not found')
-    origin_ref = entity.origin_ref
+    origin_ref = token['origin_ref']
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.ceanup(db, origin_ref)
-    logging.info(f'> [  remove  ]: {origin_ref} ({code_challenge}): removed {deletions} leases')
+    logging.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
 
     cur_time = datetime.utcnow()
     response = {

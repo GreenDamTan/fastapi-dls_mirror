@@ -16,9 +16,17 @@ build:
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
 test:
+  image: python:3.10-slim-bullseye
   stage: test
+  before_script:
+    - pip install -r requirements.txt
+    - pip install pytest httpx
+    - mkdir -p app/cert
+    - openssl genrsa -out app/cert/instance.private.pem 2048
+    - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
+    - cd test
   script:
-    - echo "Nothing to do ..."
+    - pytest main.py
 
 deploy:
   stage: deploy

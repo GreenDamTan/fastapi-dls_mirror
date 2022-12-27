@@ -5,6 +5,13 @@ Minimal Delegated License Service (DLS).
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
+## ToDo#'s
+
+- provide `.deb` package (WIP)
+- migrate from `dataset` to `sqlalchemy` (WIP)
+- migrate from `fastapi` to `flask`
+- Support http mode for using external https proxy
+
 ## Endpoints
 
 ### `GET /`

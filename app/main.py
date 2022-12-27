@@ -197,14 +197,14 @@ async def auth_v1_origin_update(request: Request):
     origin_ref = j['origin_ref']
     logging.info(f'> [  update  ]: {origin_ref}: {j}')
 
-    data = dict(
+    data = Origin(
         origin_ref=origin_ref,
         hostname=j['environment']['hostname'],
         guest_driver_version=j['environment']['guest_driver_version'],
         os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
     )
 
-    db['origin'].upsert(data, ['origin_ref'])
+    Origin.create_or_update(db, data)
 
     response = {
         "environment": j['environment'],

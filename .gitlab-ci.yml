@@ -25,7 +25,7 @@ build:debian:
   artifacts:
     expire_in: 1 week
     paths:
-      - build.deb
+      - build/build.deb
 
 build:docker:
   image: docker:dind
@@ -66,7 +66,7 @@ test:debian:
     - apt-get update -qq && apt-get install -qq -y jq  # systemd
   script:
     # test installation
-    - apt-get install -q -y ./build.deb --fix-missing
+    - apt-get install -q -y build/build.deb --fix-missing
     # copy example config from GitLab-CI-Variables
     #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
     #- systemctl daemon-reload

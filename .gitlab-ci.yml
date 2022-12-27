@@ -69,6 +69,14 @@ test:debian:
   script:
     # test installation
     - apt-get install -q -y ./build/build.deb --fix-missing
+    - uvicorn --host 127.0.0.1 --port 443 \
+      --app-dir /usr/share/fastapi-dls/app \
+      --ssl-keyfile /etc/fastapi-dls/webserver.key \
+      --ssl-certfile /opt/fastapi-dls/webserver.crt \
+      --proxy-headers &
+    - FASTAPI_DLS_PID=$!
+    - echo "> Started service with pid: $FASTAPI_DLS_PID"
+    - kill $FASTAPI_DLS_PID
     # copy example config from GitLab-CI-Variables
     #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
     #- systemctl daemon-reload

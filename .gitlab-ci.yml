@@ -109,6 +109,7 @@ deploy:docker:
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
 
 deploy:debian:
+  # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
   image: debian:bookworm-slim
   stage: deploy
   rules:
@@ -117,7 +118,10 @@ deploy:debian:
     - job: build:debian
       artifacts: true
   before_script:
-    - apt-get update -qq && apt-get install -qq -y curl
+    - apt-get update -qq && apt-get install -qq -y curl lsb-release
+    # create distribution initial
+    - CODENAME=`lsb_release -cs`
+    - 'curl --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/debian_distributions?codename=${CODENAME}"'
   script:
     # Naming format: <name>_<version>-<release>_<arch>.deb
     # Version is the version number of the app being packaged

@@ -10,13 +10,14 @@ After=network.target
 User=www-data
 Group=www-data
 WorkingDirectory=/usr/share/fastapi-dls
-ExecStart=uvicorn \
+EnvironmentFile=/etc/fastapi-dls.env
+ExecStart=uvicorn main:app \
+  --env-file /etc/fastapi-dls.env \
   --host $DLS_URL --port $DLS_PORT \
   --app-dir /usr/share/fastapi-dls/app \
   --ssl-keyfile /etc/fastapi-dls/webserver.key \
   --ssl-certfile /opt/fastapi-dls/webserver.crt \
   --proxy-headers
-EnvironmentFile=/etc/fastapi-dls.env
 Restart=always
 KillSignal=SIGQUIT
 Type=notify

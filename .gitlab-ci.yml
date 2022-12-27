@@ -145,4 +145,6 @@ deploy:debian:
     - URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/debian/${EXPORT_NAME}"
     - 'echo "URL:             ${URL}"'
     #- 'curl --request PUT --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} ${URL}'
-    - 'curl --request PUT --upload-file ${EXPORT_NAME} https://${PRIVATE_WRITE_PACKAGE_REGISTRY_USER}:${PRIVATE_WRITE_PACKAGE_REGISTRY_TOKEN}@git.collinwebdesigns.de/api/v4/projects/${CI_PROJECT_ID}/packages/debian/${EXPORT_NAME}'
+    # using generic-package-registry until debian-registry is GA
+    # https://docs.gitlab.com/ee/user/packages/generic_packages/index.html#publish-a-generic-package-by-using-cicd
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'

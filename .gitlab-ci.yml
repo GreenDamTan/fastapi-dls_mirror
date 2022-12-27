@@ -125,9 +125,9 @@ deploy:debian:
     # The release number might increment if the package maintainer
     # updated the packaging, while the version number of the application
     # being packaged did not change.
-    - BUILD_NAME=build.deb  # inherited by build-stage
-    - PACKAGE_NAME=`dpkg -I build/build.deb  | grep "Package:" | awk '{ print $2 }'`
-    - PACKAGE_VERSION=`dpkg -I build/build.deb | grep "Version:" | awk '{ print $2 }'`
+    - BUILD_NAME=build/build.deb  # inherited by build-stage
+    - PACKAGE_NAME=`dpkg -I ${BUILD_NAME} | grep "Package:" | awk '{ print $2 }'`
+    - PACKAGE_VERSION=`dpkg -I ${BUILD_NAME} | grep "Version:" | awk '{ print $2 }'`
     - PACKAGE_ARCH=amd64
     - EXPORT_NAME="${PACKAGE_NAME}_${PACKAGE_VERSION}-0_${PACKAGE_ARCH}.deb"
     - mv ${BUILD_NAME} ${EXPORT_NAME}

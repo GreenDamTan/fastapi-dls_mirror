@@ -5,9 +5,7 @@ Minimal Delegated License Service (DLS).
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
-[[TOC]]
-
-## ToDo#'s / Roadmap
+## ToDo's
 
 - provide `.deb` package (WIP)
 - migrate from `dataset` to `sqlalchemy` (WIP)

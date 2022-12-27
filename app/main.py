@@ -181,6 +181,33 @@ async def auth_v1_origin(request: Request):
     return JSONResponse(response)
 
 
+# venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
+# { "environment" : { "guest_driver_version" : "guest_driver_version", "hostname" : "myhost", "ip_address_list" : [ "192.168.1.129" ], "os_version" : "os_version", "os_platform" : "os_platform", "fingerprint" : { "mac_address_list" : [ "e4:b9:7a:e5:7b:ff" ] }, "host_driver_version" : "host_driver_version" }, "origin_ref" : "00112233-4455-6677-8899-aabbccddeeff" }
+@app.post('/auth/v1/origin/update')
+async def auth_v1_origin_update(request: Request):
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
+
+    origin_ref = j['origin_ref']
+    logging.info(f'> [  update  ]: {origin_ref}: {j}')
+
+    data = dict(
+        origin_ref=origin_ref,
+        hostname=j['environment']['hostname'],
+        guest_driver_version=j['environment']['guest_driver_version'],
+        os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
+    )
+
+    db['origin'].upsert(data, ['origin_ref'])
+
+    response = {
+        "environment": j['environment'],
+        "prompts": None,
+        "sync_timestamp": cur_time.isoformat()
+    }
+
+    return JSONResponse(response)
+
+
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}

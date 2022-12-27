@@ -143,4 +143,5 @@ deploy:debian:
     # https://docs.gitlab.com/14.3/ee/user/packages/debian_repository/index.html
     - URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/debian/${EXPORT_NAME}"
     - 'echo "URL:             ${URL}"'
-    - 'curl --request PUT --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} ${URL}'
+    #- 'curl --request PUT --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} ${URL}'
+    - 'curl --request PUT --upload-file ${EXPORT_NAME} https://${PRIVATE_WRITE_PACKAGE_REGISTRY_USER}:${PRIVATE_WRITE_PACKAGE_REGISTRY_TOKEN}@git.collinwebdesigns.de/api/v4/projects/${CI_PROJECT_ID}/packages/debian/${EXPORT_NAME}'

@@ -19,7 +19,7 @@ build:debian:
     - mkdir -p build/etc/fastapi-dls
     - touch build/etc/fastapi-dls/env
   script:
-    - dpkg -b . build.deb
+    - chroot build/ dpkg -b . build.deb
   artifacts:
     expire_in: 1 week
     paths:

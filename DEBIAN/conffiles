@@ -1,8 +1,1 @@
-/etc/systemd/system/fastapi-dls.service
 /etc/fastapi-dls/env
-/etc/fastapi-dls/instance.private.pem
-/etc/fastapi-dls/instance.public.pem
-/etc/fastapi-dls/webserver.key
-/etc/fastapi-dls/webserver.crt
-
-# todo

@@ -40,7 +40,7 @@ class Origin(Base):
                 os_platform=origin.os_platform,
                 os_version=origin.os_version,
             )
-            session.execute(update(Origin).where(Origin.origin_ref == origin.origin_ref).values(values))
+            session.execute(update(Origin).where(Origin.origin_ref == origin.origin_ref).values(**values))
         session.flush()
         session.close()
 
@@ -73,7 +73,7 @@ class Lease(Base):
             session.add(lease)
         else:
             values = dict(lease_expires=lease.lease_expires, lease_updated=lease.lease_updated)
-            session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(values))
+            session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(**values))
         session.flush()
         session.close()
 
@@ -95,7 +95,7 @@ class Lease(Base):
     def renew(engine: Engine, lease: "Lease", lease_expires: datetime.datetime, lease_updated: datetime.datetime):
         session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
         values = dict(lease_expires=lease.lease_expires, lease_updated=lease.lease_updated)
-        session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(values))
+        session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(**values))
         session.close()
 
     @staticmethod

@@ -68,6 +68,8 @@ class Lease(Base):
         session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
         entity = session.query(Lease).filter(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).first()
         if entity is None:
+            if lease.lease_updated is None:
+                lease.lease_updated = lease.lease_created
             session.add(lease)
         else:
             values = dict(lease_expires=lease.lease_expires, lease_updated=lease.lease_updated)

@@ -59,6 +59,8 @@ test:
 test:debian:
   image: debian:bookworm-slim
   stage: test
+  variables:
+    DEBIAN_FRONTEND: noninteractive
   needs:
     - job: build:debian
       artifacts: true

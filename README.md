@@ -35,7 +35,7 @@ Generate client token, (see [installation](#installation)).
 
 There are some more internal api endpoints for handling authentication and lease process.
 
-# Setup
+# Setup (Service)
 
 ## Docker
 
@@ -194,9 +194,14 @@ with `systemctl start fastapi-dls.service`.
 | `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
 | `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
 
-# Installation
+# Installation (Client)
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
+
+Successfully tested with this package versions:
+
+- `14.3` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `513.91`)
+- `15.0` (Linux-Host: `525.60.12`, Linux-Guest: `525.60.13`, Windows-Guest: `527.41`)
 
 ## Linux
 

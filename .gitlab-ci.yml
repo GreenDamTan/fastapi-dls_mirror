@@ -18,8 +18,10 @@ build:debian:
     # create conf file
     - mkdir -p build/etc/fastapi-dls
     - touch build/etc/fastapi-dls/env
+    # cd into "build/"
+    - cd build/
   script:
-    - chroot build/ dpkg -b . build.deb
+    - dpkg -b . build.deb
   artifacts:
     expire_in: 1 week
     paths:

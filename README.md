@@ -95,6 +95,9 @@ volumes:
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
+**We are running on port `9443` because we are running service as `www-data`-user and non-root users are not allowed to
+use ports below 1024!**
+
 **Install requirements**
 
 ```shell
@@ -112,6 +115,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 deactivate
+chown -R www-data:www-data $WORKING_DIR
 ```
 
 **Create keypair and webserver certificate**
@@ -125,18 +129,16 @@ openssl genrsa -out $WORKING_DIR/instance.private.pem 2048
 openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
+chown -R www-data:www-data $WORKING_DIR
 ```
 
 **Test Service**
 
+This is only to test whether the service starts successfully.
+
 ```shell
 cd /opt/fastapi-dls/app
-/opt/fastapi-dls/venv/bin/uvicorn main:app \
-  --host 127.0.0.1 --port 443 \
-  --app-dir /opt/fastapi-dls/app \
-  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
-  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
-  --proxy-headers
+su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**
@@ -144,7 +146,7 @@ cd /opt/fastapi-dls/app
 ```shell
 cat <<EOF > /etc/fastapi-dls.env
 DLS_URL=127.0.0.1
-DLS_PORT=443
+DLS_PORT=9443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////opt/fastapi-dls/app/db.sqlite
 
@@ -163,13 +165,14 @@ After=network.target
 User=www-data
 Group=www-data
 WorkingDirectory=/opt/fastapi-dls/app
-ExecStart=/opt/fastapi-dls/venv/bin/uvicorn \
-  --host $DLS_URL --port $DLS_PORT \
+EnvironmentFile=/etc/fastapi-dls.env
+ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \
+  --env-file /etc/fastapi-dls.env \
+  --host \$DLS_URL --port \$DLS_PORT \
   --app-dir /opt/fastapi-dls/app \
   --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
   --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
   --proxy-headers
-EnvironmentFile=/etc/fastapi-dls.env
 Restart=always
 KillSignal=SIGQUIT
 Type=notify

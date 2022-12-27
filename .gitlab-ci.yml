@@ -65,6 +65,7 @@ test:debian:
   before_script:
     - apt-get update -qq && apt-get install -qq -y jq  # systemd
   script:
+    - ls -alh
     # test installation
     - apt-get install -q -y build/build.deb --fix-missing
     # copy example config from GitLab-CI-Variables

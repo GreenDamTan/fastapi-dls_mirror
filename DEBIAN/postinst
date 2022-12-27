@@ -26,6 +26,7 @@ NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 
 CONFIG_DIR=/etc/fastapi-dls
@@ -35,11 +36,12 @@ mkdir -p $CONFIG_DIR
 
 echo "> Writing default config parameters ..."
 touch $CONFIG_DIR/fastapi-dls.env
-echo <<EOF >$CONFIG_DIR
+echo <<EOF > $CONFIG_DIR/fastapi-dls.env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////usr/share/fastapi-dls/db.sqlite
+
 EOF
 
 echo "> Create dls-instance keypair ..."
@@ -84,4 +86,5 @@ cat <<EOF
 #                                                                             #
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 EOF

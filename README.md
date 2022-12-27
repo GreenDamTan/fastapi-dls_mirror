@@ -201,6 +201,7 @@ with `systemctl start fastapi-dls.service`.
 Successfully tested with this package versions:
 
 - `14.3` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `513.91`)
+- `14.4` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `514.08`)
 - `15.0` (Linux-Host: `525.60.12`, Linux-Guest: `525.60.13`, Windows-Guest: `527.41`)
 
 ## Linux

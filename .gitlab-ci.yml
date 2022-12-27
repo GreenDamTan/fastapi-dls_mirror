@@ -134,7 +134,8 @@ deploy:debian:
     - PACKAGE_NAME=`dpkg -I ${BUILD_NAME} | grep "Package:" | awk '{ print $2 }'`
     - PACKAGE_VERSION=`dpkg -I ${BUILD_NAME} | grep "Version:" | awk '{ print $2 }'`
     - PACKAGE_ARCH=amd64
-    - EXPORT_NAME="${PACKAGE_NAME}_${PACKAGE_VERSION}-0_${PACKAGE_ARCH}.deb"
+    #- EXPORT_NAME="${PACKAGE_NAME}_${PACKAGE_VERSION}-0_${PACKAGE_ARCH}.deb"
+    - EXPORT_NAME="${PACKAGE_NAME}_${PACKAGE_VERSION}_${PACKAGE_ARCH}.deb"
     - mv ${BUILD_NAME} ${EXPORT_NAME}
     - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'
     - 'echo "PACKAGE_VERSION: ${PACKAGE_VERSION}"'

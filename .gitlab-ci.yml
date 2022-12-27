@@ -65,9 +65,9 @@ test:debian:
   before_script:
     - apt-get update -qq && apt-get install -qq -y jq  # systemd
   script:
-    - ls -alh
+    - ls -alh build/
     # test installation
-    - apt-get install -q -y build/build.deb --fix-missing
+    - apt-get install -q -y ./build/build.deb --fix-missing
     # copy example config from GitLab-CI-Variables
     #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
     #- systemctl daemon-reload

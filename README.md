@@ -182,7 +182,7 @@ ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \
   --proxy-headers
 Restart=always
 KillSignal=SIGQUIT
-Type=notify
+Type=simple
 StandardError=syslog
 NotifyAccess=all
 

@@ -46,7 +46,8 @@ openssl genrsa -out $CONFIG_DIR/instance.private.pem 2048
 openssl rsa -in $CONFIG_DIR/instance.private.pem -outform PEM -pubout -out $CONFIG_DIR/instance.public.pem
 
 while true; do
-  read -p "> Do you wish to create self-signed webserver certificate? [y/n]" yn
+  read -p "> Do you wish to create self-signed webserver certificate? [Y/n]" yn
+  yn=${yn:-y} # ${parameter:-word} If parameter is unset or null, the expansion of word is substituted. Otherwise, the value of parameter is substituted.
   case $yn in
   [Yy]*)
     openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout $CONFIG_DIR/webserver.key -out $CONFIG_DIR/webserver.crt

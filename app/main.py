@@ -19,8 +19,14 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from Cryptodome.PublicKey import RSA  # Crypto | Cryptodome on Debian
-from Cryptodome.PublicKey.RSA import RsaKey  # Crypto | Cryptodome on Debian
+
+try:
+    # Crypto | Cryptodome on Debian
+    from Crypto.PublicKey import RSA
+    from Crypto.PublicKey.RSA import RsaKey
+except ModuleNotFoundError:
+    from Cryptodome.PublicKey import RSA
+    from Cryptodome.PublicKey.RSA import RsaKey
 
 from orm import Origin, Lease, init as db_init
 

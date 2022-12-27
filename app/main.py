@@ -380,7 +380,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
     origin_ref = token['origin_ref']
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
-    deletions = Lease.ceanup(db, origin_ref)
+    deletions = Lease.cleanup(db, origin_ref)
     logging.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
 
     response = {

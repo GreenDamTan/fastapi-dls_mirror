@@ -121,7 +121,8 @@ deploy:debian:
     - apt-get update -qq && apt-get install -qq -y curl lsb-release
     # create distribution initial
     - CODENAME=`lsb_release -cs`
-    - 'curl --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/debian_distributions?codename=${CODENAME}"'
+    # create repo if not exists
+    - 'if [ "`curl -s -o /dev/null -w "%{http_code}" --header "JOB-TOKEN: $CI_JOB_TOKEN" -s ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/debian_distributions/${CODENAME}/key.asc`" != "200" ]; then curl --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/debian_distributions?codename=${CODENAME}"; fi'
   script:
     # Naming format: <name>_<version>-<release>_<arch>.deb
     # Version is the version number of the app being packaged

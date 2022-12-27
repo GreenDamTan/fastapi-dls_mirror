@@ -55,7 +55,8 @@ LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
 
 DLS_URL = str(getenv('DLS_URL', 'localhost'))
 DLS_PORT = int(getenv('DLS_PORT', '443'))
-SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
+SITE_KEY_XID = str(getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
+INSTANCE_REF = str(getenv('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
@@ -116,15 +117,6 @@ async def client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
 
-    service_instance_public_key_configuration = {
-        "service_instance_public_key_me": {
-            "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
-            "exp": INSTANCE_KEY_PUB.public_key().e,
-        },
-        "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
-        "key_retention_mode": "LATEST_ONLY"
-    }
-
     payload = {
         "jti": str(uuid4()),
         "iss": "NLS Service Instance",
@@ -136,7 +128,7 @@ async def client_token():
         "scope_ref_list": [str(uuid4())],
         "fulfillment_class_ref_list": [],
         "service_instance_configuration": {
-            "nls_service_instance_ref": "00000000-0000-0000-0000-000000000000",
+            "nls_service_instance_ref": INSTANCE_REF,
             "svc_port_set_list": [
                 {
                     "idx": 0,
@@ -146,7 +138,14 @@ async def client_token():
             ],
             "node_url_list": [{"idx": 0, "url": DLS_URL, "url_qr": DLS_URL, "svc_port_set_idx": 0}]
         },
-        "service_instance_public_key_configuration": service_instance_public_key_configuration,
+        "service_instance_public_key_configuration": {
+            "service_instance_public_key_me": {
+                "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
+                "exp": int(INSTANCE_KEY_PUB.public_key().e),
+            },
+            "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
+            "key_retention_mode": "LATEST_ONLY"
+        },
     }
 
     content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
@@ -162,7 +161,7 @@ async def client_token():
 # {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
 @app.post('/auth/v1/origin')
 async def auth_v1_origin(request: Request):
-    j = json.loads((await request.body()).decode('utf-8'))
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
     origin_ref = j['candidate_origin_ref']
     logging.info(f'> [  origin  ]: {origin_ref}: {j}')
@@ -176,7 +175,6 @@ async def auth_v1_origin(request: Request):
 
     Origin.create_or_update(db, data)
 
-    cur_time = datetime.utcnow()
     response = {
         "origin_ref": origin_ref,
         "environment": j['environment'],
@@ -190,17 +188,43 @@ async def auth_v1_origin(request: Request):
     return JSONResponse(response)
 
 
+# venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
+# { "environment" : { "guest_driver_version" : "guest_driver_version", "hostname" : "myhost", "ip_address_list" : [ "192.168.1.129" ], "os_version" : "os_version", "os_platform" : "os_platform", "fingerprint" : { "mac_address_list" : [ "e4:b9:7a:e5:7b:ff" ] }, "host_driver_version" : "host_driver_version" }, "origin_ref" : "00112233-4455-6677-8899-aabbccddeeff" }
+@app.post('/auth/v1/origin/update')
+async def auth_v1_origin_update(request: Request):
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
+
+    origin_ref = j['origin_ref']
+    logging.info(f'> [  update  ]: {origin_ref}: {j}')
+
+    data = dict(
+        origin_ref=origin_ref,
+        hostname=j['environment']['hostname'],
+        guest_driver_version=j['environment']['guest_driver_version'],
+        os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
+    )
+
+    db['origin'].upsert(data, ['origin_ref'])
+
+    response = {
+        "environment": j['environment'],
+        "prompts": None,
+        "sync_timestamp": cur_time.isoformat()
+    }
+
+    return JSONResponse(response)
+
+
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
 @app.post('/auth/v1/code')
 async def auth_v1_code(request: Request):
-    j = json.loads((await request.body()).decode('utf-8'))
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
     origin_ref = j['origin_ref']
     logging.info(f'> [   code   ]: {origin_ref}: {j}')
 
-    cur_time = datetime.utcnow()
     delta = relativedelta(minutes=15)
     expires = cur_time + delta
 
@@ -229,7 +253,7 @@ async def auth_v1_code(request: Request):
 # {"auth_code":"...","code_verifier":"..."}
 @app.post('/auth/v1/token')
 async def auth_v1_token(request: Request):
-    j = json.loads((await request.body()).decode('utf-8'))
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
     payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
 
     origin_ref = payload['origin_ref']
@@ -239,7 +263,6 @@ async def auth_v1_token(request: Request):
     if payload['challenge'] != b64enc(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
         raise HTTPException(status_code=401, detail='expected challenge did not match verifier')
 
-    cur_time = datetime.utcnow()
     access_expires_on = cur_time + TOKEN_EXPIRE_DELTA
 
     new_payload = {
@@ -267,13 +290,12 @@ async def auth_v1_token(request: Request):
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
 @app.post('/leasing/v1/lessor')
 async def leasing_v1_lessor(request: Request):
-    j, token = json.loads((await request.body()).decode('utf-8')), get_token(request)
+    j, token, cur_time = json.loads((await request.body()).decode('utf-8')), get_token(request), datetime.utcnow()
 
     origin_ref = token['origin_ref']
     scope_ref_list = j['scope_ref_list']
     logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
-    cur_time = datetime.utcnow()
     lease_result_list = []
     for scope_ref in scope_ref_list:
         expires = cur_time + LEASE_EXPIRE_DELTA
@@ -308,14 +330,13 @@ async def leasing_v1_lessor(request: Request):
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
 @app.get('/leasing/v1/lessor/leases')
 async def leasing_v1_lessor_lease(request: Request):
-    token = get_token(request)
+    token, cur_time = get_token(request), datetime.utcnow()
 
     origin_ref = token['origin_ref']
 
     active_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
     logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
 
-    cur_time = datetime.utcnow()
     response = {
         "active_lease_list": active_lease_list,
         "sync_timestamp": cur_time.isoformat(),
@@ -328,7 +349,7 @@ async def leasing_v1_lessor_lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
-    token = get_token(request)
+    token, cur_time = get_token(request), datetime.utcnow()
 
     origin_ref = token['origin_ref']
     logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
@@ -337,7 +358,6 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     if entity is None:
         raise HTTPException(status_code=404, detail='requested lease not available')
 
-    cur_time = datetime.utcnow()
     expires = cur_time + LEASE_EXPIRE_DELTA
     response = {
         "lease_ref": lease_ref,
@@ -355,7 +375,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
 @app.delete('/leasing/v1/lessor/leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
-    token = get_token(request)
+    token, cur_time = get_token(request), datetime.utcnow()
 
     origin_ref = token['origin_ref']
 
@@ -363,13 +383,13 @@ async def leasing_v1_lessor_lease_remove(request: Request):
     deletions = Lease.ceanup(db, origin_ref)
     logging.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
 
-    cur_time = datetime.utcnow()
     response = {
         "released_lease_list": released_lease_list,
         "release_failure_list": None,
         "sync_timestamp": cur_time.isoformat(),
         "prompts": None
     }
+
     return JSONResponse(response)
 
 

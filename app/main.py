@@ -334,7 +334,7 @@ async def leasing_v1_lessor_lease(request: Request):
 
     origin_ref = token['origin_ref']
 
-    active_lease_list = list(map(lambda x: x['lease_ref'], db['lease'].find(origin_ref=origin_ref)))
+    active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
 
     response = {

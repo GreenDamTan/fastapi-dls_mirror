@@ -147,7 +147,8 @@ DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////opt/fastapi-dls/app/db.sqlite
-EOF 
+
+EOF
 ```
 
 **Create service**
@@ -177,11 +178,12 @@ NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 ```
 
 Now you have to run `systemctl daemon-reload`. After that you can start service
-with `systemctl start fastapi-dls.service`.
+with `systemctl start fastapi-dls.service` (and enable autostart with `systemctl enable fastapi-dls.service`).
 
 # Configuration
 

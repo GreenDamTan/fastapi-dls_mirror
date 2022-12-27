@@ -16,6 +16,7 @@ build:debian:
     - mkdir -p build/usr/share/
     - cp -r app build/usr/share/fastapi-dls
     # create conf file
+    - mkdir -p build/etc/fastapi-dls
     - touch build/etc/fastapi-dls/env
   script:
     - dpkg -b . build.deb

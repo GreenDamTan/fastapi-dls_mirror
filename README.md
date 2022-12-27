@@ -102,9 +102,6 @@ volumes:
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
-**We are running on port `9443` because we are running service as `www-data`-user and non-root users are not allowed to
-use ports below 1024!**
-
 **Install requirements**
 
 ```shell
@@ -153,7 +150,7 @@ su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fast
 ```shell
 cat <<EOF > /etc/fastapi-dls.env
 DLS_URL=127.0.0.1
-DLS_PORT=9443
+DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////opt/fastapi-dls/app/db.sqlite
 
@@ -171,6 +168,7 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/opt/fastapi-dls/app
 EnvironmentFile=/etc/fastapi-dls.env
 ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \

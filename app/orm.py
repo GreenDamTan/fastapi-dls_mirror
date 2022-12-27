@@ -101,7 +101,7 @@ class Lease(Base):
     @staticmethod
     def cleanup(engine: Engine, origin_ref: str) -> int:
         session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
-        deletions = session.query(Lease).delete(Lease.origin_ref == origin_ref)
+        deletions = session.query(Lease).filter(Lease.origin_ref == origin_ref).delete()
         session.close()
         return deletions
 

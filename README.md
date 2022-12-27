@@ -245,6 +245,12 @@ Currently, there are no known issues.
 
 ## Windows
 
+### Required cipher on Windows Guests (e.g. managed by domain controller with GPO)
+
+It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`) in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
+
+### Multiple Display Container LS Instances
+
 On Windows on some machines there are running two or more instances of `NVIDIA Display Container LS`. This causes a
 problem on licensing flow. As you can see in the logs below, there are two lines with `NLS initialized`, each prefixed
 with `<1>` and `<2>`. So it is possible, that *daemon 1* fetches a valid license through dls-service, and *daemon 2*

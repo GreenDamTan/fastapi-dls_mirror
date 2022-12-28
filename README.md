@@ -5,6 +5,13 @@ Minimal Delegated License Service (DLS).
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
+[[_TOC_]]
+
+## ToDo's
+
+- migrate from `fastapi` to `flask`
+- Support http mode for using external https proxy (disable uvicorn ssl for using behind proxy)
+
 ## Endpoints
 
 ### `GET /`
@@ -35,14 +42,14 @@ Generate client token, (see [installation](#installation)).
 
 There are some more internal api endpoints for handling authentication and lease process.
 
-# Setup
+# Setup (Service)
 
 ## Docker
 
 Docker-Images are available here:
 
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
-- GitLab-Registry: `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
 
 **Run this on the Docker-Host**
 
@@ -91,7 +98,7 @@ volumes:
   dls-db:
 ```
 
-## Debian
+## Debian/Ubuntu (manual method using `git clone`)
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
@@ -112,6 +119,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 deactivate
+chown -R www-data:www-data $WORKING_DIR
 ```
 
 **Create keypair and webserver certificate**
@@ -125,29 +133,28 @@ openssl genrsa -out $WORKING_DIR/instance.private.pem 2048
 openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
+chown -R www-data:www-data $WORKING_DIR
 ```
 
 **Test Service**
 
+This is only to test whether the service starts successfully.
+
 ```shell
 cd /opt/fastapi-dls/app
-/opt/fastapi-dls/venv/bin/uvicorn main:app \
-  --host 127.0.0.1 --port 443 \
-  --app-dir /opt/fastapi-dls/app \
-  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
-  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
-  --proxy-headers
+su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**
 
 ```shell
-cat <<EOF > /etc/fastapi-dls.env
+cat <<EOF >/etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////opt/fastapi-dls/app/db.sqlite
-EOF 
+
+EOF
 ```
 
 **Create service**
@@ -161,42 +168,96 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/opt/fastapi-dls/app
-ExecStart=/opt/fastapi-dls/venv/bin/uvicorn \
-  --host $DLS_URL --port $DLS_PORT \
-  --app-dir /opt/fastapi-dls/app \
-  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
-  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
+EnvironmentFile=/etc/fastapi-dls/env
+ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \\
+  --env-file /etc/fastapi-dls/env \\
+  --host \$DLS_URL --port \$DLS_PORT \\
+  --app-dir /opt/fastapi-dls/app \\
+  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \\
+  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \\
   --proxy-headers
-EnvironmentFile=/etc/fastapi-dls.env
 Restart=always
 KillSignal=SIGQUIT
-Type=notify
-StandardError=syslog
+Type=simple
 NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 ```
 
 Now you have to run `systemctl daemon-reload`. After that you can start service
-with `systemctl start fastapi-dls.service`.
+with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+
+## Debian/Ubuntu (using `dpkg`)
+
+Packages are available here:
+
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
+
+Successful tested with:
+
+- Debian 12 (Bookworm)
+- Ubuntu 22.10 (Kinetic Kudu)
+
+**Run this on your server instance**
+
+First go to [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages) and select your
+version. Then you have to copy the download link of the `fastapi-dls_X.Y.Z_amd64.deb` asset.
+
+```shell
+apt-get update
+FILENAME=/opt/fastapi-dls.deb
+wget -O $FILENAME <download-url>
+dpkg -i $FILENAME
+apt-get install -f --fix-missing
+```
+
+Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+
+## Let's Encrypt Certificate
+
+If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
+
+Note that port 80 must be accessible, and you have to install `socat` if you're using `standalone` mode.
+
+```shell
+acme.sh --issue -d example.com \
+  --cert-file /etc/fastapi-dls/webserver.donotuse.crt \
+  --key-file /etc/fastapi-dls/webserver.key \
+  --fullchain-file /etc/fastapi-dls/webserver.crt \
+  --reloadcmd "systemctl restart fastapi-dls.service"
+```
+
+After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable            | Default               | Usage                                                                                 |
-|---------------------|-----------------------|---------------------------------------------------------------------------------------|
-| `DEBUG`             | `false`               | Toggles `fastapi` debug mode                                                          |
-| `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
-| `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
-| `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
-| `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
+| Variable            | Default                                | Usage                                                                                 |
+|---------------------|----------------------------------------|---------------------------------------------------------------------------------------|
+| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                          |
+| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable             |
+| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable             |
+| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                    |
+| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
+| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                              |
+| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                          |
+| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                            |
+| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                  |
 
-# Installation
+# Setup (Client)
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
+
+Successfully tested with this package versions:
+
+- `14.3` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `513.91`)
+- `14.4` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `514.08`)
+- `15.0` (Linux-Host: `525.60.12`, Linux-Guest: `525.60.13`, Windows-Guest: `527.41`)
 
 ## Linux
 
@@ -225,9 +286,38 @@ Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Con
 
 ## Linux
 
-Currently, there are no known issues.
+### `uvicorn.error:Invalid HTTP request received.`
+
+This message can be ignored.
+
+- Ref. https://github.com/encode/uvicorn/issues/441
+
+```
+WARNING:uvicorn.error:Invalid HTTP request received.
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/uvicorn/protocols/http/h11_impl.py", line 129, in handle_events
+    event = self.conn.next_event()
+  File "/usr/lib/python3/dist-packages/h11/_connection.py", line 485, in next_event
+    exc._reraise_as_remote_protocol_error()
+  File "/usr/lib/python3/dist-packages/h11/_util.py", line 77, in _reraise_as_remote_protocol_error
+    raise self
+  File "/usr/lib/python3/dist-packages/h11/_connection.py", line 467, in next_event
+    event = self._extract_next_receive_event()
+  File "/usr/lib/python3/dist-packages/h11/_connection.py", line 409, in _extract_next_receive_event
+    event = self._reader(self._receive_buffer)
+  File "/usr/lib/python3/dist-packages/h11/_readers.py", line 84, in maybe_read_from_IDLE_client
+    raise LocalProtocolError("no request line received")
+h11._util.RemoteProtocolError: no request line received
+```
 
 ## Windows
+
+### Required cipher on Windows Guests (e.g. managed by domain controller with GPO)
+
+It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`)
+in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
+
+### Multiple Display Container LS Instances
 
 On Windows on some machines there are running two or more instances of `NVIDIA Display Container LS`. This causes a
 problem on licensing flow. As you can see in the logs below, there are two lines with `NLS initialized`, each prefixed

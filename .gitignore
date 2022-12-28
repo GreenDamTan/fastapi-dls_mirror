@@ -3,3 +3,4 @@ venv/
 .idea/
 app/*.sqlite*
 app/cert/*.*
+.pytest_cache

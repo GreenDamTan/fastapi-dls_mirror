@@ -1,7 +1,34 @@
 cache:
   key: one-key-to-rule-them-all
 
-build:
+build:debian:
+  # debian:bullseye-slim
+  image: debian:bookworm-slim  # just to get "python3-jose" working
+  stage: build
+  before_script:
+    - apt-get update -qq && apt-get install -qq -y build-essential
+    - chmod 0755 -R .
+    # create build directory for .deb sources
+    - mkdir build
+    # copy install instructions
+    - cp -r DEBIAN build/
+    # copy app into "/usr/share/fastapi-dls" as "/usr/share/fastapi-dls/app" & copy README.md and version.env
+    - mkdir -p build/usr/share/fastapi-dls
+    - cp -r app build/usr/share/fastapi-dls
+    - cp README.md version.env build/usr/share/fastapi-dls
+    # create conf file
+    - mkdir -p build/etc/fastapi-dls
+    - touch build/etc/fastapi-dls/env
+    # cd into "build/"
+    - cd build/
+  script:
+    - dpkg -b . build.deb
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build/build.deb
+
+build:docker:
   image: docker:dind
   interruptible: true
   stage: build
@@ -16,11 +43,51 @@ build:
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
 test:
+  image: python:3.10-slim-bullseye
   stage: test
+  variables:
+    DATABASE: sqlite:///../app/db.sqlite
+  before_script:
+    - pip install -r requirements.txt
+    - pip install pytest httpx
+    - mkdir -p app/cert
+    - openssl genrsa -out app/cert/instance.private.pem 2048
+    - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
+    - cd test
   script:
-    - echo "Nothing to do ..."
+    - pytest main.py
 
-deploy:
+test:debian:
+  image: debian:bookworm-slim
+  stage: test
+  variables:
+    DEBIAN_FRONTEND: noninteractive
+  needs:
+    - job: build:debian
+      artifacts: true
+  before_script:
+    - apt-get update -qq && apt-get install -qq -y jq
+  script:
+    # test installation
+    - apt-get install -q -y ./build/build.deb --fix-missing
+    # copy example config from GitLab-CI-Variables
+    #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
+    # start service in background
+    - uvicorn --host 127.0.0.1 --port 443
+      --app-dir /usr/share/fastapi-dls/app
+      --ssl-keyfile /etc/fastapi-dls/webserver.key
+      --ssl-certfile /opt/fastapi-dls/webserver.crt
+      --proxy-headers &
+    - FASTAPI_DLS_PID=$!
+    - echo "Started service with pid $FASTAPI_DLS_PID"
+    # testing service
+    - if [ "`curl --insecure -s https://127.0.0.1/status | jq .status`" != "up" ]; then echo "Success"; else "Error"; fi
+    # cleanup
+    - kill $FASTAPI_DLS_PID
+    - apt-get purge -qq -y fastapi-dls
+    - apt-get autoremove -qq -y && apt-get clean -qq
+
+deploy:docker:
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -41,3 +108,44 @@ deploy:
     - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
+
+deploy:debian:
+  # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
+  image: debian:bookworm-slim
+  stage: deploy
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs:
+    - job: build:debian
+      artifacts: true
+  before_script:
+    - apt-get update -qq && apt-get install -qq -y curl lsb-release
+    # create distribution initial
+    - CODENAME=`lsb_release -cs`
+    # create repo if not exists
+    - 'if [ "`curl -s -o /dev/null -w "%{http_code}" --header "JOB-TOKEN: $CI_JOB_TOKEN" -s ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/debian_distributions/${CODENAME}/key.asc`" != "200" ]; then curl --request POST --header "JOB-TOKEN: $CI_JOB_TOKEN" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/debian_distributions?codename=${CODENAME}"; fi'
+  script:
+    # Naming format: <name>_<version>-<release>_<arch>.deb
+    # Version is the version number of the app being packaged
+    # Release number is the version number of the *packaging* itself.
+    # The release number might increment if the package maintainer
+    # updated the packaging, while the version number of the application
+    # being packaged did not change.
+    - BUILD_NAME=build/build.deb  # inherited by build-stage
+    - PACKAGE_NAME=`dpkg -I ${BUILD_NAME} | grep "Package:" | awk '{ print $2 }'`
+    - PACKAGE_VERSION=`dpkg -I ${BUILD_NAME} | grep "Version:" | awk '{ print $2 }'`
+    - PACKAGE_ARCH=amd64
+    #- EXPORT_NAME="${PACKAGE_NAME}_${PACKAGE_VERSION}-0_${PACKAGE_ARCH}.deb"
+    - EXPORT_NAME="${PACKAGE_NAME}_${PACKAGE_VERSION}_${PACKAGE_ARCH}.deb"
+    - mv ${BUILD_NAME} ${EXPORT_NAME}
+    - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'
+    - 'echo "PACKAGE_VERSION: ${PACKAGE_VERSION}"'
+    - 'echo "PACKAGE_ARCH:    ${PACKAGE_ARCH}"'
+    - 'echo "EXPORT_NAME:     ${EXPORT_NAME}"'
+    # https://docs.gitlab.com/14.3/ee/user/packages/debian_repository/index.html
+    - URL="${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/debian/${EXPORT_NAME}"
+    - 'echo "URL:             ${URL}"'
+    #- 'curl --request PUT --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} ${URL}'
+    # using generic-package-registry until debian-registry is GA
+    # https://docs.gitlab.com/ee/user/packages/generic_packages/index.html#publish-a-generic-package-by-using-cicd
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'

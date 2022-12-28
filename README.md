@@ -200,7 +200,7 @@ Packages are available here:
 
 Successful tested with:
 
-- Debian 12 (Bookworm)
+- Debian 12 (Bookworm) (works but not recommended because it is currently in *testing* state)
 - Ubuntu 22.10 (Kinetic Kudu)
 
 **Run this on your server instance**

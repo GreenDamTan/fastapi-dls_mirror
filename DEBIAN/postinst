@@ -36,6 +36,8 @@ WantedBy=multi-user.target
 
 EOF
 
+systemctl daemon-reload
+
 echo "> Writing default config parameters ..."
 touch $CONFIG_DIR/env
 cat <<EOF >$CONFIG_DIR/env

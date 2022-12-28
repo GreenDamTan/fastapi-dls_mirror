@@ -191,7 +191,27 @@ EOF
 ```
 
 Now you have to run `systemctl daemon-reload`. After that you can start service
-with `systemctl start fastapi-dls.service` (and enable autostart with `systemctl enable fastapi-dls.service`).
+with `systemctl start fastapi-dls.service`.
+
+## Debian/Ubuntu (using `dpkg`)
+
+Packages are available here:
+
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages/63)
+
+Successful tested with:
+- Debian 12 (Bookworm)
+- Ubuntu 22.10 (Kinetic Kudu)
+
+**Run this on your server instance**
+
+```shell
+apt-get update
+FILENAME=/opt/fastapi-dls.deb
+wget -O $FILENAME https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/package_files/148/download
+dpkg -i $FILENAME
+apt-get install -f --fix-missing
+```
 
 # Configuration
 

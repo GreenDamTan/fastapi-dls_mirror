@@ -7,6 +7,10 @@ build:docker:
   stage: build
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    - changes:
+        - Dockerfile
+        - requirements.txt
+        - app/**/*
   tags: [ docker ]
   before_script:
     - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
@@ -19,6 +23,10 @@ build:debian:
   # debian:bullseye-slim
   image: debian:bookworm-slim  # just to get "python3-jose" working
   stage: build
+  rules:
+    - changes:
+        - DEBIAN/**/*
+        - app/**/*
   before_script:
     - apt-get update -qq && apt-get install -qq -y build-essential
     - chmod 0755 -R .

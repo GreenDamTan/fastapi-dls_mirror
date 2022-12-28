@@ -170,13 +170,13 @@ User=www-data
 Group=www-data
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/opt/fastapi-dls/app
-EnvironmentFile=/etc/fastapi-dls.env
-ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \
-  --env-file /etc/fastapi-dls.env \
-  --host \$DLS_URL --port \$DLS_PORT \
-  --app-dir /opt/fastapi-dls/app \
-  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
-  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
+EnvironmentFile=/etc/fastapi-dls/env
+ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \\
+  --env-file /etc/fastapi-dls/env \\
+  --host \$DLS_URL --port \$DLS_PORT \\
+  --app-dir /opt/fastapi-dls/app \\
+  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \\
+  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \\
   --proxy-headers
 Restart=always
 KillSignal=SIGQUIT

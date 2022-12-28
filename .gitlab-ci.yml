@@ -43,8 +43,6 @@ build:apt:
 build:pacman:
   image: archlinux:base-devel
   stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == "archlinux-makepkg"
   before_script:
     - pacman -Syu --noconfirm git
     # "makepkg" don't likes root user
@@ -195,11 +193,11 @@ deploy:apt:
 deploy:pacman:
   image: archlinux:base-devel
   stage: deploy
-  rules:
-    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - changes:
-        - .PKGBUILD/**/*
-        - app/**/*
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#    - changes:
+#        - .PKGBUILD/**/*
+#        - app/**/*
   needs:
     - job: build:pacman
       artifacts: true

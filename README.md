@@ -150,7 +150,7 @@ su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fast
 **Create config file**
 
 ```shell
-cat <<EOF > /etc/fastapi-dls/env
+cat <<EOF >/etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
@@ -162,7 +162,7 @@ EOF
 **Create service**
 
 ```shell
-cat <<EOF > /etc/systemd/system/fastapi-dls.service
+cat <<EOF >/etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
 After=network.target

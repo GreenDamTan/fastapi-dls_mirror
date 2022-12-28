@@ -15,3 +15,7 @@ def load_file(filename) -> bytes:
 
 def load_key(filename) -> RsaKey:
     return RSA.import_key(extern_key=load_file(filename), passphrase=None)
+
+
+def generate_key() -> RsaKey:
+    return RSA.generate(bits=2048)

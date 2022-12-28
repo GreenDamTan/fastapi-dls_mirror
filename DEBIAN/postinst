@@ -42,6 +42,8 @@ DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////usr/share/fastapi-dls/db.sqlite
+INSTANCE_KEY_RSA=$CONFIG_DIR/instance.private.pem
+INSTANCE_KEY_PUB=$CONFIG_DIR/instance.public.pem
 
 EOF
 

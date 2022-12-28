@@ -196,18 +196,22 @@ with `systemctl start fastapi-dls.service` and enable autostart with `systemctl 
 
 Packages are available here:
 
-- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages/63)
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
 
 Successful tested with:
+
 - Debian 12 (Bookworm)
 - Ubuntu 22.10 (Kinetic Kudu)
 
 **Run this on your server instance**
 
+First go to [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages) and select your
+version. Then you have to copy the download link of the `fastapi-dls_X.Y.Z_amd64.deb` asset.
+
 ```shell
 apt-get update
 FILENAME=/opt/fastapi-dls.deb
-wget -O $FILENAME https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/package_files/148/download
+wget -O $FILENAME <download-url>
 dpkg -i $FILENAME
 apt-get install -f --fix-missing
 ```

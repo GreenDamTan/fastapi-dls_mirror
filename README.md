@@ -98,7 +98,7 @@ volumes:
   dls-db:
 ```
 
-## Debian/Ubuntu (using `git clone`)
+## Debian/Ubuntu (manual method using `git clone`)
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 

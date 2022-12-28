@@ -9,7 +9,6 @@ Only the clients need a connection to this service on configured port.
 
 ## ToDo's
 
-- migrate from `fastapi` to `flask`
 - Support http mode for using external https proxy (disable uvicorn ssl for using behind proxy)
 
 ## Endpoints

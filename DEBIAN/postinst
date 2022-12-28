@@ -1,7 +1,12 @@
 #!/bin/bash
 
+CONFIG_DIR=/etc/fastapi-dls
+
+echo "> Create config directory ..."
+mkdir -p $CONFIG_DIR
+
 echo "> Install service ..."
-cat <<EOF > /etc/systemd/system/fastapi-dls.service
+cat <<EOF >/etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
 After=network.target
@@ -11,7 +16,7 @@ User=www-data
 Group=www-data
 AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/usr/share/fastapi-dls
-EnvironmentFile=/etc/fastapi-dls/env
+EnvironmentFile=$CONFIG_DIR/env
 ExecStart=uvicorn main:app \\
   --env-file /etc/fastapi-dls/env \\
   --host \$DLS_URL --port \$DLS_PORT \\
@@ -30,14 +35,9 @@ WantedBy=multi-user.target
 
 EOF
 
-CONFIG_DIR=/etc/fastapi-dls
-
-echo "> Create config directory ..."
-mkdir -p $CONFIG_DIR
-
 echo "> Writing default config parameters ..."
-touch $CONFIG_DIR/fastapi-dls/env
-cat <<EOF > $CONFIG_DIR/fastapi-dls/env
+touch $CONFIG_DIR/env
+cat <<EOF >$CONFIG_DIR/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90

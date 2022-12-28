@@ -9,18 +9,19 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+EnvironmentFile=/etc/fastapi-dls/env
 WorkingDirectory=/usr/share/fastapi-dls
-EnvironmentFile=/etc/fastapi-dls.env
-ExecStart=uvicorn main:app \
-  --env-file /etc/fastapi-dls.env \
-  --host $DLS_URL --port $DLS_PORT \
-  --app-dir /usr/share/fastapi-dls/app \
-  --ssl-keyfile /etc/fastapi-dls/webserver.key \
-  --ssl-certfile /opt/fastapi-dls/webserver.crt \
+ExecStart=uvicorn main:app \\
+  --env-file /etc/fastapi-dls/env \\
+  --host \$DLS_URL --port \$DLS_PORT \\
+  --app-dir /usr/share/fastapi-dls/app \\
+  --ssl-keyfile /etc/fastapi-dls/webserver.key \\
+  --ssl-certfile /opt/fastapi-dls/webserver.crt \\
   --proxy-headers
 Restart=always
 KillSignal=SIGQUIT
-Type=notify
+Type=simple
 StandardError=syslog
 NotifyAccess=all
 

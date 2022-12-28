@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "> Install service ..."
-echo <<EOF >/etc/systemd/system/fastapi-dls.service
+cat <<EOF > /etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
 After=network.target
@@ -36,7 +36,7 @@ mkdir -p $CONFIG_DIR
 
 echo "> Writing default config parameters ..."
 touch $CONFIG_DIR/fastapi-dls.env
-echo <<EOF > $CONFIG_DIR/fastapi-dls.env
+cat <<EOF > $CONFIG_DIR/fastapi-dls.env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90

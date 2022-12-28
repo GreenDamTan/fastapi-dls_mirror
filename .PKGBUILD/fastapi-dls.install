@@ -1,0 +1,14 @@
+post_install() {
+    sed -i "s/<<sitekey>>/$(uuidgen)/" /etc/default/fastapi-dls
+    sed -i "s/<<instanceref>>/$(uuidgen)/" /etc/default/fastapi-dls
+
+    echo 'The environment variables for this server can be edited at: /etc/default/fastapi-dls'
+    echo 'The server can be started with: systemctl start fastapi-dls.service'
+    echo
+    echo 'A valid HTTPS certificate needs to be installed to /var/lib/fastapi-dls/cert/webserver.{crt,key}'
+    echo 'A self-signed certificate can be generated with: openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout /var/lib/fastapi-dls/cert/webserver.key -out /var/lib/fastapi-dls/cert/webserver.crt'
+    echo
+    echo 'The signing keys for your instance need to be generated as well. Generate them with these commands:'
+    echo 'openssl genrsa -out /var/lib/fastapi-dls/instance.private.pem 2048'
+    echo 'openssl rsa -in /var/lib/fastapi-dls/instance.private.pem -outform PEM -pubout -out /var/lib/fastapi-dls/instance.public.pem'
+}

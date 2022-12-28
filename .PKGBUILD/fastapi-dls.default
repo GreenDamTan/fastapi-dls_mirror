@@ -1,0 +1,23 @@
+# Toggle FastAPI debug mode
+DEBUG=false
+
+# Where the client can find the DLS server
+## DLS_URL should be a hostname
+DLS_URL="localhost.localdomain"
+DLS_PORT=8443
+CORS_ORIGINS="https://$DLS_URL:$DLS_PORT"
+
+# Lease expiration in days
+LEASE_EXPIRE_DAYS=90
+
+# Database location
+## See https://dataset.readthedocs.io/en/latest/quickstart.html for details
+DATABASE="sqlite:////var/lib/fastapi-dls/db.sqlite"
+
+# UUIDs for identifying the instance
+SITE_KEY_XID="<<sitekey>>"
+INSTANCE_REF="<<instanceref>>"
+
+# Site-wide signing keys
+INSTANCE_KEY_RSA="/var/lib/fastapi-dls/instance.private.pem"
+INSTANCE_KEY_PUB="/var/lib/fastapi-dls/instance.public.pem"

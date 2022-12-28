@@ -20,7 +20,7 @@ from app.util import generate_key, load_key
 
 client = TestClient(main.app)
 
-ORIGIN_REF = str(uuid4())
+ORIGIN_REF, LEASE_REF = str(uuid4()), str(uuid4())
 SECRET = "HelloWorld"
 
 # INSTANCE_KEY_RSA = generate_key()
@@ -70,6 +70,27 @@ def test_auth_v1_origin():
     assert response.json()['origin_ref'] == ORIGIN_REF
 
 
+def auth_v1_origin_update():
+    payload = {
+        "registration_pending": False,
+        "environment": {
+            "guest_driver_version": "guest_driver_version",
+            "hostname": "myhost",
+            "ip_address_list": ["192.168.1.123"],
+            "os_version": "os_version",
+            "os_platform": "os_platform",
+            "fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]},
+            "host_driver_version": "host_driver_version"
+        },
+        "update_pending": False,
+        "candidate_origin_ref": ORIGIN_REF,
+    }
+
+    response = client.post('/auth/v1/origin/update', json=payload)
+    assert response.status_code == 200
+    assert response.json()['origin_ref'] == ORIGIN_REF
+
+
 def test_auth_v1_code():
     payload = {
         "code_challenge": b64enc(sha256(SECRET.encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'),
@@ -110,16 +131,54 @@ def test_auth_v1_token():
 
 
 def test_leasing_v1_lessor():
-    pass
+    payload = {
+        'fulfillment_context': {
+            'fulfillment_class_ref_list': []
+        },
+        'lease_proposal_list': [{
+            'license_type_qualifiers': {'count': 1},
+            'product': {'name': 'NVIDIA RTX Virtual Workstation'}
+        }],
+        'proposal_evaluation_mode': 'ALL_OF',
+        'scope_ref_list': [LEASE_REF]
+    }
+
+    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
+    bearer_token = f'Bearer {bearer_token}'
+    response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': bearer_token})
+    assert response.status_code == 200
+
+    lease_result_list = response.json()['lease_result_list']
+    assert len(lease_result_list) == 1
+    assert lease_result_list[0]['lease']['ref'] == LEASE_REF
 
 
 def test_leasing_v1_lessor_lease():
-    pass
+    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
+    bearer_token = f'Bearer {bearer_token}'
+    response = client.get('/leasing/v1/lessor/leases', headers={'authorization': bearer_token})
+    assert response.status_code == 200
+
+    active_lease_list = response.json()['active_lease_list']
+    assert len(active_lease_list) == 1
+    assert active_lease_list[0] == LEASE_REF
 
 
 def test_leasing_v1_lease_renew():
-    pass
+    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
+    bearer_token = f'Bearer {bearer_token}'
+    response = client.put(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': bearer_token})
+    assert response.status_code == 200
+
+    assert response.json()['lease_ref'] == LEASE_REF
 
 
 def test_leasing_v1_lessor_lease_remove():
-    pass
+    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
+    bearer_token = f'Bearer {bearer_token}'
+    response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': bearer_token})
+    assert response.status_code == 200
+
+    released_lease_list = response.json()['released_lease_list']
+    assert len(released_lease_list) == 1
+    assert released_lease_list[0] == LEASE_REF

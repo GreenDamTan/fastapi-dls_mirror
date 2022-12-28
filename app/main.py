@@ -68,7 +68,7 @@ LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
 CORS_ORIGINS = getenv('CORS_ORIGINS').split(',') if (getenv('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
-jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS512)
+jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
 app.debug = DEBUG
 app.add_middleware(
@@ -259,7 +259,7 @@ async def auth_v1_code(request: Request):
 @app.post('/auth/v1/token')
 async def auth_v1_token(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
-    payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
+    payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
 
     origin_ref = payload['origin_ref']
     logging.info(f'> [   auth   ]: {origin_ref}: {j}')

@@ -193,7 +193,7 @@ EOF
 ```
 
 Now you have to run `systemctl daemon-reload`. After that you can start service
-with `systemctl start fastapi-dls.service`.
+with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
 
 ## Debian/Ubuntu (using `dpkg`)
 
@@ -214,7 +214,8 @@ wget -O $FILENAME https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/pac
 dpkg -i $FILENAME
 apt-get install -f --fix-missing
 ```
-with `systemctl start fastapi-dls.service`.
+
+Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
 
 ## Let's Encrypt Certificate
 

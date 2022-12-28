@@ -61,8 +61,8 @@ LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
 
 DLS_URL = str(getenv('DLS_URL', 'localhost'))
 DLS_PORT = int(getenv('DLS_PORT', '443'))
-SITE_KEY_XID = getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000')
-INSTANCE_REF = '00000000-0000-0000-0000-000000000000'
+SITE_KEY_XID = str(getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
+INSTANCE_REF = str(getenv('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
 INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
 
@@ -187,6 +187,33 @@ async def auth_v1_origin(request: Request):
         "svc_port_set_list": None,
         "node_url_list": None,
         "node_query_order": None,
+        "prompts": None,
+        "sync_timestamp": cur_time.isoformat()
+    }
+
+    return JSONResponse(response)
+
+
+# venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
+# { "environment" : { "guest_driver_version" : "guest_driver_version", "hostname" : "myhost", "ip_address_list" : [ "192.168.1.129" ], "os_version" : "os_version", "os_platform" : "os_platform", "fingerprint" : { "mac_address_list" : [ "e4:b9:7a:e5:7b:ff" ] }, "host_driver_version" : "host_driver_version" }, "origin_ref" : "00112233-4455-6677-8899-aabbccddeeff" }
+@app.post('/auth/v1/origin/update')
+async def auth_v1_origin_update(request: Request):
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
+
+    origin_ref = j['origin_ref']
+    logging.info(f'> [  update  ]: {origin_ref}: {j}')
+
+    data = dict(
+        origin_ref=origin_ref,
+        hostname=j['environment']['hostname'],
+        guest_driver_version=j['environment']['guest_driver_version'],
+        os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
+    )
+
+    db['origin'].upsert(data, ['origin_ref'])
+
+    response = {
+        "environment": j['environment'],
         "prompts": None,
         "sync_timestamp": cur_time.isoformat()
     }

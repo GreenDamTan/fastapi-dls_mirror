@@ -5,6 +5,13 @@ Minimal Delegated License Service (DLS).
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
+## ToDo#'s
+
+- provide `.deb` package (WIP)
+- migrate from `dataset` to `sqlalchemy` (WIP)
+- migrate from `fastapi` to `flask`
+- Support http mode for using external https proxy
+
 ## Endpoints
 
 ### `GET /`
@@ -42,7 +49,7 @@ There are some more internal api endpoints for handling authentication and lease
 Docker-Images are available here:
 
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
-- GitLab-Registry: `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
 
 **Run this on the Docker-Host**
 
@@ -91,7 +98,7 @@ volumes:
   dls-db:
 ```
 
-## Debian
+## Debian/Ubuntu (manual method using `git clone`)
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
@@ -112,6 +119,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 deactivate
+chown -R www-data:www-data $WORKING_DIR
 ```
 
 **Create keypair and webserver certificate**
@@ -125,35 +133,34 @@ openssl genrsa -out $WORKING_DIR/instance.private.pem 2048
 openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
+chown -R www-data:www-data $WORKING_DIR
 ```
 
 **Test Service**
 
+This is only to test whether the service starts successfully.
+
 ```shell
 cd /opt/fastapi-dls/app
-/opt/fastapi-dls/venv/bin/uvicorn main:app \
-  --host 127.0.0.1 --port 443 \
-  --app-dir /opt/fastapi-dls/app \
-  --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
-  --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
-  --proxy-headers
+su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**
 
 ```shell
-cat <<EOF > /etc/fastapi-dls.env
+cat <<EOF > /etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
 DATABASE=sqlite:////opt/fastapi-dls/app/db.sqlite
-EOF 
+
+EOF
 ```
 
 **Create service**
 
 ```shell
-cat <<EOF >/etc/systemd/system/fastapi-dls.service
+cat <<EOF > /etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
 After=network.target
@@ -161,27 +168,30 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 WorkingDirectory=/opt/fastapi-dls/app
-ExecStart=/opt/fastapi-dls/venv/bin/uvicorn \
-  --host $DLS_URL --port $DLS_PORT \
+EnvironmentFile=/etc/fastapi-dls.env
+ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \
+  --env-file /etc/fastapi-dls.env \
+  --host \$DLS_URL --port \$DLS_PORT \
   --app-dir /opt/fastapi-dls/app \
   --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \
   --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \
   --proxy-headers
-EnvironmentFile=/etc/fastapi-dls.env
 Restart=always
 KillSignal=SIGQUIT
-Type=notify
+Type=simple
 StandardError=syslog
 NotifyAccess=all
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 ```
 
 Now you have to run `systemctl daemon-reload`. After that you can start service
-with `systemctl start fastapi-dls.service`.
+with `systemctl start fastapi-dls.service` (and enable autostart with `systemctl enable fastapi-dls.service`).
 
 # Configuration
 
@@ -194,7 +204,7 @@ with `systemctl start fastapi-dls.service`.
 | `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
 | `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
 
-# Installation (Client)
+# Setup (Client)
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
 
@@ -234,6 +244,12 @@ Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Con
 Currently, there are no known issues.
 
 ## Windows
+
+### Required cipher on Windows Guests (e.g. managed by domain controller with GPO)
+
+It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`) in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
+
+### Multiple Display Container LS Instances
 
 On Windows on some machines there are running two or more instances of `NVIDIA Display Container LS`. This causes a
 problem on licensing flow. As you can see in the logs below, there are two lines with `NLS initialized`, each prefixed

@@ -253,7 +253,8 @@ Currently, there are no known issues.
 
 ### Required cipher on Windows Guests (e.g. managed by domain controller with GPO)
 
-It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`) in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
+It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`)
+in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
 
 ### Multiple Display Container LS Instances
 

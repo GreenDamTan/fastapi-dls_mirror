@@ -197,14 +197,18 @@ with `systemctl start fastapi-dls.service` (and enable autostart with `systemctl
 
 # Configuration
 
-| Variable            | Default               | Usage                                                                                 |
-|---------------------|-----------------------|---------------------------------------------------------------------------------------|
-| `DEBUG`             | `false`               | Toggles `fastapi` debug mode                                                          |
-| `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
-| `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
-| `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
-| `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
+| Variable            | Default                                | Usage                                                                                 |
+|---------------------|----------------------------------------|---------------------------------------------------------------------------------------|
+| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                          |
+| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable             |
+| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable             |
+| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                    |
+| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
+| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                              |
+| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                          |
+| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                            |
+| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                  |
 
 # Setup (Client)
 

@@ -113,8 +113,8 @@ deploy:debian:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
   image: debian:bookworm-slim
   stage: deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH == "debian"  # $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
     - job: build:debian
       artifacts: true

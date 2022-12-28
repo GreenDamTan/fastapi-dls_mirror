@@ -5,4 +5,9 @@ if [[ -d /etc/fastapi-dls ]]; then
   rm -r /etc/fastapi-dls
 fi
 
+if [[ -f /etc/systemd/system/fastapi-dls.service ]]; then
+  echo "> Removing service file."
+  rm /etc/systemd/system/fastapi-dls.service
+fi
+
 # todo

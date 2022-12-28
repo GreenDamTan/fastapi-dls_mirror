@@ -12,7 +12,7 @@ Only the clients need a connection to this service on configured port.
 - provide `.deb` package (WIP)
 - migrate from `dataset` to `sqlalchemy` (WIP)
 - migrate from `fastapi` to `flask`
-- Support http mode for using external https proxy
+- Support http mode for using external https proxy (disable uvicorn ssl for using behind proxy)
 
 ## Endpoints
 
@@ -193,7 +193,23 @@ EOF
 ```
 
 Now you have to run `systemctl daemon-reload`. After that you can start service
-with `systemctl start fastapi-dls.service` (and enable autostart with `systemctl enable fastapi-dls.service`).
+with `systemctl start fastapi-dls.service`.
+
+## Let's Encrypt Certificate
+
+If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
+
+Note that port 80 must be accessible, and you have to install `socat` if you're using `standalone` mode.
+
+```shell
+acme.sh --issue -d example.com \
+  --cert-file /etc/fastapi-dls/webserver.donotuse.crt \
+  --key-file /etc/fastapi-dls/webserver.key \
+  --fullchain-file /etc/fastapi-dls/webserver.crt \
+  --reloadcmd "systemctl restart fastapi-dls.service"
+```
+
+After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 

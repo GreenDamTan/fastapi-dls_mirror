@@ -48,7 +48,8 @@ build:pamac:
     - if: $CI_COMMIT_BRANCH == "archlinux-makepkg"
   script:
     - ls -lah
-    - makepkg
+    - makepkg --help
+    - makepkg -si
     - ls -lah
 
 test:

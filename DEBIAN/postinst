@@ -20,9 +20,9 @@ EnvironmentFile=$CONFIG_DIR/env
 ExecStart=uvicorn main:app \\
   --env-file /etc/fastapi-dls/env \\
   --host \$DLS_URL --port \$DLS_PORT \\
-  --app-dir /usr/share/fastapi-dls/app \\
+  --app-dir /usr/share/fastapi-dls \\
   --ssl-keyfile /etc/fastapi-dls/webserver.key \\
-  --ssl-certfile /opt/fastapi-dls/webserver.crt \\
+  --ssl-certfile /etc/fastapi-dls/webserver.crt \\
   --proxy-headers
 Restart=always
 KillSignal=SIGQUIT
@@ -73,6 +73,8 @@ if [[ -f $CONFIG_DIR/webserver.key ]]; then
     echo "> Testing API failed, curl not available. Please test manually!"
   fi
 fi
+
+chown -R www-data:www-data $CONFIG_DIR/*
 
 cat <<EOF
 

@@ -10,8 +10,8 @@ After=network.target
 User=www-data
 Group=www-data
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-EnvironmentFile=/etc/fastapi-dls/env
 WorkingDirectory=/usr/share/fastapi-dls
+EnvironmentFile=/etc/fastapi-dls/env
 ExecStart=uvicorn main:app \\
   --env-file /etc/fastapi-dls/env \\
   --host \$DLS_URL --port \$DLS_PORT \\
@@ -36,8 +36,8 @@ echo "> Create config directory ..."
 mkdir -p $CONFIG_DIR
 
 echo "> Writing default config parameters ..."
-touch $CONFIG_DIR/fastapi-dls.env
-cat <<EOF > $CONFIG_DIR/fastapi-dls.env
+touch $CONFIG_DIR/fastapi-dls/env
+cat <<EOF > $CONFIG_DIR/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90

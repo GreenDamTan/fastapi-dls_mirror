@@ -46,11 +46,16 @@ build:pamac:
   stage: build
   rules:
     - if: $CI_COMMIT_BRANCH == "archlinux-makepkg"
+  before_script:
+    - useradd --no-create-home --shell=/bin/false build && usermod -L build
+    - 'echo "build ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
+    - 'echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
+    - chown -R build:build .
   script:
     - ls -lah
-    - makepkg --help
-    - makepkg -si
+    - source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
     - ls -lah
+    - sudo -u build makepkg --noextract #makepkg -si
 
 test:
   image: python:3.10-slim-bullseye

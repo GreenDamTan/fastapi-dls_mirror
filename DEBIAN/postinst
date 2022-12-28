@@ -79,7 +79,7 @@ if [[ -f $CONFIG_DIR/webserver.key ]]; then
   fi
 fi
 
-chown -R www-data:www-data $CONFIG_DIR/*
+chown -R www-data:www-data $CONFIG_DIR
 chown -R www-data:www-data $WORKING_DIR
 
 cat <<EOF

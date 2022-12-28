@@ -11,13 +11,12 @@ from jose.constants import ALGORITHMS
 from starlette.testclient import TestClient
 import sys
 
-from app.util import generate_key, load_key
-
 # add relative path to use packages as they were in the app/ dir
 sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
+from app.util import generate_key, load_key
 
 client = TestClient(main.app)
 

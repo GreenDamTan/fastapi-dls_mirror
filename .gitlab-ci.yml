@@ -20,7 +20,6 @@ build:apt:
   stage: build
   before_script:
     - apt-get update -qq && apt-get install -qq -y build-essential
-    - chmod 0755 -R .
     # create build directory for .deb sources
     - mkdir build
     # copy install instructions
@@ -48,15 +47,23 @@ build:pamac:
     - if: $CI_COMMIT_BRANCH == "archlinux-makepkg"
   before_script:
     - pacman -Syu --noconfirm git
+    # "makepkg" don't likes root user
     - useradd --no-create-home --shell=/bin/false build && usermod -L build
     - 'echo "build ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
     - 'echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
     - chown -R build:build .
+    # move .PKGBUILD contents to root directory
+    - mv .PKGBUILD/* .
   script:
+    - pwd
     # download dependencies
     - source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
     # build
     - sudo -u build makepkg -s
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - "*.pkg.tar.zst"
 
 test:
   image: python:3.10-slim-bullseye

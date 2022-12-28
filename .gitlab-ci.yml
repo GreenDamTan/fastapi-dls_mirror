@@ -1,6 +1,20 @@
 cache:
   key: one-key-to-rule-them-all
 
+build:docker:
+  image: docker:dind
+  interruptible: true
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+  tags: [ docker ]
+  before_script:
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+
 build:debian:
   # debian:bullseye-slim
   image: debian:bookworm-slim  # just to get "python3-jose" working
@@ -27,20 +41,6 @@ build:debian:
     expire_in: 1 week
     paths:
       - build/build.deb
-
-build:docker:
-  image: docker:dind
-  interruptible: true
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-  tags: [ docker ]
-  before_script:
-    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
-  script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
 test:
   image: python:3.10-slim-bullseye
@@ -113,8 +113,8 @@ deploy:debian:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
   image: debian:bookworm-slim
   stage: deploy
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  #  rules:
+  #    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
     - job: build:debian
       artifacts: true

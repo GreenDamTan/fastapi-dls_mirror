@@ -27,13 +27,13 @@ try:
 except ModuleNotFoundError:
     from Cryptodome.PublicKey import RSA
     from Cryptodome.PublicKey.RSA import RsaKey
-
 from orm import Origin, Lease, init as db_init
 
 logger = logging.getLogger()
 load_dotenv('../version.env')
 
 VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
+
 
 def load_file(filename) -> bytes:
     with open(filename, 'rb') as file:
@@ -56,15 +56,14 @@ __details = dict(
 app, db = FastAPI(**__details), create_engine(url=str(getenv('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db)
 
-TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
-LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
-
 DLS_URL = str(getenv('DLS_URL', 'localhost'))
 DLS_PORT = int(getenv('DLS_PORT', '443'))
 SITE_KEY_XID = str(getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_REF = str(getenv('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_KEY_RSA = load_key(str(getenv('INSTANCE_KEY_RSA', join(dirname(__file__), 'cert/instance.private.pem'))))
 INSTANCE_KEY_PUB = load_key(str(getenv('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
+TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
+LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
 
 CORS_ORIGINS = getenv('CORS_ORIGINS').split(',') if (getenv('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
 

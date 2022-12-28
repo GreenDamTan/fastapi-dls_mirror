@@ -2,7 +2,7 @@ import datetime
 
 from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, UniqueConstraint, update, and_, delete, inspect
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.future import Engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()

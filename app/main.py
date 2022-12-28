@@ -53,7 +53,7 @@ __details = dict(
     version=VERSION,
 )
 
-app, db = FastAPI(**__details), create_engine(url=str(getenv('DATABASE', 'sqlite:///db.sqlite')))
+app, db = FastAPI(**__details), create_engine(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db)
 
 DLS_URL = str(getenv('DLS_URL', 'localhost'))

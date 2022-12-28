@@ -24,6 +24,7 @@ build:apt:
     - mkdir build
     # copy install instructions
     - cp -r .DEBIAN build/DEBIAN
+    - chown -R 0775 build/DEBIAN
     # copy app into "/usr/share/fastapi-dls" as "/usr/share/fastapi-dls/app" & copy README.md and version.env
     - mkdir -p build/usr/share/fastapi-dls
     - cp -r app build/usr/share/fastapi-dls

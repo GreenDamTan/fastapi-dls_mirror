@@ -16,7 +16,7 @@ After=network.target
 User=www-data
 Group=www-data
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-WorkingDirectory=$WORKING_DIR
+WorkingDirectory=$WORKING_DIR/app
 EnvironmentFile=$CONFIG_DIR/env
 ExecStart=uvicorn main:app \\
   --env-file /etc/fastapi-dls/env \\

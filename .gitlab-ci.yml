@@ -15,7 +15,7 @@ build:docker:
     - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
-build:debian:
+build:package:
   # debian:bullseye-slim
   image: debian:bookworm-slim  # just to get "python3-jose" working
   stage: build
@@ -57,14 +57,13 @@ test:
   script:
     - pytest main.py
 
-test:debian:
-  image: debian:bookworm-slim
+.test:linux:
   stage: test
+  needs:
+    - job: build:package
+      artifacts: true
   variables:
     DEBIAN_FRONTEND: noninteractive
-  needs:
-    - job: build:debian
-      artifacts: true
   before_script:
     - apt-get update -qq && apt-get install -qq -y jq
   script:
@@ -86,6 +85,14 @@ test:debian:
     - kill $FASTAPI_DLS_PID
     - apt-get purge -qq -y fastapi-dls
     - apt-get autoremove -qq -y && apt-get clean -qq
+
+test:debian:
+  extends: .test:linux
+  image: debian:bookworm-slim
+
+test:ubuntu:
+  extends: .test:linux
+  image: ubuntu:22.10
 
 deploy:docker:
   stage: deploy
@@ -123,7 +130,7 @@ deploy:debian:
         - DEBIAN/**/*
         - app/**/*
   needs:
-    - job: build:debian
+    - job: build:package
       artifacts: true
   before_script:
     - apt-get update -qq && apt-get install -qq -y curl lsb-release

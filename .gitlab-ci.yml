@@ -12,9 +12,10 @@ build:debian:
     - mkdir build
     # copy install instructions
     - cp -r DEBIAN build/
-    # copy app
+    # copy app into "/usr/share/fastapi-dls" as "/usr/share/fastapi-dls/app" & copy README.md and version.env
     - mkdir -p build/usr/share/
-    - cp -r app build/usr/share/fastapi-dls
+    - cp -r app build/usr/share/fastapi-dls/
+    - cp README.md version.env build/usr/share/fastapi-dls
     # create conf file
     - mkdir -p build/etc/fastapi-dls
     - touch build/etc/fastapi-dls/env

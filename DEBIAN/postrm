@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [[ -d /etc/fastapi-dls ]]; then
-  echo "> Removing config directory."
-  rm -r /etc/fastapi-dls
+  echo "> Config directory not empty, please remove manually."
+  # rm -r /etc/fastapi-dls
 fi
 
 if [[ -f /etc/systemd/system/fastapi-dls.service ]]; then

@@ -5,6 +5,8 @@ Minimal Delegated License Service (DLS).
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
+[[_TOC_]]
+
 ## ToDo#'s
 
 - provide `.deb` package (WIP)

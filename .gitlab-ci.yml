@@ -40,7 +40,7 @@ build:apt:
     paths:
       - build/build.deb
 
-build:pamac:
+build:pacman:
   image: archlinux:base-devel
   stage: build
   rules:
@@ -117,6 +117,11 @@ test:ubuntu:
   extends: .test:linux
   image: ubuntu:22.10
 
+test:archlinux:
+  image: archlinux:base
+  script:
+    - echo "Todo"
+
 deploy:docker:
   stage: deploy
   rules:
@@ -185,4 +190,29 @@ deploy:apt:
     #- 'curl --request PUT --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} ${URL}'
     # using generic-package-registry until debian-registry is GA
     # https://docs.gitlab.com/ee/user/packages/generic_packages/index.html#publish-a-generic-package-by-using-cicd
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'
+
+deploy:pacman:
+  image: archlinux:base-devel
+  stage: deploy
+  rules:
+    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - changes:
+        - .PKGBUILD/**/*
+        - app/**/*
+  needs:
+    - job: build:pacman
+      artifacts: true
+  script:
+    - source .PKGBUILD/PKGBUILD
+    # fastapi-dls-1.0-1-any.pkg.tar.zst
+    - BUILD_NAME=${pkgname}-${pkgver}-${pkgrel}-any.pkg.tar.zst
+    - PACKAGE_NAME=${pkgname}
+    - PACKAGE_VERSION=${pkgver}
+    - PACKAGE_ARCH=any
+    - EXPORT_NAME=${BUILD_NAME}
+    - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'
+    - 'echo "PACKAGE_VERSION: ${PACKAGE_VERSION}"'
+    - 'echo "PACKAGE_ARCH:    ${PACKAGE_ARCH}"'
+    - 'echo "EXPORT_NAME:     ${EXPORT_NAME}"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'

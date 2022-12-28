@@ -183,7 +183,6 @@ ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \\
 Restart=always
 KillSignal=SIGQUIT
 Type=simple
-StandardError=syslog
 NotifyAccess=all
 
 [Install]

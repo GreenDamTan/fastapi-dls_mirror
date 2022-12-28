@@ -5,7 +5,9 @@ Minimal Delegated License Service (DLS).
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
-## ToDo#'s
+[[_TOC_]]
+
+## ToDo's
 
 - provide `.deb` package (WIP)
 - migrate from `dataset` to `sqlalchemy` (WIP)
@@ -148,7 +150,7 @@ su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fast
 **Create config file**
 
 ```shell
-cat <<EOF > /etc/fastapi-dls/env
+cat <<EOF >/etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
@@ -160,7 +162,7 @@ EOF
 **Create service**
 
 ```shell
-cat <<EOF > /etc/systemd/system/fastapi-dls.service
+cat <<EOF >/etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
 After=network.target
@@ -215,14 +217,18 @@ apt-get install -f --fix-missing
 
 # Configuration
 
-| Variable            | Default               | Usage                                                                                 |
-|---------------------|-----------------------|---------------------------------------------------------------------------------------|
-| `DEBUG`             | `false`               | Toggles `fastapi` debug mode                                                          |
-| `DLS_URL`           | `localhost`           | Used in client-token to tell guest driver where dls instance is reachable             |
-| `DLS_PORT`          | `443`                 | Used in client-token to tell guest driver where dls instance is reachable             |
-| `LEASE_EXPIRE_DAYS` | `90`                  | Lease time in days                                                                    |
-| `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
+| Variable            | Default                                | Usage                                                                                 |
+|---------------------|----------------------------------------|---------------------------------------------------------------------------------------|
+| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                          |
+| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable             |
+| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable             |
+| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                    |
+| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
+| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                              |
+| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                          |
+| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                            |
+| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                  |
 
 # Setup (Client)
 
@@ -267,7 +273,8 @@ Currently, there are no known issues.
 
 ### Required cipher on Windows Guests (e.g. managed by domain controller with GPO)
 
-It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`) in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
+It is required to enable `SHA1` (`TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA_P521`)
+in [windows cipher suite](https://learn.microsoft.com/en-us/windows-server/security/tls/manage-tls).
 
 ### Multiple Display Container LS Instances
 

@@ -63,8 +63,8 @@ DLS_URL = str(getenv('DLS_URL', 'localhost'))
 DLS_PORT = int(getenv('DLS_PORT', '443'))
 SITE_KEY_XID = str(getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_REF = str(getenv('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
-INSTANCE_KEY_RSA = load_key(join(dirname(__file__), 'cert/instance.private.pem'))
-INSTANCE_KEY_PUB = load_key(join(dirname(__file__), 'cert/instance.public.pem'))
+INSTANCE_KEY_RSA = load_key(str(getenv('INSTANCE_KEY_RSA', join(dirname(__file__), 'cert/instance.private.pem'))))
+INSTANCE_KEY_PUB = load_key(str(getenv('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
 
 CORS_ORIGINS = getenv('CORS_ORIGINS').split(',') if (getenv('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
 

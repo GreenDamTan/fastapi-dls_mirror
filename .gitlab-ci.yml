@@ -53,8 +53,9 @@ build:pamac:
     - chown -R build:build .
   script:
     - pwd
-    - source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+    #- source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
     - ls -lah
+    - ls -lah app/
     - sudo -u build makepkg -si
 
 test:
@@ -135,7 +136,7 @@ deploy:docker:
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
 
-deploy:debian:
+deploy:apt:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
   image: debian:bookworm-slim
   stage: deploy

@@ -286,7 +286,29 @@ Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Con
 
 ## Linux
 
-Currently, there are no known issues.
+### `uvicorn.error:Invalid HTTP request received.`
+
+This message can be ignored.
+
+- Ref. https://github.com/encode/uvicorn/issues/441
+
+```
+WARNING:uvicorn.error:Invalid HTTP request received.
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/uvicorn/protocols/http/h11_impl.py", line 129, in handle_events
+    event = self.conn.next_event()
+  File "/usr/lib/python3/dist-packages/h11/_connection.py", line 485, in next_event
+    exc._reraise_as_remote_protocol_error()
+  File "/usr/lib/python3/dist-packages/h11/_util.py", line 77, in _reraise_as_remote_protocol_error
+    raise self
+  File "/usr/lib/python3/dist-packages/h11/_connection.py", line 467, in next_event
+    event = self._extract_next_receive_event()
+  File "/usr/lib/python3/dist-packages/h11/_connection.py", line 409, in _extract_next_receive_event
+    event = self._reader(self._receive_buffer)
+  File "/usr/lib/python3/dist-packages/h11/_readers.py", line 84, in maybe_read_from_IDLE_client
+    raise LocalProtocolError("no request line received")
+h11._util.RemoteProtocolError: no request line received
+```
 
 ## Windows
 

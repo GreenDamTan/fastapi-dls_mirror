@@ -52,11 +52,7 @@ build:pamac:
     - 'echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
     - chown -R build:build .
   script:
-    - pwd
-    #- source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
-    - ls -lah
-    - ls -lah app/
-    - sudo -u build makepkg -si
+    - sudo -u build makepkg -s
 
 test:
   image: python:3.10-slim-bullseye

@@ -1,0 +1,15 @@
+[Unit]
+Description=FastAPI-DLS
+Documentation=https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
+After=network.target
+
+[Service]
+Type=forking
+EnvironmentFile=/etc/default/fastapi-dls
+ExecStart=/usr/bin/python /opt/fastapi-dls/main.py
+WorkingDir=/opt/fastapi-dls
+Restart=on-abort
+User=root
+
+[Install]
+WantedBy=multi-user.target

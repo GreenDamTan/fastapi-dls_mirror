@@ -15,8 +15,7 @@ build:docker:
     - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
-build:package:
-  # debian:bullseye-slim
+build:apt:
   image: debian:bookworm-slim  # just to get "python3-jose" working
   stage: build
   before_script:
@@ -42,6 +41,16 @@ build:package:
     paths:
       - build/build.deb
 
+build:pamac:
+  image: archlinux:base-devel
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "archlinux-makepkg"
+  script:
+    - ls -lah
+    - makepkg
+    - ls -lah
+
 test:
   image: python:3.10-slim-bullseye
   stage: test
@@ -60,7 +69,7 @@ test:
 .test:linux:
   stage: test
   needs:
-    - job: build:package
+    - job: build:apt
       artifacts: true
   variables:
     DEBIAN_FRONTEND: noninteractive
@@ -130,7 +139,7 @@ deploy:debian:
         - DEBIAN/**/*
         - app/**/*
   needs:
-    - job: build:package
+    - job: build:apt
       artifacts: true
   before_script:
     - apt-get update -qq && apt-get install -qq -y curl lsb-release

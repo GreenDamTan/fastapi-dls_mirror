@@ -49,7 +49,7 @@ There are some more internal api endpoints for handling authentication and lease
 Docker-Images are available here:
 
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
-- GitLab-Registry: `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
 
 **Run this on the Docker-Host**
 
@@ -98,7 +98,7 @@ volumes:
   dls-db:
 ```
 
-## Debian
+## Debian/Ubuntu (using `git clone`)
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
@@ -148,7 +148,7 @@ su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fast
 **Create config file**
 
 ```shell
-cat <<EOF > /etc/fastapi-dls.env
+cat <<EOF > /etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
@@ -160,7 +160,7 @@ EOF
 **Create service**
 
 ```shell
-cat <<EOF >/etc/systemd/system/fastapi-dls.service
+cat <<EOF > /etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
 After=network.target
@@ -204,7 +204,7 @@ with `systemctl start fastapi-dls.service` (and enable autostart with `systemctl
 | `DATABASE`          | `sqlite:///db.sqlite` | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
 | `CORS_ORIGINS`      | `https://{DLS_URL}`   | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
 
-# Installation (Client)
+# Setup (Client)
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
 

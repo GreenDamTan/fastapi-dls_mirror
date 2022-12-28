@@ -259,7 +259,7 @@ async def auth_v1_code(request: Request):
 @app.post('/auth/v1/token')
 async def auth_v1_token(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
-    payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
+    payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
     origin_ref = payload['origin_ref']
     logging.info(f'> [   auth   ]: {origin_ref}: {j}')

@@ -169,5 +169,6 @@ def migrate(engine: Engine):
             print('  Your leases are recreated on next renewal!')
             print('  If an error message appears on the client, you can ignore it.')
             Lease.__table__.drop(bind=engine)
+            init(engine)
 
     upgrade_1_0_to_1_1()

@@ -29,7 +29,7 @@ Status endpoint, used for *healthcheck*. Shows also current version and commit h
 
 HTML rendered README.md.
 
-### [`GET /-/docs`](/-/docs), [`GET /-/redocs`](/-/redocs)
+### [`GET /-/docs`](/-/docs), [`GET /-/redoc`](/-/redoc)
 
 OpenAPI specifications rendered from `GET /-/openapi.json`.
 

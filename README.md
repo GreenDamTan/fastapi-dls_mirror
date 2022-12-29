@@ -227,6 +227,8 @@ Start with `systemctl start fastapi-dls.service` and enable autostart with `syst
 
 ## ArchLinux (using `pacman`)
 
+**Shout out to `samicrusader` who created build file for ArchLinux!**
+
 Packages are available here:
 
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)

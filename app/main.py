@@ -8,7 +8,6 @@ from os import getenv as env
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
-from fastapi.encoders import jsonable_encoder
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta

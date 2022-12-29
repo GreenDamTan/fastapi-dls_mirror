@@ -3,12 +3,11 @@ from base64 import b64encode as b64enc
 from hashlib import sha256
 from uuid import uuid4
 from os.path import join, dirname
-from os import getenv
+from os import getenv as env
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.requests import Request
-from fastapi.encoders import jsonable_encoder
 import json
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
@@ -16,56 +15,33 @@ from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
+from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse, Response, RedirectResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-try:
-    # Crypto | Cryptodome on Debian
-    from Crypto.PublicKey import RSA
-    from Crypto.PublicKey.RSA import RsaKey
-except ModuleNotFoundError:
-    from Cryptodome.PublicKey import RSA
-    from Cryptodome.PublicKey.RSA import RsaKey
-from orm import Origin, Lease, init as db_init
+from util import load_key, load_file
+from orm import Origin, Lease, init as db_init, migrate
 
 logger = logging.getLogger()
 load_dotenv('../version.env')
 
-VERSION, COMMIT, DEBUG = getenv('VERSION', 'unknown'), getenv('COMMIT', 'unknown'), bool(getenv('DEBUG', False))
+VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
+config = dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
+app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
+db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
+db_init(db), migrate(db)
 
-def load_file(filename) -> bytes:
-    with open(filename, 'rb') as file:
-        content = file.read()
-    return content
-
-
-def load_key(filename) -> RsaKey:
-    return RSA.import_key(extern_key=load_file(filename), passphrase=None)
-
-
-# todo: initialize certificate (or should be done by user, and passed through "volumes"?)
-
-__details = dict(
-    title='FastAPI-DLS',
-    description='Minimal Delegated License Service (DLS).',
-    version=VERSION,
-)
-
-app, db = FastAPI(**__details), create_engine(str(getenv('DATABASE', 'sqlite:///db.sqlite')))
-db_init(db)
-
-DLS_URL = str(getenv('DLS_URL', 'localhost'))
-DLS_PORT = int(getenv('DLS_PORT', '443'))
-SITE_KEY_XID = str(getenv('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
-INSTANCE_REF = str(getenv('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
-INSTANCE_KEY_RSA = load_key(str(getenv('INSTANCE_KEY_RSA', join(dirname(__file__), 'cert/instance.private.pem'))))
-INSTANCE_KEY_PUB = load_key(str(getenv('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
+DLS_URL = str(env('DLS_URL', 'localhost'))
+DLS_PORT = int(env('DLS_PORT', '443'))
+SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
+INSTANCE_REF = str(env('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
+INSTANCE_KEY_RSA = load_key(str(env('INSTANCE_KEY_RSA', join(dirname(__file__), 'cert/instance.private.pem'))))
+INSTANCE_KEY_PUB = load_key(str(env('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
-LEASE_EXPIRE_DELTA = relativedelta(days=int(getenv('LEASE_EXPIRE_DAYS', 90)))
+LEASE_EXPIRE_DELTA = relativedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)))
 
-CORS_ORIGINS = getenv('CORS_ORIGINS').split(',') if (getenv('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
+CORS_ORIGINS = env('CORS_ORIGINS').split(',') if (env('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
@@ -88,36 +64,104 @@ def get_token(request: Request) -> dict:
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
-@app.get('/')
+@app.get('/', summary='* Index')
 async def index():
+    return RedirectResponse('/-/readme')
+
+
+@app.get('/status', summary='* Status', description='Returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
+async def status(request: Request):
+    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+
+
+@app.get('/-/health', summary='* Health')
+async def _health(request: Request):
+    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+
+
+@app.get('/-/readme', summary='* Readme')
+async def _readme():
     from markdown import markdown
     content = load_file('../README.md').decode('utf-8')
     return HTMLResponse(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 
 
-@app.get('/status')
-async def status(request: Request):
-    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+@app.get('/-/manage', summary='* Management UI')
+async def _manage(request: Request):
+    response = '''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>FastAPI-DLS Management</title>
+        </head>
+        <body>
+            <button onclick="deleteOrigins()">delete origins and their leases</button>
+            <button onclick="deleteLease()">delete specific lease</button>
+            
+            <script>
+                function deleteOrigins() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("DELETE", '/-/origins', true);
+                    xhr.send();
+                }
+                function deleteLease(lease_ref) {
+                    if(lease_ref === undefined)
+                        lease_ref = window.prompt("Please enter 'lease_ref' which should be deleted");
+                    if(lease_ref === null || lease_ref === "")
+                        return
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("DELETE", `/-/lease/${lease_ref}`, true);
+                    xhr.send();
+                }
+            </script>
+        </body>
+    </html>
+    '''
+    return HTMLResponse(response)
 
 
-@app.get('/-/origins')
-async def _origins(request: Request):
+@app.get('/-/origins', summary='* Origins')
+async def _origins(request: Request, leases: bool = False):
     session = sessionmaker(bind=db)()
-    response = list(map(lambda x: jsonable_encoder(x), session.query(Origin).all()))
+    response = []
+    for origin in session.query(Origin).all():
+        x = origin.serialize()
+        if leases:
+            x['leases'] = list(map(lambda _: _.serialize(), Lease.find_by_origin_ref(db, origin.origin_ref)))
+        response.append(x)
     session.close()
     return JSONResponse(response)
 
 
-@app.get('/-/leases')
-async def _leases(request: Request):
+@app.delete('/-/origins', summary='* Origins')
+async def _origins_delete(request: Request):
+    Origin.delete(db)
+    return Response(status_code=201)
+
+
+@app.get('/-/leases', summary='* Leases')
+async def _leases(request: Request, origin: bool = False):
     session = sessionmaker(bind=db)()
-    response = list(map(lambda x: jsonable_encoder(x), session.query(Lease).all()))
+    response = []
+    for lease in session.query(Lease).all():
+        x = lease.serialize()
+        if origin:
+            # assume that each lease has a valid origin record
+            x['origin'] = session.query(Origin).filter(Origin.origin_ref == lease.origin_ref).first().serialize()
+        response.append(x)
     session.close()
     return JSONResponse(response)
+
+
+@app.delete('/-/lease/{lease_ref}', summary='* Lease')
+async def _lease_delete(request: Request, lease_ref: str):
+    if Lease.delete(db, lease_ref) == 1:
+        return Response(status_code=201)
+    raise HTTPException(status_code=404, detail='lease not found')
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
-@app.get('/client-token')
+@app.get('/client-token', summary='* Client-Token')
 async def client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
@@ -130,7 +174,7 @@ async def client_token():
         "nbf": timegm(cur_time.timetuple()),
         "exp": timegm(exp_time.timetuple()),
         "update_mode": "ABSOLUTE",
-        "scope_ref_list": [str(uuid4())],
+        "scope_ref_list": [str(uuid4())],  # this is our LEASE_REF
         "fulfillment_class_ref_list": [],
         "service_instance_configuration": {
             "nls_service_instance_ref": INSTANCE_REF,

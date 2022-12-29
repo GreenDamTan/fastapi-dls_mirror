@@ -1,17 +1,45 @@
 cache:
   key: one-key-to-rule-them-all
 
-build:debian:
-  # debian:bullseye-slim
-  image: debian:bookworm-slim  # just to get "python3-jose" working
+build:docker:
+  image: docker:dind
+  interruptible: true
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - Dockerfile
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  tags: [ docker ]
   before_script:
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+
+build:apt:
+  image: debian:bookworm-slim
+  interruptible: true
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - .DEBIAN/**/*
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  before_script:
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    - source version.env
+    # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
-    - chmod 0755 -R .
     # create build directory for .deb sources
     - mkdir build
     # copy install instructions
-    - cp -r DEBIAN build/
+    - cp -r .DEBIAN build/DEBIAN
+    - chmod -R 0775 build/DEBIAN
     # copy app into "/usr/share/fastapi-dls" as "/usr/share/fastapi-dls/app" & copy README.md and version.env
     - mkdir -p build/usr/share/fastapi-dls
     - cp -r app build/usr/share/fastapi-dls
@@ -22,29 +50,55 @@ build:debian:
     # cd into "build/"
     - cd build/
   script:
+    # set version based on value in "$VERSION" (which is set above from version.env)
+    - sed -i -E 's/(Version\:\s)0.0/\1'"$VERSION"'/g' DEBIAN/control
+    # build
     - dpkg -b . build.deb
+    - dpkg -I build.deb
   artifacts:
     expire_in: 1 week
     paths:
       - build/build.deb
 
-build:docker:
-  image: docker:dind
+build:pacman:
+  image: archlinux:base-devel
   interruptible: true
   stage: build
   rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-  tags: [ docker ]
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - .PKGBUILD/**/*
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
-    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    # install build dependencies
+    - pacman -Syu --noconfirm git
+    # create a build-user because "makepkg" don't like root user
+    - useradd --no-create-home --shell=/bin/false build && usermod -L build
+    - 'echo "build ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
+    - 'echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
+    - chown -R build:build .
+    # move .PKGBUILD contents to root directory
+    - mv .PKGBUILD/* .
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+    - pwd
+    # download dependencies
+    - source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+    # build
+    - sudo -u build makepkg -s
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - "*.pkg.tar.zst"
 
 test:
   image: python:3.10-slim-bullseye
   stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
     DATABASE: sqlite:///../app/db.sqlite
   before_script:
@@ -57,37 +111,75 @@ test:
   script:
     - pytest main.py
 
-test:debian:
-  image: debian:bookworm-slim
+.test:linux:
   stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - .DEBIAN/**/*
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  needs:
+    - job: build:apt
+      artifacts: true
   variables:
     DEBIAN_FRONTEND: noninteractive
-  needs:
-    - job: build:debian
-      artifacts: true
   before_script:
-    - apt-get update -qq && apt-get install -qq -y jq
+    - apt-get update -qq && apt-get install -qq -y jq curl
   script:
     # test installation
     - apt-get install -q -y ./build/build.deb --fix-missing
+    - openssl req -x509 -newkey rsa:2048 -nodes -out /etc/fastapi-dls/webserver.crt -keyout /etc/fastapi-dls/webserver.key -days 7 -subj "/C=DE/O=GitLab-CI/OU=Test/CN=localhost"
     # copy example config from GitLab-CI-Variables
     #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
     # start service in background
-    - uvicorn --host 127.0.0.1 --port 443
+    - cd /usr/share/fastapi-dls/app
+    - uvicorn main:app
+      --host 127.0.0.1 --port 443
       --app-dir /usr/share/fastapi-dls/app
       --ssl-keyfile /etc/fastapi-dls/webserver.key
-      --ssl-certfile /opt/fastapi-dls/webserver.crt
+      --ssl-certfile /etc/fastapi-dls/webserver.crt
       --proxy-headers &
     - FASTAPI_DLS_PID=$!
     - echo "Started service with pid $FASTAPI_DLS_PID"
     # testing service
-    - if [ "`curl --insecure -s https://127.0.0.1/status | jq .status`" != "up" ]; then echo "Success"; else "Error"; fi
+    - if [ "`curl --insecure -s https://127.0.0.1/-/health | jq .status`" != "up" ]; then echo "Success"; else "Error"; fi
     # cleanup
     - kill $FASTAPI_DLS_PID
     - apt-get purge -qq -y fastapi-dls
     - apt-get autoremove -qq -y && apt-get clean -qq
 
+test:debian:
+  extends: .test:linux
+  image: debian:bookworm-slim
+
+test:ubuntu:
+  extends: .test:linux
+  image: ubuntu:22.10
+
+test:archlinux:
+  image: archlinux:base
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - .PKGBUILD/**/*
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  needs:
+    - job: build:pacman
+      artifacts: true
+  script:
+    - pacman -Sy
+    - pacman -U --noconfirm *.pkg.tar.zst
+
+.deploy:
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+      when: never
+
 deploy:docker:
+  extends: .deploy
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
@@ -109,14 +201,15 @@ deploy:docker:
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
     - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
 
-deploy:debian:
+deploy:apt:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
+  extends: .deploy
   image: debian:bookworm-slim
   stage: deploy
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
-    - job: build:debian
+    - job: build:apt
       artifacts: true
   before_script:
     - apt-get update -qq && apt-get install -qq -y curl lsb-release
@@ -149,3 +242,49 @@ deploy:debian:
     # using generic-package-registry until debian-registry is GA
     # https://docs.gitlab.com/ee/user/packages/generic_packages/index.html#publish-a-generic-package-by-using-cicd
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'
+
+deploy:pacman:
+  extends: .deploy
+  image: archlinux:base-devel
+  stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs:
+    - job: build:pacman
+      artifacts: true
+  script:
+    - source .PKGBUILD/PKGBUILD
+    # fastapi-dls-1.0-1-any.pkg.tar.zst
+    - BUILD_NAME=${pkgname}-${pkgver}-${pkgrel}-any.pkg.tar.zst
+    - PACKAGE_NAME=${pkgname}
+    - PACKAGE_VERSION=${pkgver}
+    - PACKAGE_ARCH=any
+    - EXPORT_NAME=${BUILD_NAME}
+    - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'
+    - 'echo "PACKAGE_VERSION: ${PACKAGE_VERSION}"'
+    - 'echo "PACKAGE_ARCH:    ${PACKAGE_ARCH}"'
+    - 'echo "EXPORT_NAME:     ${EXPORT_NAME}"'
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'
+
+release:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  stage: .post
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  before_script:
+    - source version.env
+  script:
+    - echo "Running release-job for $VERSION"
+  release:
+    name: $CI_PROJECT_TITLE $version
+    description: Release of $CI_PROJECT_TITLE version $VERSION
+    tag_name: $VERSION
+    ref: $CI_COMMIT_SHA
+    assets:
+      links:
+        - name: 'Package Registry'
+          url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages'
+        - name: 'Container Registry'
+          url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry/40'

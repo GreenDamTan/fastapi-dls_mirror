@@ -9,30 +9,57 @@ Only the clients need a connection to this service on configured port.
 
 ## ToDo's
 
-- migrate from `fastapi` to `flask`
 - Support http mode for using external https proxy (disable uvicorn ssl for using behind proxy)
 
 ## Endpoints
 
-### `GET /`
+### [`GET /`](/)
 
-HTML rendered README.md.
+Redirect to `/-/readme`.
 
-### `GET /status`
+### [`GET /status`](/status) (deprecated: use `/-/health`)
 
 Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
-### `GET /docs`
+### [`GET /-/health`](/-/health)
 
-OpenAPI specifications rendered from `GET /openapi.json`.
+Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
-### `GET /-/origins`
+### [`GET /-/readme`](/-/readme)
+
+HTML rendered README.md.
+
+### [`GET /-/docs`](/-/docs), [`GET /-/redocs`](/-/redocs)
+
+OpenAPI specifications rendered from `GET /-/openapi.json`.
+
+### [`GET /-/manage`](/-/manage)
+
+Shows a very basic UI to delete origins or leases.
+
+### `GET /-/origins?leases=false`
 
 List registered origins.
 
-### `GET /-/leases`
+| Query Parameter | Default | Usage                                |
+|-----------------|---------|--------------------------------------|
+| `leases`        | `false` | Include referenced leases per origin |
+
+### `DELETE /-/origins`
+
+Deletes all origins and their leases.
+
+### `GET /-/leases?origin=false`
 
 List current leases.
+
+| Query Parameter | Default | Usage                               |
+|-----------------|---------|-------------------------------------|
+| `origin`        | `false` | Include referenced origin per lease |
+
+### `DELETE /-/lease/{lease_ref}`
+
+Deletes an lease.
 
 ### `GET /client-token`
 
@@ -200,7 +227,7 @@ Packages are available here:
 
 Successful tested with:
 
-- Debian 12 (Bookworm)
+- Debian 12 (Bookworm) (works but not recommended because it is currently in *testing* state)
 - Ubuntu 22.10 (Kinetic Kudu)
 
 **Run this on your server instance**
@@ -214,6 +241,23 @@ FILENAME=/opt/fastapi-dls.deb
 wget -O $FILENAME <download-url>
 dpkg -i $FILENAME
 apt-get install -f --fix-missing
+```
+
+Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+
+## ArchLinux (using `pacman`)
+
+**Shout out to `samicrusader` who created build file for ArchLinux!**
+
+Packages are available here:
+
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
+
+```shell
+pacman -Sy
+FILENAME=/opt/fastapi-dls.pkg.tar.zst
+url -o $FILENAME <download-url>
+pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 ```
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
@@ -236,18 +280,18 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable            | Default                                | Usage                                                                                 |
-|---------------------|----------------------------------------|---------------------------------------------------------------------------------------|
-| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                          |
-| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable             |
-| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable             |
-| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                    |
-| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official dataset docs](https://dataset.readthedocs.io/en/latest/quickstart.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string)                    |
-| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                              |
-| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                          |
-| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                            |
-| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                  |
+| Variable            | Default                                | Usage                                                                               |
+|---------------------|----------------------------------------|-------------------------------------------------------------------------------------|
+| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                        |
+| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable           |
+| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable           |
+| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                  |
+| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html) |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string)                  |
+| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                            |
+| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                        |
+| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                          |
+| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                |
 
 # Setup (Client)
 
@@ -376,3 +420,10 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 ```
 
 </details>
+
+# Credits
+
+Thanks to vGPU community and all who uses this project and report bugs.
+
+Special thanks to @samicrusader who created build file for ArchLinux.
+

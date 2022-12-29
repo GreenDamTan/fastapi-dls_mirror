@@ -1,0 +1,49 @@
+# Maintainer: samicrusader <hi@samicrusader.me>
+# Maintainer: Oscar Krause <oscar.krause@collinwebdesigns.de>
+
+pkgname=fastapi-dls
+pkgver=0.0
+pkgrel=1
+pkgdesc='NVIDIA DLS server implementation with FastAPI'
+arch=('any')
+url='https://git.collinwebdesigns.de/oscar.krause/fastapi-dls'
+license=('MIT')
+depends=('python' 'python-jose' 'python-starlette' 'python-httpx' 'python-fastapi' 'python-dotenv' 'python-dateutil' 'python-sqlalchemy' 'python-pycryptodome' 'uvicorn' 'python-markdown' 'openssl')
+provider=("$pkgname")
+install="$pkgname.install"
+source=('git+file:///builds/oscar.krause/fastapi-dls' # https://gitea.publichub.eu/oscar.krause/fastapi-dls.git
+        "$pkgname.default"
+        "$pkgname.service")
+sha256sums=('SKIP'
+            '4c07e9b627853bd4f3a398371912fc72302dac33f43e4cb7e9b79746cc9c9136'
+            '10cb98d64f8bf37b11a60510793c187cc664e63c895d1205781c21fa2e703f32')
+
+pkgver() {
+  source $srcdir/$pkgname/version.env
+  echo ${VERSION}
+}
+
+check() {
+    cd "$srcdir/$pkgname/test"
+    mkdir "$srcdir/$pkgname/app/cert"
+    openssl genrsa -out "$srcdir/$pkgname/app/cert/instance.private.pem" 2048
+    openssl rsa -in "$srcdir/$pkgname/app/cert/instance.private.pem" -outform PEM -pubout -out "$srcdir/$pkgname/app/cert/instance.public.pem"
+    python "$srcdir/$pkgname/test/main.py"
+    rm -rf "$srcdir/$pkgname/app/cert"
+}
+
+package() {
+    install -d "$pkgdir/usr/share/doc/$pkgname"
+    install -d "$pkgdir/var/lib/$pkgname/cert"
+    cp -r "$srcdir/$pkgname/doc"/* "$pkgdir/usr/share/doc/$pkgname/"
+    install -Dm644 "$srcdir/$pkgname/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+    install -Dm644 "$srcdir/$pkgname/version.env" "$pkgdir/usr/share/doc/$pkgname/version.env"
+
+    sed -i "s/README.md/\/usr\/share\/doc\/$pkgname\/README.md/g" "$srcdir/$pkgname/app/main.py"
+    sed -i "s/join(dirname(__file__), 'cert\//join('\/var\/lib\/$pkgname', 'cert\//g" "$srcdir/$pkgname/app/main.py"
+    install -Dm755 "$srcdir/$pkgname/app/main.py" "$pkgdir/opt/$pkgname/main.py"
+    install -Dm755 "$srcdir/$pkgname/app/orm.py" "$pkgdir/opt/$pkgname/orm.py"
+    install -Dm755 "$srcdir/$pkgname/app/util.py" "$pkgdir/opt/$pkgname/util.py"
+    install -Dm644 "$srcdir/$pkgname.default" "$pkgdir/etc/default/$pkgname"
+    install -Dm644 "$srcdir/$pkgname.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+}

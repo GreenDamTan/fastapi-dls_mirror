@@ -41,10 +41,29 @@ if [[ ! -f $CONFIG_DIR/env ]]; then
   echo "> Writing initial config ..."
   touch $CONFIG_DIR/env
   cat <<EOF >$CONFIG_DIR/env
+# Toggle debug mode
+#DEBUG=false
+
+# Where the client can find the DLS server
 DLS_URL=127.0.0.1
 DLS_PORT=443
+
+# CORS configuration
+## comma separated list without spaces
+#CORS_ORIGINS="https://$DLS_URL:$DLS_PORT"
+
+# Lease expiration in days
 LEASE_EXPIRE_DAYS=90
+
+# Database location
+## https://docs.sqlalchemy.org/en/14/core/engines.html
 DATABASE=sqlite:///$CONFIG_DIR/db.sqlite
+
+# UUIDs for identifying the instance
+#SITE_KEY_XID="00000000-0000-0000-0000-000000000000"
+#INSTANCE_REF="00000000-0000-0000-0000-000000000000"
+
+# Site-wide signing keys
 INSTANCE_KEY_RSA=$CONFIG_DIR/instance.private.pem
 INSTANCE_KEY_PUB=$CONFIG_DIR/instance.public.pem
 
@@ -75,7 +94,7 @@ if [[ -f $CONFIG_DIR/webserver.key ]]; then
   if [ -x "$(command -v curl)" ]; then
     echo "> Testing API ..."
     source $CONFIG_DIR/env
-    curl --insecure -X GET https://$DLS_URL:$DLS_PORT/status
+    curl --insecure -X GET https://$DLS_URL:$DLS_PORT/-/health
   else
     echo "> Testing API failed, curl not available. Please test manually!"
   fi

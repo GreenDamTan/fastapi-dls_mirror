@@ -15,7 +15,7 @@ source=('git+file:///builds/oscar.krause/fastapi-dls' # https://gitea.publichub.
         "$pkgname.default"
         "$pkgname.service")
 sha256sums=('SKIP'
-            'd8b2216b67a2f8f35ad6f07c825839794f7c34456a72caadd9fc110810348d90'
+            '4c07e9b627853bd4f3a398371912fc72302dac33f43e4cb7e9b79746cc9c9136'
             '10cb98d64f8bf37b11a60510793c187cc664e63c895d1205781c21fa2e703f32')
 
 pkgver() {

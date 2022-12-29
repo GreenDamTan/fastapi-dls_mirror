@@ -33,6 +33,10 @@ List registered origins.
 |-----------------|---------|--------------------------------------|
 | `leases`        | `false` | Include referenced leases per origin |
 
+### `DELETE /-/origins`
+
+Deletes all origins and their leases.
+
 ### `GET /-/leases?origin=false`
 
 List current leases.
@@ -40,6 +44,10 @@ List current leases.
 | Query Parameter | Default | Usage                               |
 |-----------------|---------|-------------------------------------|
 | `origin`        | `false` | Include referenced origin per lease |
+
+### `DELETE /-/lease/{lease_ref}`
+
+Deletes an lease.
 
 ### `GET /client-token`
 

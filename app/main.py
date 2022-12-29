@@ -15,7 +15,7 @@ from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
+from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse, Response
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -88,6 +88,12 @@ async def _origins(request: Request, leases: bool = False):
     return JSONResponse(response)
 
 
+@app.delete('/-/origins')
+async def _origins_delete(request: Request):
+    Origin.delete(db)
+    return Response(status_code=201)
+
+
 @app.get('/-/leases')
 async def _leases(request: Request, origin: bool = False):
     session = sessionmaker(bind=db)()
@@ -100,6 +106,13 @@ async def _leases(request: Request, origin: bool = False):
         response.append(x)
     session.close()
     return JSONResponse(response)
+
+
+@app.delete('/-/lease/{lease_ref}')
+async def _lease_delete(request: Request, lease_ref: str):
+    if Lease.delete(db, lease_ref) == 1:
+        return Response(status_code=201)
+    raise HTTPException(status_code=404, detail='lease not found')
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py

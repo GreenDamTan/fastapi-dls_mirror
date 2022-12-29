@@ -54,13 +54,24 @@ class Origin(Base):
         session.flush()
         session.close()
 
+    @staticmethod
+    def delete(engine: Engine, origins: ["Origin"] = None) -> int:
+        session = sessionmaker(bind=engine)()
+        if origins is None:
+            deletions = session.query(Origin).delete()
+        else:
+            deletions = session.query(Origin).filter(Origin.origin_ref in origins).delete()
+        session.commit()
+        session.close()
+        return deletions
+
 
 class Lease(Base):
     __tablename__ = "lease"
 
     lease_ref = Column(CHAR(length=36), primary_key=True, nullable=False, index=True)  # uuid4
 
-    origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref), nullable=False, index=True)  # uuid4
+    origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref, ondelete='CASCADE'), nullable=False, index=True)  # uuid4
     lease_created = Column(DATETIME(), nullable=False)
     lease_expires = Column(DATETIME(), nullable=False)
     lease_updated = Column(DATETIME(), nullable=False)
@@ -123,6 +134,14 @@ class Lease(Base):
     def cleanup(engine: Engine, origin_ref: str) -> int:
         session = sessionmaker(bind=engine)()
         deletions = session.query(Lease).filter(Lease.origin_ref == origin_ref).delete()
+        session.commit()
+        session.close()
+        return deletions
+
+    @staticmethod
+    def delete(engine: Engine, lease_ref: str) -> int:
+        session = sessionmaker(bind=engine)()
+        deletions = session.query(Lease).filter(Lease.lease_ref == lease_ref).delete()
         session.commit()
         session.close()
         return deletions

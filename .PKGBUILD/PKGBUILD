@@ -37,6 +37,7 @@ package() {
     sed -i "s/join(dirname(__file__), 'cert\//join('\/var\/lib\/$pkgname', 'cert\//g" "$srcdir/$pkgname/app/main.py"
     install -Dm755 "$srcdir/$pkgname/app/main.py" "$pkgdir/opt/$pkgname/main.py"
     install -Dm755 "$srcdir/$pkgname/app/orm.py" "$pkgdir/opt/$pkgname/orm.py"
+    install -Dm755 "$srcdir/$pkgname/app/util.py" "$pkgdir/opt/$pkgname/util.py"
     install -Dm644 "$srcdir/$pkgname.default" "$pkgdir/etc/default/$pkgname"
     install -Dm644 "$srcdir/$pkgname.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
 }

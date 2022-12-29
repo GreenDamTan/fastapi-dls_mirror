@@ -57,7 +57,7 @@ app.add_middleware(
 logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 
-def get_token(request: Request) -> dict:
+def __get_token(request: Request) -> dict:
     authorization_header = request.headers.get('authorization')
     token = authorization_header.split(' ')[1]
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
@@ -348,7 +348,7 @@ async def auth_v1_token(request: Request):
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
 @app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
-    j, token, cur_time = json.loads((await request.body()).decode('utf-8')), get_token(request), datetime.utcnow()
+    j, token, cur_time = json.loads((await request.body()).decode('utf-8')), __get_token(request), datetime.utcnow()
 
     origin_ref = token.get('origin_ref')
     scope_ref_list = j['scope_ref_list']
@@ -388,7 +388,7 @@ async def leasing_v1_lessor(request: Request):
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
 @app.get('/leasing/v1/lessor/leases', description='get active leases for current origin')
 async def leasing_v1_lessor_lease(request: Request):
-    token, cur_time = get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.utcnow()
 
     origin_ref = token.get('origin_ref')
 
@@ -407,7 +407,7 @@ async def leasing_v1_lessor_lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
-    token, cur_time = get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.utcnow()
 
     origin_ref = token.get('origin_ref')
     logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
@@ -433,7 +433,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
 @app.delete('/leasing/v1/lease/{lease_ref}', description='release (return) a lease')
 async def leasing_v1_lease_delete(request: Request, lease_ref: str):
-    token, cur_time = get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.utcnow()
 
     origin_ref = token.get('origin_ref')
     logging.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
@@ -458,7 +458,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
 
 @app.delete('/leasing/v1/lessor/leases', description='release all leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
-    token, cur_time = get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.utcnow()
 
     origin_ref = token.get('origin_ref')
 

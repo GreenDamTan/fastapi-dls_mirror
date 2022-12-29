@@ -63,19 +63,29 @@ def get_token(request: Request) -> dict:
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
-@app.get('/')
+@app.get('/', summary='* Index')
 async def index():
+    return RedirectResponse('/-/readme')
+
+
+@app.get('/status', summary='* Status', description='Returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
+async def status(request: Request):
+    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+
+
+@app.get('/-/health', summary='* Health')
+async def _health(request: Request):
+    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+
+
+@app.get('/-/readme', summary='* Readme')
+async def _readme():
     from markdown import markdown
     content = load_file('../README.md').decode('utf-8')
     return HTMLResponse(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 
 
-@app.get('/status')
-async def status(request: Request):
-    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
-
-
-@app.get('/-/manage')
+@app.get('/-/manage', summary='* Management UI')
 async def _manage(request: Request):
     response = '''
     <!DOCTYPE html>

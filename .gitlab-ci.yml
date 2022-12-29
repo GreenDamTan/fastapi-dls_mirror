@@ -122,7 +122,7 @@ test:
     - FASTAPI_DLS_PID=$!
     - echo "Started service with pid $FASTAPI_DLS_PID"
     # testing service
-    - if [ "`curl --insecure -s https://127.0.0.1/status | jq .status`" != "up" ]; then echo "Success"; else "Error"; fi
+    - if [ "`curl --insecure -s https://127.0.0.1/-/health | jq .status`" != "up" ]; then echo "Success"; else "Error"; fi
     # cleanup
     - kill $FASTAPI_DLS_PID
     - apt-get purge -qq -y fastapi-dls

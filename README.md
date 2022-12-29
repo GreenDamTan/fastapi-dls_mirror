@@ -13,19 +13,27 @@ Only the clients need a connection to this service on configured port.
 
 ## Endpoints
 
-### `GET /`
+### [`GET /`](/)
 
-HTML rendered README.md.
+Redirect to `/-/readme`.
 
-### `GET /status`
+### [`GET /status`](/status) (deprecated: use `/-/health`)
 
 Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
-### `GET /docs`
+### [`GET /-/health`](/-/health)
 
-OpenAPI specifications rendered from `GET /openapi.json`.
+Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
-### `GET /-/manage`
+### [`GET /-/readme`](/-/readme)
+
+HTML rendered README.md.
+
+### [`GET /-/docs`](/-/docs), [`GET /-/redocs`](/-/redocs)
+
+OpenAPI specifications rendered from `GET /-/openapi.json`.
+
+### [`GET /-/manage`](/-/manage)
 
 Shows a very basic UI to delete origins or leases.
 
@@ -412,7 +420,6 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 ```
 
 </details>
-
 
 # Credits
 

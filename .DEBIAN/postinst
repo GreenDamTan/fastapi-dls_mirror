@@ -75,7 +75,7 @@ if [[ -f $CONFIG_DIR/webserver.key ]]; then
   if [ -x "$(command -v curl)" ]; then
     echo "> Testing API ..."
     source $CONFIG_DIR/env
-    curl --insecure -X GET https://$DLS_URL:$DLS_PORT/status
+    curl --insecure -X GET https://$DLS_URL:$DLS_PORT/-/health
   else
     echo "> Testing API failed, curl not available. Please test manually!"
   fi

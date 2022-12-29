@@ -23,6 +23,7 @@ build:apt:
     - if: $CI_COMMIT_BRANCH
   before_script:
     - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    - source version.env
     # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
     # create build directory for .deb sources
@@ -40,7 +41,9 @@ build:apt:
     # cd into "build/"
     - cd build/
   script:
+    - sed -i -E 's/(Version\:\s)0.0/\1'"$VERSION"'/g' DEBIAN/control
     - dpkg -b . build.deb
+    - dpkg -I build.deb
   artifacts:
     expire_in: 1 week
     paths:

@@ -2,7 +2,7 @@
 # Maintainer: Oscar Krause <oscar.krause@collinwebdesigns.de>
 
 pkgname=fastapi-dls
-pkgver=1.0
+pkgver=0.0
 pkgrel=1
 pkgdesc='NVIDIA DLS server implementation with FastAPI'
 arch=('any')
@@ -17,6 +17,11 @@ source=('git+file:///builds/oscar.krause/fastapi-dls' # https://gitea.publichub.
 sha256sums=('SKIP'
             'd8b2216b67a2f8f35ad6f07c825839794f7c34456a72caadd9fc110810348d90'
             '10cb98d64f8bf37b11a60510793c187cc664e63c895d1205781c21fa2e703f32')
+
+pkgver() {
+  source $srcdir/$pkgname/version.env
+  echo ${VERSION}
+}
 
 check() {
     cd "$srcdir/$pkgname/test"

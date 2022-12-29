@@ -28,7 +28,7 @@ class Origin(Base):
 
     @staticmethod
     def create_or_update(engine: Engine, origin: "Origin"):
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
+        session = sessionmaker(bind=engine)()
         entity = session.query(Origin).filter(Origin.origin_ref == origin.origin_ref).first()
         print(entity)
         if entity is None:
@@ -41,6 +41,7 @@ class Origin(Base):
                 os_version=origin.os_version,
             )
             session.execute(update(Origin).where(Origin.origin_ref == origin.origin_ref).values(**values))
+        session.commit()
         session.flush()
         session.close()
 
@@ -65,7 +66,7 @@ class Lease(Base):
 
     @staticmethod
     def create_or_update(engine: Engine, lease: "Lease"):
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
+        session = sessionmaker(bind=engine)()
         entity = session.query(Lease).filter(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).first()
         if entity is None:
             if lease.lease_updated is None:
@@ -74,34 +75,37 @@ class Lease(Base):
         else:
             values = dict(lease_expires=lease.lease_expires, lease_updated=lease.lease_updated)
             session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(**values))
+        session.commit()
         session.flush()
         session.close()
 
     @staticmethod
     def find_by_origin_ref(engine: Engine, origin_ref: str) -> ["Lease"]:
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
+        session = sessionmaker(bind=engine)()
         entities = session.query(Lease).filter(Lease.origin_ref == origin_ref).all()
         session.close()
         return entities
 
     @staticmethod
     def find_by_origin_ref_and_lease_ref(engine: Engine, origin_ref: str, lease_ref: str) -> "Lease":
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
+        session = sessionmaker(bind=engine)()
         entity = session.query(Lease).filter(and_(Lease.origin_ref == origin_ref, Lease.lease_ref == lease_ref)).first()
         session.close()
         return entity
 
     @staticmethod
     def renew(engine: Engine, lease: "Lease", lease_expires: datetime.datetime, lease_updated: datetime.datetime):
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
+        session = sessionmaker(bind=engine)()
         values = dict(lease_expires=lease.lease_expires, lease_updated=lease.lease_updated)
         session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(**values))
+        session.commit()
         session.close()
 
     @staticmethod
     def cleanup(engine: Engine, origin_ref: str) -> int:
-        session = sessionmaker(autocommit=True, autoflush=True, bind=engine)()
+        session = sessionmaker(bind=engine)()
         deletions = session.query(Lease).filter(Lease.origin_ref == origin_ref).delete()
+        session.commit()
         session.close()
         return deletions
 
@@ -113,4 +117,5 @@ def init(engine: Engine):
     for table in tables:
         if not db.dialect.has_table(engine.connect(), table.__tablename__):
             session.execute(str(table.create_statement(engine)))
+            session.commit()
     session.close()

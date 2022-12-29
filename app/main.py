@@ -63,7 +63,7 @@ def get_token(request: Request) -> dict:
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
-@app.get('/', summary='* Index')
+@app.get('/', summary='Index')
 async def index():
     return RedirectResponse('/-/readme')
 
@@ -71,6 +71,11 @@ async def index():
 @app.get('/status', summary='* Status', description='returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
 async def status(request: Request):
     return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+
+
+@app.get('/-/', summary='* Index')
+async def _index():
+    return RedirectResponse('/-/readme')
 
 
 @app.get('/-/health', summary='* Health')

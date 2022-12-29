@@ -67,6 +67,11 @@ def test_manage():
 
 
 def test_client_token():
+    response = client.get('/-/client-token')
+    assert response.status_code == 200
+
+
+def test_client_token_deprecated():
     response = client.get('/client-token')
     assert response.status_code == 200
 

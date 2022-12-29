@@ -265,3 +265,26 @@ deploy:pacman:
     - 'echo "PACKAGE_ARCH:    ${PACKAGE_ARCH}"'
     - 'echo "EXPORT_NAME:     ${EXPORT_NAME}"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'
+
+release:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  stage: .post
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  before_script:
+    - source version.env
+  script:
+    - echo "Running release-job for $VERSION"
+  release:
+    name: $CI_PROJECT_TITLE $version
+    description: Release of $CI_PROJECT_TITLE version $VERSION
+    tag_name: $VERSION
+    ref: $CI_COMMIT_SHA
+    assets:
+      links:
+        - name: 'Package Registry'
+          url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages'
+        - name: 'Container Registry'
+          url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry/40'

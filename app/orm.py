@@ -116,6 +116,13 @@ class Lease(Base):
         return entities
 
     @staticmethod
+    def find_by_lease_ref(engine: Engine, lease_ref: str) -> "Lease":
+        session = sessionmaker(bind=engine)()
+        entity = session.query(Lease).filter(Lease.lease_ref == lease_ref).first()
+        session.close()
+        return entity
+
+    @staticmethod
     def find_by_origin_ref_and_lease_ref(engine: Engine, origin_ref: str, lease_ref: str) -> "Lease":
         session = sessionmaker(bind=engine)()
         entity = session.query(Lease).filter(and_(Lease.origin_ref == origin_ref, Lease.lease_ref == lease_ref)).first()

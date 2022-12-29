@@ -422,6 +422,31 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     return JSONResponse(response)
 
 
+@app.delete('/leasing/v1/lease/{lease_ref}', description='release (return) a lease')
+async def leasing_v1_lease_delete(request: Request, lease_ref: str):
+    token, cur_time = get_token(request), datetime.utcnow()
+
+    origin_ref = token.get('origin_ref')
+    logging.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
+
+    entity = Lease.find_by_lease_ref(db, lease_ref)
+    if entity.origin_ref != origin_ref:
+        raise HTTPException(status_code=403, detail='access or operation forbidden')
+    if entity is None:
+        raise HTTPException(status_code=404, detail='requested lease not available')
+
+    if Lease.delete(db, lease_ref) == 0:
+        raise HTTPException(status_code=404, detail='lease not found')
+
+    response = {
+        "lease_ref": lease_ref,
+        "prompts": None,
+        "sync_timestamp": cur_time.isoformat(),
+    }
+
+    return JSONResponse(response)
+
+
 @app.delete('/leasing/v1/lessor/leases', description='release all leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
     token, cur_time = get_token(request), datetime.utcnow()

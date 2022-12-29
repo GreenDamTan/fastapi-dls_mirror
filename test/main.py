@@ -205,7 +205,18 @@ def test_leasing_v1_lease_renew():
     assert response.json()['lease_ref'] == LEASE_REF
 
 
+def test_leasing_v1_lease_delete():
+    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
+    bearer_token = f'Bearer {bearer_token}'
+    response = client.delete(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': bearer_token})
+    assert response.status_code == 200
+
+    assert response.json()['lease_ref'] == LEASE_REF
+
+
 def test_leasing_v1_lessor_lease_remove():
+    test_leasing_v1_lessor()
+    
     bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
     bearer_token = f'Bearer {bearer_token}'
     response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': bearer_token})

@@ -15,7 +15,7 @@ from calendar import timegm
 from jose import jws, jwk, jwt
 from jose.constants import ALGORITHMS
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse, Response
+from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse, Response, RedirectResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -27,7 +27,8 @@ load_dotenv('../version.env')
 
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
-app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION)
+config = dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
+app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db), migrate(db)
 
@@ -119,7 +120,7 @@ async def _manage(request: Request):
     return HTMLResponse(response)
 
 
-@app.get('/-/origins')
+@app.get('/-/origins', summary='* Origins')
 async def _origins(request: Request, leases: bool = False):
     session = sessionmaker(bind=db)()
     response = []
@@ -132,13 +133,13 @@ async def _origins(request: Request, leases: bool = False):
     return JSONResponse(response)
 
 
-@app.delete('/-/origins')
+@app.delete('/-/origins', summary='* Origins')
 async def _origins_delete(request: Request):
     Origin.delete(db)
     return Response(status_code=201)
 
 
-@app.get('/-/leases')
+@app.get('/-/leases', summary='* Leases')
 async def _leases(request: Request, origin: bool = False):
     session = sessionmaker(bind=db)()
     response = []
@@ -152,7 +153,7 @@ async def _leases(request: Request, origin: bool = False):
     return JSONResponse(response)
 
 
-@app.delete('/-/lease/{lease_ref}')
+@app.delete('/-/lease/{lease_ref}', summary='* Lease')
 async def _lease_delete(request: Request, lease_ref: str):
     if Lease.delete(db, lease_ref) == 1:
         return Response(status_code=201)
@@ -160,7 +161,7 @@ async def _lease_delete(request: Request, lease_ref: str):
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
-@app.get('/client-token')
+@app.get('/client-token', summary='* Client-Token')
 async def client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)

@@ -117,7 +117,7 @@ async def client_token():
         "nbf": timegm(cur_time.timetuple()),
         "exp": timegm(exp_time.timetuple()),
         "update_mode": "ABSOLUTE",
-        "scope_ref_list": [str(uuid4())],
+        "scope_ref_list": [str(uuid4())],  # this is our LEASE_REF
         "fulfillment_class_ref_list": [],
         "service_instance_configuration": {
             "nls_service_instance_ref": INSTANCE_REF,

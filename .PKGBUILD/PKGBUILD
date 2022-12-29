@@ -32,6 +32,7 @@ package() {
     install -d "$pkgdir/var/lib/$pkgname/cert"
     cp -r "$srcdir/$pkgname/doc"/* "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 "$srcdir/$pkgname/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
+    install -Dm644 "$srcdir/$pkgname/version.env" "$pkgdir/usr/share/doc/$pkgname/version.env"
 
     sed -i "s/README.md/\/usr\/share\/doc\/$pkgname\/README.md/g" "$srcdir/$pkgname/app/main.py"
     sed -i "s/join(dirname(__file__), 'cert\//join('\/var\/lib\/$pkgname', 'cert\//g" "$srcdir/$pkgname/app/main.py"

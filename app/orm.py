@@ -21,6 +21,15 @@ class Origin(Base):
     def __repr__(self):
         return f'Origin(origin_ref={self.origin_ref}, hostname={self.hostname})'
 
+    def serialize(self) -> dict:
+        return {
+            'origin_ref': self.origin_ref,
+            'hostname': self.hostname,
+            'guest_driver_version': self.guest_driver_version,
+            'os_platform': self.os_platform,
+            'os_version': self.os_version,
+        }
+
     @staticmethod
     def create_statement(engine: Engine):
         from sqlalchemy.schema import CreateTable
@@ -58,6 +67,15 @@ class Lease(Base):
 
     def __repr__(self):
         return f'Lease(origin_ref={self.origin_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
+
+    def serialize(self) -> dict:
+        return {
+            'lease_ref': self.lease_ref,
+            'origin_ref': self.origin_ref,
+            'lease_created': self.lease_created.isoformat(),
+            'lease_expires': self.lease_expires.isoformat(),
+            'lease_updated': self.lease_updated.isoformat(),
+        }
 
     @staticmethod
     def create_statement(engine: Engine):

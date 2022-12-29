@@ -77,17 +77,28 @@ async def status(request: Request):
 
 
 @app.get('/-/origins')
-async def _origins(request: Request):
+async def _origins(request: Request, leases: bool = False):
     session = sessionmaker(bind=db)()
-    response = list(map(lambda x: jsonable_encoder(x), session.query(Origin).all()))
+    response = []
+    for origin in session.query(Origin).all():
+        x = origin.serialize()
+        if leases:
+            x['leases'] = list(map(lambda _: _.serialize(), Lease.find_by_origin_ref(db, origin.origin_ref)))
+        response.append(x)
     session.close()
     return JSONResponse(response)
 
 
 @app.get('/-/leases')
-async def _leases(request: Request):
+async def _leases(request: Request, origin: bool = False):
     session = sessionmaker(bind=db)()
-    response = list(map(lambda x: jsonable_encoder(x), session.query(Lease).all()))
+    response = []
+    for lease in session.query(Lease).all():
+        x = lease.serialize()
+        if origin:
+            # assume that each lease has a valid origin record
+            x['origin'] = session.query(Origin).filter(Origin.origin_ref == lease.origin_ref).first().serialize()
+        response.append(x)
     session.close()
     return JSONResponse(response)
 

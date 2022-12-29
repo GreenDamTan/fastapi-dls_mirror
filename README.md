@@ -25,13 +25,21 @@ Status endpoint, used for *healthcheck*. Shows also current version and commit h
 
 OpenAPI specifications rendered from `GET /openapi.json`.
 
-### `GET /-/origins`
+### `GET /-/origins?leases=false`
 
 List registered origins.
 
-### `GET /-/leases`
+| Query Parameter | Default | Usage                                |
+|-----------------|---------|--------------------------------------|
+| `leases`        | `false` | Include referenced leases per origin |
+
+### `GET /-/leases?origin=false`
 
 List current leases.
+
+| Query Parameter | Default | Usage                               |
+|-----------------|---------|-------------------------------------|
+| `origin`        | `false` | Include referenced origin per lease |
 
 ### `GET /client-token`
 

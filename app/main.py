@@ -75,6 +75,40 @@ async def status(request: Request):
     return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
 
 
+@app.get('/-/manage')
+async def _manage(request: Request):
+    response = '''
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <title>FastAPI-DLS Management</title>
+        </head>
+        <body>
+            <button onclick="deleteOrigins()">delete origins and their leases</button>
+            <button onclick="deleteLease()">delete specific lease</button>
+            
+            <script>
+                function deleteOrigins() {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("DELETE", '/-/origins', true);
+                    xhr.send();
+                }
+                function deleteLease(lease_ref) {
+                    if(lease_ref === undefined)
+                        lease_ref = window.prompt("Please enter 'lease_ref' which should be deleted");
+                    if(lease_ref === null || lease_ref === "")
+                        return
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("DELETE", `/-/lease/${lease_ref}`, true);
+                    xhr.send();
+                }
+            </script>
+        </body>
+    </html>
+    '''
+    return HTMLResponse(response)
+
+
 @app.get('/-/origins')
 async def _origins(request: Request, leases: bool = False):
     session = sessionmaker(bind=db)()

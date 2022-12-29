@@ -25,6 +25,10 @@ Status endpoint, used for *healthcheck*. Shows also current version and commit h
 
 OpenAPI specifications rendered from `GET /openapi.json`.
 
+### `GET /-/manage`
+
+Shows a very basic UI to delete origins or leases.
+
 ### `GET /-/origins?leases=false`
 
 List registered origins.

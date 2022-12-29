@@ -20,7 +20,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from util import load_key, load_file
-from orm import Origin, Lease, init as db_init
+from orm import Origin, Lease, init as db_init, migrate
 
 logger = logging.getLogger()
 load_dotenv('../version.env')
@@ -29,7 +29,7 @@ VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bo
 
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION)
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
-db_init(db)
+db_init(db), migrate(db)
 
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))

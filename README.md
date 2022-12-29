@@ -217,6 +217,21 @@ apt-get install -f --fix-missing
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
 
+## ArchLinux (using `pacman`)
+
+Packages are available here:
+
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
+
+```shell
+pacman -Sy
+FILENAME=/opt/fastapi-dls.pkg.tar.zst
+url -o $FILENAME <download-url>
+pacman -U --noconfirm fastapi-dls.pkg.tar.zst
+```
+
+Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+
 ## Let's Encrypt Certificate
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.

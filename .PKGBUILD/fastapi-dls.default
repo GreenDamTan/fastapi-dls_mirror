@@ -11,7 +11,7 @@ CORS_ORIGINS="https://$DLS_URL:$DLS_PORT"
 LEASE_EXPIRE_DAYS=90
 
 # Database location
-## See https://dataset.readthedocs.io/en/latest/quickstart.html for details
+## https://docs.sqlalchemy.org/en/14/core/engines.html
 DATABASE="sqlite:////var/lib/fastapi-dls/db.sqlite"
 
 # UUIDs for identifying the instance

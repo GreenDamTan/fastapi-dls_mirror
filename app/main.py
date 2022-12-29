@@ -69,7 +69,7 @@ async def index():
     return RedirectResponse('/-/readme')
 
 
-@app.get('/status', summary='* Status', description='Returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
+@app.get('/status', summary='* Status', description='returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
 async def status(request: Request):
     return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
 
@@ -161,7 +161,7 @@ async def _lease_delete(request: Request, lease_ref: str):
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
-@app.get('/client-token', summary='* Client-Token')
+@app.get('/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
 async def client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
@@ -208,7 +208,7 @@ async def client_token():
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 # {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
-@app.post('/auth/v1/origin')
+@app.post('/auth/v1/origin', description='find or create an origin')
 async def auth_v1_origin(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
@@ -239,7 +239,7 @@ async def auth_v1_origin(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 # { "environment" : { "guest_driver_version" : "guest_driver_version", "hostname" : "myhost", "ip_address_list" : [ "192.168.1.129" ], "os_version" : "os_version", "os_platform" : "os_platform", "fingerprint" : { "mac_address_list" : [ "e4:b9:7a:e5:7b:ff" ] }, "host_driver_version" : "host_driver_version" }, "origin_ref" : "00112233-4455-6677-8899-aabbccddeeff" }
-@app.post('/auth/v1/origin/update')
+@app.post('/auth/v1/origin/update', description='update an origin evidence')
 async def auth_v1_origin_update(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
@@ -267,7 +267,7 @@ async def auth_v1_origin_update(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
-@app.post('/auth/v1/code')
+@app.post('/auth/v1/code', description='get an authorization code')
 async def auth_v1_code(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
@@ -300,7 +300,7 @@ async def auth_v1_code(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 # {"auth_code":"...","code_verifier":"..."}
-@app.post('/auth/v1/token')
+@app.post('/auth/v1/token', description='exchange auth code and verifier for token')
 async def auth_v1_token(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
     payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
@@ -337,7 +337,7 @@ async def auth_v1_token(request: Request):
 
 
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
-@app.post('/leasing/v1/lessor')
+@app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
     j, token, cur_time = json.loads((await request.body()).decode('utf-8')), get_token(request), datetime.utcnow()
 
@@ -377,7 +377,7 @@ async def leasing_v1_lessor(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
-@app.get('/leasing/v1/lessor/leases')
+@app.get('/leasing/v1/lessor/leases', description='get active leases for current origin')
 async def leasing_v1_lessor_lease(request: Request):
     token, cur_time = get_token(request), datetime.utcnow()
 
@@ -396,7 +396,7 @@ async def leasing_v1_lessor_lease(request: Request):
 
 
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
-@app.put('/leasing/v1/lease/{lease_ref}')
+@app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     token, cur_time = get_token(request), datetime.utcnow()
 
@@ -422,7 +422,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     return JSONResponse(response)
 
 
-@app.delete('/leasing/v1/lessor/leases')
+@app.delete('/leasing/v1/lessor/leases', description='release all leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
     token, cur_time = get_token(request), datetime.utcnow()
 

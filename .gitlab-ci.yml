@@ -104,14 +104,16 @@ test:
   script:
     # test installation
     - apt-get install -q -y ./build/build.deb --fix-missing
+    - openssl req -x509 -newkey rsa:2048 -nodes -out /etc/fastapi-dls/webserver.crt -keyout /etc/fastapi-dls/webserver.key -days 7 -subj "/C=DE/O=GitLab-CI/OU=Test/CN=localhost"
     # copy example config from GitLab-CI-Variables
     #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
     # start service in background
     - cd /usr/share/fastapi-dls/app
-    - uvicorn --host 127.0.0.1 --port 443
+    - uvicorn main:app
+      --host 127.0.0.1 --port 443
       --app-dir /usr/share/fastapi-dls/app
       --ssl-keyfile /etc/fastapi-dls/webserver.key
-      --ssl-certfile /opt/fastapi-dls/webserver.crt
+      --ssl-certfile /etc/fastapi-dls/webserver.crt
       --proxy-headers &
     - FASTAPI_DLS_PID=$!
     - echo "Started service with pid $FASTAPI_DLS_PID"
@@ -132,6 +134,10 @@ test:ubuntu:
 
 test:archlinux:
   image: archlinux:base
+  rules:
+    - changes:
+        - .PKGBUILD/**/*
+        - app/**/*
   needs:
     - job: build:pacman
       artifacts: true
@@ -171,9 +177,6 @@ deploy:apt:
   stage: deploy
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - changes:
-        - .DEBIAN/**/*
-        - app/**/*
   needs:
     - job: build:apt
       artifacts: true
@@ -212,14 +215,11 @@ deploy:apt:
 deploy:pacman:
   image: archlinux:base-devel
   stage: deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  #    - changes:
-  #        - .PKGBUILD/**/*
-  #        - app/**/*
   needs:
     - job: build:pacman
       artifacts: true
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - source .PKGBUILD/PKGBUILD
     # fastapi-dls-1.0-1-any.pkg.tar.zst

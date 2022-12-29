@@ -16,7 +16,7 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from app.util import generate_key, load_key
+from app.util import load_key
 
 client = TestClient(main.app)
 

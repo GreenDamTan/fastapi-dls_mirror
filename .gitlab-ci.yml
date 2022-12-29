@@ -7,6 +7,9 @@ build:docker:
   stage: build
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - Dockerfile
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   tags: [ docker ]
   before_script:
@@ -21,7 +24,11 @@ build:apt:
   interruptible: true
   stage: build
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - .DEBIAN/**/*
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
     - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
@@ -58,7 +65,11 @@ build:pacman:
   interruptible: true
   stage: build
   rules:
-    - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - app/**/*
+        - .PKGBUILD/**/*
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
     - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
@@ -103,9 +114,11 @@ test:
 .test:linux:
   stage: test
   rules:
-    - changes:
-        - .DEBIAN/**/*
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
         - app/**/*
+        - .DEBIAN/**/*
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   needs:
     - job: build:apt
       artifacts: true
@@ -147,9 +160,11 @@ test:ubuntu:
 test:archlinux:
   image: archlinux:base
   rules:
-    - changes:
-        - .PKGBUILD/**/*
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
         - app/**/*
+        - .PKGBUILD/**/*
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   needs:
     - job: build:pacman
       artifacts: true
@@ -166,6 +181,8 @@ test:archlinux:
 deploy:docker:
   extends: .deploy
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
     - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
     - source version.env
@@ -189,6 +206,8 @@ deploy:apt:
   extends: .deploy
   image: debian:bookworm-slim
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
     - job: build:apt
       artifacts: true
@@ -228,6 +247,8 @@ deploy:pacman:
   extends: .deploy
   image: archlinux:base-devel
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
     - job: build:pacman
       artifacts: true

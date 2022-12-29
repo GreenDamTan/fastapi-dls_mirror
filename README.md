@@ -400,3 +400,11 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 ```
 
 </details>
+
+
+# Credits
+
+Thanks to vGPU community and all who uses this project and report bugs.
+
+Special thanks to @samicrusader who created build file for ArchLinux.
+

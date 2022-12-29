@@ -16,9 +16,14 @@ build:docker:
     - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
 
 build:apt:
-  image: debian:bookworm-slim  # just to get "python3-jose" working
+  image: debian:bookworm-slim
+  interruptible: true
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH
   before_script:
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
     # create build directory for .deb sources
     - mkdir build
@@ -43,10 +48,15 @@ build:apt:
 
 build:pacman:
   image: archlinux:base-devel
+  interruptible: true
   stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH
   before_script:
+    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    # install build dependencies
     - pacman -Syu --noconfirm git
-    # "makepkg" don't likes root user
+    # create a build-user because "makepkg" don't like root user
     - useradd --no-create-home --shell=/bin/false build && usermod -L build
     - 'echo "build ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
     - 'echo "root ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers'
@@ -67,6 +77,9 @@ build:pacman:
 test:
   image: python:3.10-slim-bullseye
   stage: test
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
     DATABASE: sqlite:///../app/db.sqlite
   before_script:
@@ -87,13 +100,14 @@ test:
   variables:
     DEBIAN_FRONTEND: noninteractive
   before_script:
-    - apt-get update -qq && apt-get install -qq -y jq
+    - apt-get update -qq && apt-get install -qq -y jq curl
   script:
     # test installation
     - apt-get install -q -y ./build/build.deb --fix-missing
     # copy example config from GitLab-CI-Variables
     #- cat ${EXAMPLE_CONFIG} > /etc/fastapi-dls/env
     # start service in background
+    - cd /usr/share/fastapi-dls/app
     - uvicorn --host 127.0.0.1 --port 443
       --app-dir /usr/share/fastapi-dls/app
       --ssl-keyfile /etc/fastapi-dls/webserver.key
@@ -118,8 +132,12 @@ test:ubuntu:
 
 test:archlinux:
   image: archlinux:base
+  needs:
+    - job: build:pacman
+      artifacts: true
   script:
-    - echo "Todo"
+    - pacman -Sy
+    - pacman -U --noconfirm fastapi-dls-*.pkg.tar.zs
 
 deploy:docker:
   stage: deploy
@@ -152,7 +170,7 @@ deploy:apt:
   image: debian:bookworm-slim
   stage: deploy
   rules:
-    #- if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - changes:
         - .DEBIAN/**/*
         - app/**/*
@@ -194,11 +212,11 @@ deploy:apt:
 deploy:pacman:
   image: archlinux:base-devel
   stage: deploy
-#  rules:
-#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-#    - changes:
-#        - .PKGBUILD/**/*
-#        - app/**/*
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  #    - changes:
+  #        - .PKGBUILD/**/*
+  #        - app/**/*
   needs:
     - job: build:pacman
       artifacts: true

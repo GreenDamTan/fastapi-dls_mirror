@@ -254,10 +254,11 @@ deploy:pacman:
       artifacts: true
   script:
     - source .PKGBUILD/PKGBUILD
+    - source version.env
     # fastapi-dls-1.0-1-any.pkg.tar.zst
-    - BUILD_NAME=${pkgname}-${pkgver}-${pkgrel}-any.pkg.tar.zst
+    - BUILD_NAME=${pkgname}-${VERSION}-${pkgrel}-any.pkg.tar.zst
     - PACKAGE_NAME=${pkgname}
-    - PACKAGE_VERSION=${pkgver}
+    - PACKAGE_VERSION=${VERSION}
     - PACKAGE_ARCH=any
     - EXPORT_NAME=${BUILD_NAME}
     - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'

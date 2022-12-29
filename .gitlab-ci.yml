@@ -147,7 +147,7 @@ test:archlinux:
       artifacts: true
   script:
     - pacman -Sy
-    - pacman -U --noconfirm *.pkg.tar.zs
+    - pacman -U --noconfirm *.pkg.tar.zst
 
 deploy:docker:
   stage: deploy

@@ -160,8 +160,8 @@ async def _lease_delete(request: Request, lease_ref: str):
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
-@app.get('/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
-async def client_token():
+@app.get('/-/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
+async def _client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
 
@@ -203,6 +203,11 @@ async def client_token():
     response.headers["Content-Disposition"] = f'attachment; filename={filename}'
 
     return response
+
+
+@app.get('/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance', deprecated=True)
+async def client_token():
+    return RedirectResponse('/-/client-token')
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py

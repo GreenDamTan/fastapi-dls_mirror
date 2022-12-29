@@ -94,6 +94,10 @@ test:
 
 .test:linux:
   stage: test
+  rules:
+    - changes:
+        - .DEBIAN/**/*
+        - app/**/*
   needs:
     - job: build:apt
       artifacts: true

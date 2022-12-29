@@ -41,7 +41,9 @@ build:apt:
     # cd into "build/"
     - cd build/
   script:
+    # set version based on value in "$VERSION" (which is set above from version.env)
     - sed -i -E 's/(Version\:\s)0.0/\1'"$VERSION"'/g' DEBIAN/control
+    # build
     - dpkg -b . build.deb
     - dpkg -I build.deb
   artifacts:

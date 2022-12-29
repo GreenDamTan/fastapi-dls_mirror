@@ -44,9 +44,41 @@ def test_status():
     assert response.json()['status'] == 'up'
 
 
+def test_health():
+    response = client.get('/-/health')
+    assert response.status_code == 200
+    assert response.json()['status'] == 'up'
+
+
+def test_readme():
+    response = client.get('/-/readme')
+    assert response.status_code == 200
+
+
+def test_manage():
+    response = client.get('/-/manage')
+    assert response.status_code == 200
+
+
 def test_client_token():
     response = client.get('/client-token')
     assert response.status_code == 200
+
+
+def test_origins():
+    pass
+
+
+def test_origins_delete():
+    pass
+
+
+def test_leases():
+    pass
+
+
+def test_lease_delete():
+    pass
 
 
 def test_auth_v1_origin():

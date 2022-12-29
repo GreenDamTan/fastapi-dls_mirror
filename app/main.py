@@ -341,7 +341,7 @@ async def auth_v1_token(request: Request):
 async def leasing_v1_lessor(request: Request):
     j, token, cur_time = json.loads((await request.body()).decode('utf-8')), get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
     scope_ref_list = j['scope_ref_list']
     logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
@@ -381,7 +381,7 @@ async def leasing_v1_lessor(request: Request):
 async def leasing_v1_lessor_lease(request: Request):
     token, cur_time = get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
 
     active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
@@ -400,7 +400,7 @@ async def leasing_v1_lessor_lease(request: Request):
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     token, cur_time = get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
     logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
 
     entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
@@ -426,7 +426,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 async def leasing_v1_lessor_lease_remove(request: Request):
     token, cur_time = get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.cleanup(db, origin_ref)

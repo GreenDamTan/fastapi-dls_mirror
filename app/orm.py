@@ -125,7 +125,7 @@ class Lease(Base):
     @staticmethod
     def renew(engine: Engine, lease: "Lease", lease_expires: datetime.datetime, lease_updated: datetime.datetime):
         session = sessionmaker(bind=engine)()
-        x = dict(lease_expires=lease.lease_expires, lease_updated=lease.lease_updated)
+        x = dict(lease_expires=lease_expires, lease_updated=lease_updated)
         session.execute(update(Lease).where(and_(Lease.origin_ref == lease.origin_ref, Lease.lease_ref == lease.lease_ref)).values(**x))
         session.commit()
         session.close()

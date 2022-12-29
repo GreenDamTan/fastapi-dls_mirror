@@ -137,7 +137,7 @@ test:archlinux:
       artifacts: true
   script:
     - pacman -Sy
-    - pacman -U --noconfirm fastapi-dls-*.pkg.tar.zs
+    - pacman -U --noconfirm *.pkg.tar.zs
 
 deploy:docker:
   stage: deploy

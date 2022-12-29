@@ -20,7 +20,7 @@ from starlette.responses import StreamingResponse, JSONResponse, HTMLResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.util import load_key, load_file
+from util import load_key, load_file
 from orm import Origin, Lease, init as db_init
 
 logger = logging.getLogger()

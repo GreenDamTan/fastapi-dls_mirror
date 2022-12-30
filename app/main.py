@@ -204,7 +204,7 @@ async def _client_token():
     content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
     response = StreamingResponse(iter([content]), media_type="text/plain")
-    filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
+    filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}.tok'
     response.headers["Content-Disposition"] = f'attachment; filename={filename}'
 
     return response

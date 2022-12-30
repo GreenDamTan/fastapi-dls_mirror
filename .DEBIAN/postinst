@@ -11,6 +11,7 @@ echo "> Install service ..."
 cat <<EOF >/etc/systemd/system/fastapi-dls.service
 [Unit]
 Description=Service for fastapi-dls
+Documentation=https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
 After=network.target
 
 [Service]

@@ -6,6 +6,7 @@ CONFIG_DIR=/etc/fastapi-dls
 echo "> Create config directory ..."
 mkdir -p $CONFIG_DIR
 
+# normally we would define services in `conffiles` and as separate file, but we like to keep thinks simple.
 echo "> Install service ..."
 cat <<EOF >/etc/systemd/system/fastapi-dls.service
 [Unit]
@@ -37,6 +38,7 @@ EOF
 
 systemctl daemon-reload
 
+# normally we would define configfiles in `conffiles` and as separate file, but we like to keep thinks simple.
 if [[ ! -f $CONFIG_DIR/env ]]; then
   echo "> Writing initial config ..."
   touch $CONFIG_DIR/env

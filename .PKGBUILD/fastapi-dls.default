@@ -3,6 +3,7 @@ DEBUG=false
 
 # Where the client can find the DLS server
 ## DLS_URL should be a hostname
+LISTEN_IP="0.0.0.0"
 DLS_URL="localhost.localdomain"
 DLS_PORT=8443
 CORS_ORIGINS="https://$DLS_URL:$DLS_PORT"
@@ -21,3 +22,7 @@ INSTANCE_REF="<<instanceref>>"
 # Site-wide signing keys
 INSTANCE_KEY_RSA="/var/lib/fastapi-dls/instance.private.pem"
 INSTANCE_KEY_PUB="/var/lib/fastapi-dls/instance.public.pem"
+
+# TLS certificate
+INSTANCE_SSL_CERT="/var/lib/fastapi-dls/cert/webserver.crt"
+INSTANCE_SSL_KEY="/var/lib/fastapi-dls/cert/webserver.key"

@@ -40,8 +40,7 @@ INSTANCE_KEY_RSA = load_key(str(env('INSTANCE_KEY_RSA', join(dirname(__file__), 
 INSTANCE_KEY_PUB = load_key(str(env('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)))
-
-CORS_ORIGINS = env('CORS_ORIGINS').split(',') if (env('CORS_ORIGINS')) else f'https://{DLS_URL}'  # todo: prevent static https
+CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) else [f'https://{DLS_URL}']
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
@@ -51,27 +50,32 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
 logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 
-def get_token(request: Request) -> dict:
-    authorization_header = request.headers['authorization']
+def __get_token(request: Request) -> dict:
+    authorization_header = request.headers.get('authorization')
     token = authorization_header.split(' ')[1]
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
-@app.get('/', summary='* Index')
+@app.get('/', summary='Index')
 async def index():
     return RedirectResponse('/-/readme')
 
 
-@app.get('/status', summary='* Status', description='Returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
+@app.get('/status', summary='* Status', description='returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
 async def status(request: Request):
     return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+
+
+@app.get('/-/', summary='* Index')
+async def _index():
+    return RedirectResponse('/-/readme')
 
 
 @app.get('/-/health', summary='* Health')
@@ -161,8 +165,8 @@ async def _lease_delete(request: Request, lease_ref: str):
 
 
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
-@app.get('/client-token', summary='* Client-Token')
-async def client_token():
+@app.get('/-/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
+async def _client_token():
     cur_time = datetime.utcnow()
     exp_time = cur_time + relativedelta(years=12)
 
@@ -200,15 +204,20 @@ async def client_token():
     content = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
     response = StreamingResponse(iter([content]), media_type="text/plain")
-    filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}'
+    filename = f'client_configuration_token_{datetime.now().strftime("%d-%m-%y-%H-%M-%S")}.tok'
     response.headers["Content-Disposition"] = f'attachment; filename={filename}'
 
     return response
 
 
+@app.get('/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance', deprecated=True)
+async def client_token():
+    return RedirectResponse('/-/client-token')
+
+
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 # {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
-@app.post('/auth/v1/origin')
+@app.post('/auth/v1/origin', description='find or create an origin')
 async def auth_v1_origin(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
@@ -239,7 +248,7 @@ async def auth_v1_origin(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 # { "environment" : { "guest_driver_version" : "guest_driver_version", "hostname" : "myhost", "ip_address_list" : [ "192.168.1.129" ], "os_version" : "os_version", "os_platform" : "os_platform", "fingerprint" : { "mac_address_list" : [ "e4:b9:7a:e5:7b:ff" ] }, "host_driver_version" : "host_driver_version" }, "origin_ref" : "00112233-4455-6677-8899-aabbccddeeff" }
-@app.post('/auth/v1/origin/update')
+@app.post('/auth/v1/origin/update', description='update an origin evidence')
 async def auth_v1_origin_update(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
@@ -267,7 +276,7 @@ async def auth_v1_origin_update(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 # {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
-@app.post('/auth/v1/code')
+@app.post('/auth/v1/code', description='get an authorization code')
 async def auth_v1_code(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
@@ -300,7 +309,7 @@ async def auth_v1_code(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 # {"auth_code":"...","code_verifier":"..."}
-@app.post('/auth/v1/token')
+@app.post('/auth/v1/token', description='exchange auth code and verifier for token')
 async def auth_v1_token(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
     payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
@@ -337,11 +346,11 @@ async def auth_v1_token(request: Request):
 
 
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
-@app.post('/leasing/v1/lessor')
+@app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
-    j, token, cur_time = json.loads((await request.body()).decode('utf-8')), get_token(request), datetime.utcnow()
+    j, token, cur_time = json.loads((await request.body()).decode('utf-8')), __get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
     scope_ref_list = j['scope_ref_list']
     logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
@@ -377,11 +386,11 @@ async def leasing_v1_lessor(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
-@app.get('/leasing/v1/lessor/leases')
+@app.get('/leasing/v1/lessor/leases', description='get active leases for current origin')
 async def leasing_v1_lessor_lease(request: Request):
-    token, cur_time = get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
 
     active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
@@ -396,11 +405,11 @@ async def leasing_v1_lessor_lease(request: Request):
 
 
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
-@app.put('/leasing/v1/lease/{lease_ref}')
+@app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
-    token, cur_time = get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
     logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
 
     entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
@@ -422,11 +431,36 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     return JSONResponse(response)
 
 
-@app.delete('/leasing/v1/lessor/leases')
-async def leasing_v1_lessor_lease_remove(request: Request):
-    token, cur_time = get_token(request), datetime.utcnow()
+@app.delete('/leasing/v1/lease/{lease_ref}', description='release (return) a lease')
+async def leasing_v1_lease_delete(request: Request, lease_ref: str):
+    token, cur_time = __get_token(request), datetime.utcnow()
 
-    origin_ref = token['origin_ref']
+    origin_ref = token.get('origin_ref')
+    logging.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
+
+    entity = Lease.find_by_lease_ref(db, lease_ref)
+    if entity.origin_ref != origin_ref:
+        raise HTTPException(status_code=403, detail='access or operation forbidden')
+    if entity is None:
+        raise HTTPException(status_code=404, detail='requested lease not available')
+
+    if Lease.delete(db, lease_ref) == 0:
+        raise HTTPException(status_code=404, detail='lease not found')
+
+    response = {
+        "lease_ref": lease_ref,
+        "prompts": None,
+        "sync_timestamp": cur_time.isoformat(),
+    }
+
+    return JSONResponse(response)
+
+
+@app.delete('/leasing/v1/lessor/leases', description='release all leases')
+async def leasing_v1_lessor_lease_remove(request: Request):
+    token, cur_time = __get_token(request), datetime.utcnow()
+
+    origin_ref = token.get('origin_ref')
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.cleanup(db, origin_ref)

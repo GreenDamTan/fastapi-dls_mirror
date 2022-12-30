@@ -16,7 +16,7 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from app.util import generate_key, load_key
+from app.util import load_key
 
 client = TestClient(main.app)
 
@@ -31,6 +31,12 @@ INSTANCE_KEY_PUB = load_key(str(join(dirname(__file__), '../app/cert/instance.pu
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
+
+
+def __bearer_token(origin_ref: str) -> str:
+    token = jwt.encode({"origin_ref": origin_ref}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
+    token = f'Bearer {token}'
+    return token
 
 
 def test_index():
@@ -61,6 +67,11 @@ def test_manage():
 
 
 def test_client_token():
+    response = client.get('/-/client-token')
+    assert response.status_code == 200
+
+
+def test_client_token_deprecated():
     response = client.get('/client-token')
     assert response.status_code == 200
 
@@ -175,9 +186,7 @@ def test_leasing_v1_lessor():
         'scope_ref_list': [LEASE_REF]
     }
 
-    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
-    bearer_token = f'Bearer {bearer_token}'
-    response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': bearer_token})
+    response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
     lease_result_list = response.json()['lease_result_list']
@@ -186,9 +195,7 @@ def test_leasing_v1_lessor():
 
 
 def test_leasing_v1_lessor_lease():
-    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
-    bearer_token = f'Bearer {bearer_token}'
-    response = client.get('/leasing/v1/lessor/leases', headers={'authorization': bearer_token})
+    response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
     active_lease_list = response.json()['active_lease_list']
@@ -197,18 +204,23 @@ def test_leasing_v1_lessor_lease():
 
 
 def test_leasing_v1_lease_renew():
-    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
-    bearer_token = f'Bearer {bearer_token}'
-    response = client.put(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': bearer_token})
+    response = client.put(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    assert response.status_code == 200
+
+    assert response.json()['lease_ref'] == LEASE_REF
+
+
+def test_leasing_v1_lease_delete():
+    response = client.delete(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
     assert response.json()['lease_ref'] == LEASE_REF
 
 
 def test_leasing_v1_lessor_lease_remove():
-    bearer_token = jwt.encode({"origin_ref": ORIGIN_REF}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
-    bearer_token = f'Bearer {bearer_token}'
-    response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': bearer_token})
+    test_leasing_v1_lessor()
+
+    response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
     released_lease_list = response.json()['released_lease_list']

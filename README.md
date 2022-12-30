@@ -287,11 +287,13 @@ After first success you have to replace `--issue` with `--renew`.
 | `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable           |
 | `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                  |
 | `DATABASE`          | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string)                  |
+| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*               |
 | `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                            |
 | `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                        |
 | `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                          |
 | `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                |
+
+\* Always use `https`, since guest-drivers only support secure connections!
 
 # Setup (Client)
 
@@ -315,6 +317,14 @@ nvidia-smi -q | grep "License"
 
 Download file and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
 Now restart `NvContainerLocalSystem` service.
+
+**Power-Shell**
+
+```Shell
+curl.exe --insecure -X GET https://<dls-hostname-or-ip>/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
+Restart-Service NVDisplay.ContainerLocalSystem
+'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
+```
 
 # Troubleshoot
 

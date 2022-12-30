@@ -275,9 +275,12 @@ release:
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
+    - set -a # make variables from "source" command available to release-cli
     - source version.env
   script:
     - echo "Running release-job for $VERSION"
+  after_script:
+    - set +a
   release:
     name: $CI_PROJECT_TITLE $version
     description: Release of $CI_PROJECT_TITLE version $VERSION

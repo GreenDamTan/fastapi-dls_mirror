@@ -4,12 +4,13 @@ Documentation=https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
 After=network.target
 
 [Service]
-Type=forking
+Type=simple
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 EnvironmentFile=/etc/default/fastapi-dls
-ExecStart=/usr/bin/python /opt/fastapi-dls/main.py
-WorkingDir=/opt/fastapi-dls
+ExecStart=/usr/bin/uvicorn main:app --proxy-headers --env-file=/etc/default/fastapi-dls --host=${LISTEN_IP} --port=${DLS_PORT} --app-dir=/opt/fastapi-dls --ssl-keyfile=${INSTANCE_SSL_KEY} --ssl-certfile=${INSTANCE_SSL_CERT}
 Restart=on-abort
-User=root
+User=http
+Group=http
 
 [Install]
 WantedBy=multi-user.target

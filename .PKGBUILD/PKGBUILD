@@ -1,8 +1,8 @@
-# Maintainer: samicrusader <hi@samicrusader.me>
 # Maintainer: Oscar Krause <oscar.krause@collinwebdesigns.de>
+# Contributor: samicrusader <hi@samicrusader.me>
 
 pkgname=fastapi-dls
-pkgver=0.0
+pkgver=1.1
 pkgrel=1
 pkgdesc='NVIDIA DLS server implementation with FastAPI'
 arch=('any')
@@ -13,10 +13,12 @@ provider=("$pkgname")
 install="$pkgname.install"
 source=('git+file:///builds/oscar.krause/fastapi-dls' # https://gitea.publichub.eu/oscar.krause/fastapi-dls.git
         "$pkgname.default"
-        "$pkgname.service")
+        "$pkgname.service"
+        "$pkgname.tmpfiles")
 sha256sums=('SKIP'
-            '4c07e9b627853bd4f3a398371912fc72302dac33f43e4cb7e9b79746cc9c9136'
-            '10cb98d64f8bf37b11a60510793c187cc664e63c895d1205781c21fa2e703f32')
+            'fbd015449a30c0ae82733289a56eb98151dcfab66c91b37fe8e202e39f7a5edb'
+            '2719338541104c537453a65261c012dda58e1dbee99154cf4f33b526ee6ca22e'
+            '3dc60140c08122a8ec0e7fa7f0937eb8c1288058890ba09478420fc30ce9e30c')
 
 pkgver() {
   source $srcdir/$pkgname/version.env
@@ -46,4 +48,5 @@ package() {
     install -Dm755 "$srcdir/$pkgname/app/util.py" "$pkgdir/opt/$pkgname/util.py"
     install -Dm644 "$srcdir/$pkgname.default" "$pkgdir/etc/default/$pkgname"
     install -Dm644 "$srcdir/$pkgname.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
+    install -Dm644 "$srcdir/$pkgname.tmpfiles" "$pkgdir/usr/lib/tmpfiles.d/$pkgname.conf"
 }

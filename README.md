@@ -15,27 +15,27 @@ Only the clients need a connection to this service on configured port.
 
 ## Endpoints
 
-### [`GET /`](/)
+### `GET /`
 
 Redirect to `/-/readme`.
 
-### [`GET /status`](/status) (deprecated: use `/-/health`)
+### `GET /status` (deprecated: use `/-/health`)
 
 Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
-### [`GET /-/health`](/-/health)
+### `GET /-/health`
 
 Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
 
-### [`GET /-/readme`](/-/readme)
+### `GET /-/readme`
 
 HTML rendered README.md.
 
-### [`GET /-/docs`](/-/docs), [`GET /-/redoc`](/-/redoc)
+### `GET /-/docs`, `GET /-/redoc`
 
 OpenAPI specifications rendered from `GET /-/openapi.json`.
 
-### [`GET /-/manage`](/-/manage)
+### `GET /-/manage`
 
 Shows a very basic UI to delete origins or leases.
 
@@ -63,7 +63,7 @@ List current leases.
 
 Deletes an lease.
 
-### `GET /client-token`
+### `GET /client-token` (deprecated: use `/-/client-token`)
 
 Generate client token, (see [installation](#installation)).
 

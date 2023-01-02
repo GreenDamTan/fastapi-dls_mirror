@@ -433,6 +433,19 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 
 </details>
 
+### Error on releasing leases on shutdown
+
+The driver wants to release current leases on shutting down windows. This endpoint needs to be a http endpoint and
+is currently not implemented. The error message looks like and safely can be ignored (since we have no license
+limitation :P):
+
+```
+<1>:NLS initialized
+<1>:License acquired successfully. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2023-3-30 23:0:22 GMT)
+<0>:Failed to return license to 192.168.178.110 (Error: Generic network communication failure)
+<0>:End Logging
+```
+
 # Credits
 
 Thanks to vGPU community and all who uses this project and report bugs.

@@ -25,7 +25,11 @@ Status endpoint, used for *healthcheck*. Shows also current version and commit h
 
 ### `GET /-/health`
 
-Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
+Status endpoint, used for *healthcheck*.
+
+### `GET /-/config`
+
+Shows current runtime environment variables and their values.
 
 ### `GET /-/readme`
 

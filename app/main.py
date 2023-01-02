@@ -81,7 +81,24 @@ async def _index():
 
 @app.get('/-/health', summary='* Health')
 async def _health(request: Request):
-    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
+    return JSONResponse({'status': 'up'})
+
+
+@app.get('/-/config', summary='* Config', description='returns environment variables.')
+async def _config():
+    return JSONResponse({
+        'VERSION': VERSION,
+        'COMMIT': COMMIT,
+        'DEBUG': DEBUG,
+        'DLS_URL': DLS_URL,
+        'DLS_PORT': DLS_PORT,
+        'SITE_KEY_XID': SITE_KEY_XID,
+        'INSTANCE_REF': INSTANCE_REF,
+        'TOKEN_EXPIRE_DELTA': TOKEN_EXPIRE_DELTA,
+        'LEASE_EXPIRE_DELTA': LEASE_EXPIRE_DELTA,
+        'LEASE_RENEWAL_PERIOD': LEASE_RENEWAL_PERIOD,
+        'CORS_ORIGINS': CORS_ORIGINS,
+    })
 
 
 @app.get('/-/readme', summary='* Readme')

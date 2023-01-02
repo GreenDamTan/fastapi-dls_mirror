@@ -56,6 +56,11 @@ def test_health():
     assert response.json()['status'] == 'up'
 
 
+def test_config():
+    response = client.get('/-/')
+    assert response.status_code == 200
+
+
 def test_readme():
     response = client.get('/-/readme')
     assert response.status_code == 200

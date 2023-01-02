@@ -282,20 +282,25 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable            | Default                                | Usage                                                                               |
-|---------------------|----------------------------------------|-------------------------------------------------------------------------------------|
-| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                        |
-| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable           |
-| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable           |
-| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                  |
-| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*               |
-| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                            |
-| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                        |
-| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                          |
-| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                |
+| Variable               | Default                                | Usage                                                                                                |
+|------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------|
+| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
+| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
+| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
+| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |
+| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                               |
+| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
+| `INSTANCE_REF`         | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                                         |
+| `INSTANCE_KEY_RSA`     | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                                           |
+| `INSTANCE_KEY_PUB`     | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                                 |
 
-\* Always use `https`, since guest-drivers only support secure connections!
+\*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
+every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
+client has 19.2 hours in which to re-establish connectivity before its license expires.
+
+\*2 Always use `https`, since guest-drivers only support secure connections!
 
 # Setup (Client)
 

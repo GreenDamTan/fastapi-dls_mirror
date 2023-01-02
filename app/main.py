@@ -40,6 +40,7 @@ INSTANCE_KEY_RSA = load_key(str(env('INSTANCE_KEY_RSA', join(dirname(__file__), 
 INSTANCE_KEY_PUB = load_key(str(env('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
 LEASE_EXPIRE_DELTA = relativedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)))
+LEASE_RENEWAL_PERIOD = float(env('LEASE_RENEWAL_PERIOD', 0.15))
 CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) else [f'https://{DLS_URL}']
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
@@ -365,8 +366,7 @@ async def leasing_v1_lessor(request: Request):
                 "ref": scope_ref,
                 "created": cur_time.isoformat(),
                 "expires": expires.isoformat(),
-                # The percentage of the lease period that must elapse before a licensed client can renew a license
-                "recommended_lease_renewal": 0.15,
+                "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
                 "offline_lease": "true",
                 "license_type": "CONCURRENT_COUNTED_SINGLE"
             }

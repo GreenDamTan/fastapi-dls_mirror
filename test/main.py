@@ -44,11 +44,6 @@ def test_index():
     assert response.status_code == 200
 
 
-def test_status():
-    response = client.get('/status')
-    assert response.status_code == 200
-    assert response.json()['status'] == 'up'
-
 
 def test_health():
     response = client.get('/-/health')
@@ -73,11 +68,6 @@ def test_manage():
 
 def test_client_token():
     response = client.get('/-/client-token')
-    assert response.status_code == 200
-
-
-def test_client_token_deprecated():
-    response = client.get('/client-token')
     assert response.status_code == 200
 
 

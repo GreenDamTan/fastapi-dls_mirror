@@ -69,11 +69,6 @@ async def index():
     return RedirectResponse('/-/readme')
 
 
-@app.get('/status', summary='* Status', description='returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
-async def status():
-    return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
-
-
 @app.get('/-/', summary='* Index')
 async def _index():
     return RedirectResponse('/-/readme')
@@ -226,11 +221,6 @@ async def _client_token():
     response.headers["Content-Disposition"] = f'attachment; filename={filename}'
 
     return response
-
-
-@app.get('/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance', deprecated=True)
-async def client_token():
-    return RedirectResponse('/-/client-token')
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py

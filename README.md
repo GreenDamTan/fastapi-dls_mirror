@@ -19,10 +19,6 @@ Only the clients need a connection to this service on configured port.
 
 Redirect to `/-/readme`.
 
-### `GET /status` (deprecated: use `/-/health`)
-
-Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
-
 ### `GET /-/health`
 
 Status endpoint, used for *healthcheck*.
@@ -67,7 +63,7 @@ List current leases.
 
 Deletes an lease.
 
-### `GET /client-token` (deprecated: use `/-/client-token`)
+### `GET /-/client-token`
 
 Generate client token, (see [installation](#installation)).
 

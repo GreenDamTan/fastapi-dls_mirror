@@ -310,7 +310,7 @@ Successfully tested with this package versions:
 ## Linux
 
 ```shell
-curl --insecure -X GET https://<dls-hostname-or-ip>/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token.tok
+curl --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token.tok
 service nvidia-gridd restart
 nvidia-smi -q | grep "License"
 ```
@@ -323,7 +323,7 @@ Now restart `NvContainerLocalSystem` service.
 **Power-Shell**
 
 ```Shell
-curl.exe --insecure -X GET https://<dls-hostname-or-ip>/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
+curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
 Restart-Service NVDisplay.ContainerLocalSystem
 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
 ```

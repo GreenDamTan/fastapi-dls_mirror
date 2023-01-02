@@ -1,0 +1,41 @@
+{% extends 'layouts/bootstrap-dashboard.html' %}
+
+{% block title %}
+<title>Dashboard</title>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="downloadClientToken()">
+                    <i class="bi bi-download"></i>
+                    Client Token
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">FastAPI-DLS</h1>
+            <p class="col-md-8 fs-4">Minimal Delegated License Service (DLS).</p>
+
+            <a href="https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/releases" class="btn btn-primary btn-lg" target="_blank">
+                Releases &raquo;
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="application/javascript">
+    function downloadClientToken() {
+        window.open('/-/client-token', "_blank")
+    }
+</script>
+{% endblock %}

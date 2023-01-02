@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en" class="h-100">
+<head>
+    {% block title %}
+        <title>FastAPI-DLS</title>
+    {% endblock %}
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" href="{{ url_for('static', path='assets/img/favicons/favicon-32x32.png') }}" sizes="32x32" type="image/png">
+    <link rel="icon" href="{{ url_for('static', path='assets/img/favicons/favicon-16x16.png') }}" sizes="16x16" type="image/png">
+    <link rel="manifest" href="{{ url_for('static', path='assets/img/favicons/manifest.json') }}">
+    <link rel="icon" href="{{ url_for('static', path='assets/img/favicons/favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', path='assets/img/favicons/apple-touch-icon.png') }}" sizes="180x180">
+
+    {% block styles %}
+    {% endblock %}
+
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='assets/css/custom.css') }}">
+</head>
+<body class="d-flex flex-column {% block body_class %}{% endblock %}">
+{% block body %}
+{% endblock %}
+
+
+<script src="{{ url_for('static', path='assets/js/helper.js') }}"></script>
+
+{% block scripts %}
+{% endblock %}
+</body>
+</html>

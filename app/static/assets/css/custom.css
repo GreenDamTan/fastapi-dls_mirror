@@ -1,0 +1,56 @@
+/*
+    Original: #76b900
+    Darken 1: #5DA000 (10%)
+    Darken 2: #438600 (20%)
+    Darken 3: #2A6D00 (30%)
+    Darken 4: #105300 (40%)
+    Darken 5: #003A00 (50%)
+*/
+
+
+.text-primary {
+    color: #76b900 !important;
+}
+
+.lead {
+    color: #105300 !important;
+}
+
+.navbar-green {
+    background-color: #76b900 !important;
+}
+
+.navbar-brand {
+    background-color: transparent;
+    color: #ffffff;
+}
+
+.navbar-brand:focus, .navbar-brand:hover {
+    color: #fcfcfc;
+}
+
+.btn-primary {
+    background-color: #76b900 !important;
+    border-color: #76b900 !important;
+}
+
+.btn-primary:focus, .btn-primary:hover {
+    background-color: #5DA000 !important;
+    border-color: #5DA000 !important;
+}
+
+code {
+    color: #105300 !important;
+}
+
+.sidebar .nav-link.active {
+    color: #76b900 !important;
+}
+
+.sidebar .nav-link:focus, .sidebar .nav-link:hover {
+    color: #105300 !important;
+}
+
+.navbar-nav .nav-item .nav-link {
+    color: white !important;
+}

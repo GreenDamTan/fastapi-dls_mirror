@@ -1,0 +1,26 @@
+{% extends 'layouts/bootstrap.html' %}
+
+{% block title %}
+<title>Index</title>
+{% endblock %}
+
+{% block body_class %}h-100{% endblock %}
+
+{% block body %}
+<main class="flex-shrink-0">
+    <div class="container">
+        <h1 class="mt-5 text-primary">FastAPI-DLS</h1>
+        <p class="lead">Minimal Delegated License Service (DLS).</p>
+        <p>
+            <a href="/-/dashboard">Dashboard</a>,
+            <a href="/-/readme">Readme</a>
+        </p>
+    </div>
+</main>
+
+<footer class="footer mt-auto py-3 bg-light">
+    <div class="container">
+        <span class="text-muted">FastAPI-DLS Version {{ VERSION }}</span>
+    </div>
+</footer>
+{% endblock %}

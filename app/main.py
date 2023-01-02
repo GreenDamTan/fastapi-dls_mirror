@@ -487,6 +487,28 @@ async def leasing_v1_lessor_lease_remove(request: Request):
     return JSONResponse(response)
 
 
+@app.post('/leasing/v1/lessor/shutdown', description='shutdown all leases')
+async def leasing_v1_lessor_shutdown(request: Request):
+    j, cur_time = json.loads((await request.body()).decode('utf-8'))
+
+    token = j['token']
+    token = jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
+    origin_ref = token.get('origin_ref')
+
+    released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
+    deletions = Lease.cleanup(db, origin_ref)
+    logging.info(f'> [ shutdown ]: {origin_ref}: removed {deletions} leases')
+
+    response = {
+        "released_lease_list": released_lease_list,
+        "release_failure_list": None,
+        "sync_timestamp": cur_time.isoformat(),
+        "prompts": None
+    }
+
+    return JSONResponse(response)
+
+
 if __name__ == '__main__':
     import uvicorn
 

@@ -69,7 +69,7 @@ async def index():
 
 
 @app.get('/status', summary='* Status', description='returns current service status, version (incl. git-commit) and some variables.', deprecated=True)
-async def status(request: Request):
+async def status():
     return JSONResponse({'status': 'up', 'version': VERSION, 'commit': COMMIT, 'debug': DEBUG})
 
 

@@ -82,17 +82,17 @@ async def _health(request: Request):
 @app.get('/-/config', summary='* Config', description='returns environment variables.')
 async def _config():
     return JSONResponse({
-        'VERSION': VERSION,
-        'COMMIT': COMMIT,
-        'DEBUG': DEBUG,
-        'DLS_URL': DLS_URL,
-        'DLS_PORT': DLS_PORT,
-        'SITE_KEY_XID': SITE_KEY_XID,
-        'INSTANCE_REF': INSTANCE_REF,
-        'TOKEN_EXPIRE_DELTA': TOKEN_EXPIRE_DELTA,
-        'LEASE_EXPIRE_DELTA': LEASE_EXPIRE_DELTA,
-        'LEASE_RENEWAL_PERIOD': LEASE_RENEWAL_PERIOD,
-        'CORS_ORIGINS': CORS_ORIGINS,
+        'VERSION': str(VERSION),
+        'COMMIT': str(COMMIT),
+        'DEBUG': str(DEBUG),
+        'DLS_URL': str(DLS_URL),
+        'DLS_PORT': str(DLS_PORT),
+        'SITE_KEY_XID': str(SITE_KEY_XID),
+        'INSTANCE_REF': str(INSTANCE_REF),
+        'TOKEN_EXPIRE_DELTA': str(TOKEN_EXPIRE_DELTA),
+        'LEASE_EXPIRE_DELTA': str(LEASE_EXPIRE_DELTA),
+        'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
+        'CORS_ORIGINS': str(CORS_ORIGINS),
     })
 
 

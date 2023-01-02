@@ -2,6 +2,8 @@
 
 Minimal Delegated License Service (DLS).
 
+Compatibility tested with official DLS 2.0.1.
+
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 

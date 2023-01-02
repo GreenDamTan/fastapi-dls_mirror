@@ -19,6 +19,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 from orm import Origin, Lease, init as db_init, migrate
 from util import PrivateKey, PublicKey, load_file
@@ -87,6 +89,8 @@ async def lifespan(_: FastAPI):
 
 config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, lifespan=lifespan, **config)
+app.mount('/static', StaticFiles(directory='static', html=True), name='static'),
+templates = Jinja2Templates(directory='templates')
 
 app.debug = DEBUG
 app.add_middleware(
@@ -107,14 +111,14 @@ def __get_token(request: Request) -> dict:
 
 # Endpoints
 
-@app.get('/', summary='Index')
+@app.get('/', summary='* Index')
 async def index():
-    return RedirectResponse('/-/readme')
+    return RedirectResponse('/-/')
 
 
 @app.get('/-/', summary='* Index')
-async def _index():
-    return RedirectResponse('/-/readme')
+async def _index(request: Request):
+    return templates.TemplateResponse(name='views/index.html', context={'request': request, 'VERSION': VERSION})
 
 
 @app.get('/-/health', summary='* Health')
@@ -142,48 +146,32 @@ async def _config():
 
 
 @app.get('/-/readme', summary='* Readme')
-async def _readme():
+async def _readme(request: Request):
     from markdown import markdown
     content = load_file(join(dirname(__file__), '../README.md')).decode('utf-8')
-    return HTMLr(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
+    markdown = markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc'])
+    context = {'request': request, 'markdown': markdown, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/dashboard_readme.html', context=context)
 
 
 @app.get('/-/manage', summary='* Management UI')
 async def _manage(request: Request):
-    response = '''
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>FastAPI-DLS Management</title>
-        </head>
-        <body>
-            <button onclick="deleteOrigins()">delete ALL origins and their leases</button>
-            <button onclick="deleteLease()">delete specific lease</button>
-            
-            <script>
-                function deleteOrigins() {
-                    const response = confirm('Are you sure you want to delete all origins and their leases?');
+    return templates.TemplateResponse(name='views/manage.html', context={'request': request, 'VERSION': VERSION})
 
-                    if (response) {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("DELETE", '/-/origins', true);
-                        xhr.send();
-                    }
-                }
-                function deleteLease(lease_ref) {
-                    if(lease_ref === undefined)
-                        lease_ref = window.prompt("Please enter 'lease_ref' which should be deleted");
-                    if(lease_ref === null || lease_ref === "")
-                        return
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("DELETE", `/-/lease/${lease_ref}`, true);
-                    xhr.send();
-                }
-            </script>
-        </body>
-    </html>
-    '''
-    return HTMLr(response)
+
+@app.get('/-/dashboard', summary='* Dashboard')
+async def _dashboard(request: Request):
+    return templates.TemplateResponse(name='views/dashboard.html', context={'request': request, 'VERSION': VERSION})
+
+
+@app.get('/-/dashboard/origins', summary='* Dashboard - Origins')
+async def _dashboard_origins(request: Request):
+    return templates.TemplateResponse(name='views/dashboard_origins.html', context={'request': request, 'VERSION': VERSION})
+
+
+@app.get('/-/dashboard/leases', summary='* Dashboard - Leases')
+async def _dashboard_origins(request: Request):
+    return templates.TemplateResponse(name='views/dashboard_leases.html', context={'request': request, 'VERSION': VERSION})
 
 
 @app.get('/-/origins', summary='* Origins')

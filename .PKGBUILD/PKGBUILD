@@ -37,17 +37,53 @@ check() {
 }
 
 package() {
+    # create directories
     install -d "$pkgdir/usr/share/doc/$pkgname"
     install -d "$pkgdir/var/lib/$pkgname/cert"
+
+    # copy docs & static files
     #cp -r "$srcdir/$pkgname/doc"/* "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 "$srcdir/$pkgname/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
     install -Dm644 "$srcdir/$pkgname/version.env" "$pkgdir/usr/share/doc/$pkgname/version.env"
 
     sed -i "s/README.md/\/usr\/share\/doc\/$pkgname\/README.md/g" "$srcdir/$pkgname/app/main.py"
+
+    # copy main app python files
     sed -i "s/join(dirname(__file__), 'cert\//join('\/var\/lib\/$pkgname', 'cert\//g" "$srcdir/$pkgname/app/main.py"
     install -Dm755 "$srcdir/$pkgname/app/main.py" "$pkgdir/opt/$pkgname/main.py"
     install -Dm755 "$srcdir/$pkgname/app/orm.py" "$pkgdir/opt/$pkgname/orm.py"
     install -Dm755 "$srcdir/$pkgname/app/util.py" "$pkgdir/opt/$pkgname/util.py"
+
+    # copy static asset files
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/css/bootstrap.min.css" "$pkgdir/opt/$pkgname/static/assets/css/bootstrap.min.css"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/css/bootstrap-icons.min.css" "$pkgdir/opt/$pkgname/static/assets/css/bootstrap-icons.min.css"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/css/custom.css" "$pkgdir/opt/$pkgname/static/assets/css/custom.css"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/css/dashboard.css" "$pkgdir/opt/$pkgname/static/assets/css/dashboard.css"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/fonts/bootstrap-icons.woff" "$pkgdir/opt/$pkgname/static/assets/fonts/bootstrap-icons.woff"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/fonts/bootstrap-icons.woff2" "$pkgdir/opt/$pkgname/static/assets/fonts/bootstrap-icons.woff2"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/android-chrome-192x192.png" "$pkgdir/opt/$pkgname/static/assets/img/favicons/android-chrome-192x192.png"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/android-chrome-512x512.png" "$pkgdir/opt/$pkgname/static/assets/img/favicons/android-chrome-512x512.png"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/apple-touch-icon.png" "$pkgdir/opt/$pkgname/static/assets/img/favicons/apple-touch-icon.png"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/favicon.ico" "$pkgdir/opt/$pkgname/static/assets/img/favicons/favicon.ico"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/favicon-16x16.png" "$pkgdir/opt/$pkgname/static/assets/img/favicons/favicon-16x16.png"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/favicon-32x32.png" "$pkgdir/opt/$pkgname/static/assets/img/favicons/favicon-32x32.png"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/favicons/manifest.json" "$pkgdir/opt/$pkgname/static/assets/img/favicons/manifest.json"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/img/logo.png" "$pkgdir/opt/$pkgname/static/assets/img/logo.png"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/js/bootstrap.min.js" "$pkgdir/opt/$pkgname/static/assets/js/bootstrap.min.js"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/js/helper.js" "$pkgdir/opt/$pkgname/static/assets/js/helper.js"
+    install -Dm755 "$srcdir/$pkgname/app/static/assets/js/popper.min.js" "$pkgdir/opt/$pkgname/static/assets/js/popper.min.js"
+    install -Dm755 "$srcdir/$pkgname/app/templates/components/navbar.html" "$pkgdir/opt/$pkgname/templates/components/navbar.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/components/sidebar.html" "$pkgdir/opt/$pkgname/templates/components/sidebar.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/layout/base.html" "$pkgdir/opt/$pkgname/templates/layout/base.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/layout/bootstrap.html" "$pkgdir/opt/$pkgname/templates/layout/bootstrap.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/layout/bootstrap-dashboard.html" "$pkgdir/opt/$pkgname/templates/layout/bootstrap-dashboard.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/views/dashboard.html" "$pkgdir/opt/$pkgname/templates/views/dashboard.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/views/dashboard_leases.html" "$pkgdir/opt/$pkgname/templates/views/dashboard_leases.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/views/dashboard_origins.html" "$pkgdir/opt/$pkgname/templates/views/dashboard_origins.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/views/dashboard_readme.html" "$pkgdir/opt/$pkgname/templates/views/dashboard_readme.html"
+    install -Dm755 "$srcdir/$pkgname/app/templates/views/index.html" "$pkgdir/opt/$pkgname/templates/views/index.html"
+
+    # copy service files
     install -Dm644 "$srcdir/$pkgname.default" "$pkgdir/etc/default/$pkgname"
     install -Dm644 "$srcdir/$pkgname.service" "$pkgdir/usr/lib/systemd/system/$pkgname.service"
     install -Dm644 "$srcdir/$pkgname.tmpfiles" "$pkgdir/usr/lib/tmpfiles.d/$pkgname.conf"

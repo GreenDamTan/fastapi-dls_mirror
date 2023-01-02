@@ -345,6 +345,7 @@ async def auth_v1_token(request: Request):
     return JSONResponse(response)
 
 
+# venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 # {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
 @app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
@@ -404,6 +405,7 @@ async def leasing_v1_lessor_lease(request: Request):
     return JSONResponse(response)
 
 
+# venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
@@ -431,6 +433,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     return JSONResponse(response)
 
 
+# venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py
 @app.delete('/leasing/v1/lease/{lease_ref}', description='release (return) a lease')
 async def leasing_v1_lease_delete(request: Request, lease_ref: str):
     token, cur_time = __get_token(request), datetime.utcnow()
@@ -456,6 +459,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
     return JSONResponse(response)
 
 
+# venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.delete('/leasing/v1/lessor/leases', description='release all leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
     token, cur_time = __get_token(request), datetime.utcnow()

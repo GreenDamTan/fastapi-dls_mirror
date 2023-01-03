@@ -67,6 +67,12 @@ services:
             proxy_set_header X-Forwarded-Proto $$scheme;
             proxy_pass https://dls-backend$$request_uri;
           }
+      
+          location = /-/health {
+            access_log off;
+            add_header 'Content-Type' 'application/json';
+            return 200; # '{\"status\":\"up\",\"service\":\"nginx\"}';
+          }
         }
       
         server {

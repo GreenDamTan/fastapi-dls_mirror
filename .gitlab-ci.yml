@@ -267,20 +267,31 @@ deploy:pacman:
     - 'echo "EXPORT_NAME:     ${EXPORT_NAME}"'
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'
 
-release:
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  stage: .post
+release:prepare:
+  stage: .pre
   rules:
     - if: $CI_COMMIT_TAG
       when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-  before_script:
-    - set -a # make variables from "source" command available to release-cli
+  script:
     - source version.env
+    - echo &VERSION
+  artifacts:
+    reports:
+      dotenv: version.env
+
+release:
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  stage: .post
+  needs:
+    - job: release:prepare
+      artifacts: true
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: never
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - echo "Running release-job for $VERSION"
-  after_script:
-    - set +a
   release:
     name: $CI_PROJECT_TITLE $version
     description: Release of $CI_PROJECT_TITLE version $VERSION

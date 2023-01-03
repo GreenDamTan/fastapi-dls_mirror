@@ -491,7 +491,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
 @app.post('/leasing/v1/lessor/shutdown', description='shutdown all leases')
 async def leasing_v1_lessor_shutdown(request: Request):
-    j, cur_time = json.loads((await request.body()).decode('utf-8'))
+    j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
     token = j.get('token')
     token = jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})

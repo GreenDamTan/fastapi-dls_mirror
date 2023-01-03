@@ -70,7 +70,7 @@ async function fetchLeases(element) {
                     </tr>`
             table.appendChild(thead)
             let tbody = document.createElement('thead');
-            x.forEach((o) => {
+            x.sort((a, b) => new Date(a.lease_expires) - new Date(b.lease_expires)).forEach((o) => {
                 let row = document.createElement('tr');
                 row.innerHTML = `
                         <td><code>${o.lease_ref}</code></td>

@@ -32,6 +32,7 @@ app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Servic
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db), migrate(db)
 
+# everything prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
@@ -224,7 +225,6 @@ async def _client_token():
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
-# {"candidate_origin_ref":"00112233-4455-6677-8899-aabbccddeeff","environment":{"fingerprint":{"mac_address_list":["ff:ff:ff:ff:ff:ff"]},"hostname":"my-hostname","ip_address_list":["192.168.178.123","fe80::","fe80::1%enp6s18"],"guest_driver_version":"510.85.02","os_platform":"Debian GNU/Linux 11 (bullseye) 11","os_version":"11 (bullseye)"},"registration_pending":false,"update_pending":false}
 @app.post('/auth/v1/origin', description='find or create an origin')
 async def auth_v1_origin(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
@@ -255,7 +255,6 @@ async def auth_v1_origin(request: Request):
 
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
-# { "environment" : { "guest_driver_version" : "guest_driver_version", "hostname" : "myhost", "ip_address_list" : [ "192.168.1.129" ], "os_version" : "os_version", "os_platform" : "os_platform", "fingerprint" : { "mac_address_list" : [ "e4:b9:7a:e5:7b:ff" ] }, "host_driver_version" : "host_driver_version" }, "origin_ref" : "00112233-4455-6677-8899-aabbccddeeff" }
 @app.post('/auth/v1/origin/update', description='update an origin evidence')
 async def auth_v1_origin_update(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
@@ -283,7 +282,6 @@ async def auth_v1_origin_update(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
-# {"code_challenge":"...","origin_ref":"00112233-4455-6677-8899-aabbccddeeff"}
 @app.post('/auth/v1/code', description='get an authorization code')
 async def auth_v1_code(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
@@ -316,7 +314,6 @@ async def auth_v1_code(request: Request):
 
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_auth_controller.py
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
-# {"auth_code":"...","code_verifier":"..."}
 @app.post('/auth/v1/token', description='exchange auth code and verifier for token')
 async def auth_v1_token(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
@@ -354,7 +351,6 @@ async def auth_v1_token(request: Request):
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
-# {'fulfillment_context': {'fulfillment_class_ref_list': []}, 'lease_proposal_list': [{'license_type_qualifiers': {'count': 1}, 'product': {'name': 'NVIDIA RTX Virtual Workstation'}}], 'proposal_evaluation_mode': 'ALL_OF', 'scope_ref_list': ['00112233-4455-6677-8899-aabbccddeeff']}
 @app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
     j, token, cur_time = json.loads((await request.body()).decode('utf-8')), __get_token(request), datetime.utcnow()

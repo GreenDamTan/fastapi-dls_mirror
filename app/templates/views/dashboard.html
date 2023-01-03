@@ -28,6 +28,8 @@
             </a>
         </div>
     </div>
+
+    <pre id="config"></pre>
 </div>
 {% endblock %}
 
@@ -37,5 +39,12 @@
     function downloadClientToken() {
         window.open('/-/client-token', "_blank")
     }
+
+    function load() {
+        const config = document.getElementById('config')
+        fetchConfig(config)
+    }
+
+    load()
 </script>
 {% endblock %}

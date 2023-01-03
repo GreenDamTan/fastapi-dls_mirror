@@ -429,7 +429,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     response = {
         "lease_ref": lease_ref,
         "expires": expires.isoformat(),
-        "recommended_lease_renewal": 0.16,
+        "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
         "offline_lease": True,
         "prompts": None,
         "sync_timestamp": cur_time.isoformat(),

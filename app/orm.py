@@ -80,7 +80,7 @@ class Lease(Base):
     lease_updated = Column(DATETIME(), nullable=False)
 
     def __repr__(self):
-        return f'Lease(origin_ref={self.origin_ref}, scope_ref={self.scope_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
+        return f'Lease(origin_ref={self.origin_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
 
     def serialize(self) -> dict:
         return {

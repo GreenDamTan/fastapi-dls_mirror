@@ -36,8 +36,8 @@ async function fetchOriginsWithLeases(element) {
                 row.innerHTML = `
                         <td><code>${o.origin_ref}</code></td>
                         <td>${o.hostname}</td>
-                        <td>${o.os_platform}</td>
-                        <td>${o.os_version}</td>
+                        <td>${o.os_platform} (${o.os_version})</td>
+                        <td>${o.guest_driver_version}</td>
                         <td>${o.leases.map(x => `<code title="expires: ${x.lease_expires}">${x.lease_ref}</code>`).join(', ')}</td>`
                 tbody.appendChild(row);
             })

@@ -87,14 +87,14 @@ services:
           }
       
           location / {
-            return 301 https://dls-backend$$request_uri;
+            return 301 https://$$host$$request_uri;
           }
         }
       }
       EON
-      cat /etc/nginx/nginx.conf
       nginx
       EOF'
+
   dls:
     image: collinwebdesigns/fastapi-dls:latest
     restart: always

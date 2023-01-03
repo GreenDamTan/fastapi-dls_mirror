@@ -11,7 +11,8 @@ Only the clients need a connection to this service on configured port.
 
 ## ToDo's
 
-- Support http mode for using external https proxy (disable uvicorn ssl for using behind proxy)
+- check why windows guests display "can't acquire license" although in log there is no message displayed and license is
+  also acquired successfully
 
 ## Endpoints
 
@@ -101,6 +102,8 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 ```
 
 **Docker-Compose / Deploy stack**
+
+Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example.
 
 ```yaml
 version: '3.9'
@@ -439,7 +442,10 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 
 </details>
 
-### Error on releasing leases on shutdown
+### Error on releasing leases on shutdown (fixed in 1.3 by using reverse proxy)
+
+**UPDATE for version `1.3`**: This issue can be fixed by using a reverse proxy (e.g. `nginx`). Please read section
+below.
 
 The driver wants to release current leases on shutting down windows. This endpoint needs to be a http endpoint and
 is currently not implemented. The error message looks like and safely can be ignored (since we have no license
@@ -449,6 +455,21 @@ limitation :P):
 <1>:NLS initialized
 <1>:License acquired successfully. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2023-3-30 23:0:22 GMT)
 <0>:Failed to return license to 192.168.178.110 (Error: Generic network communication failure)
+<0>:End Logging
+```
+
+#### log with 1.3 and nginx as reverse proxy
+
+```
+<1>:NLS initialized
+<2>:NLS initialized
+<1>:Valid GRID license not found. GPU features and performance will be fully degraded. To enable full functionality please configure licensing details.
+<1>:License acquired successfully. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2023-1-4 16:48:20 GMT)
+<2>:Valid GRID license not found. GPU features and performance will be fully degraded. To enable full functionality please configure licensing details.
+<2>:License acquired successfully from local trusted store. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2023-1-4 16:48:20 GMT)
+<2>:End Logging
+<1>:End Logging
+<0>:License returned successfully. (Info: 192.168.178.33)
 <0>:End Logging
 ```
 

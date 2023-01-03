@@ -50,7 +50,7 @@ def test_health():
 
 
 def test_config():
-    response = client.get('/-/')
+    response = client.get('/-/config')
     assert response.status_code == 200
 
 

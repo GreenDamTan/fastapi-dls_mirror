@@ -184,7 +184,9 @@ def test_leasing_v1_lessor():
 
     lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1
+    assert len(lease_result_list[0]['lease']['ref']) == 36
     assert str(UUID(lease_result_list[0]['lease']['ref'])) == lease_result_list[0]['lease']['ref']
+
     return lease_result_list[0]['lease']['ref']
 
 
@@ -194,33 +196,38 @@ def test_leasing_v1_lessor_lease():
 
     active_lease_list = response.json().get('active_lease_list')
     assert len(active_lease_list) == 1
+    assert len(active_lease_list[0]) == 36
     assert str(UUID(active_lease_list[0])) == active_lease_list[0]
 
 
 def test_leasing_v1_lease_renew():
     response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     active_lease_list = response.json().get('active_lease_list')
-    lease_ref = active_lease_list[0]
+    active_lease_ref = active_lease_list[0]
 
     ###
 
-    response = client.put(f'/leasing/v1/lease/{lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    response = client.put(f'/leasing/v1/lease/{active_lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    assert response.json().get('lease_ref') == lease_ref
+    lease_ref = response.json().get('lease_ref')
+    assert len(lease_ref) == 36
+    assert lease_ref == active_lease_ref
 
 
 def test_leasing_v1_lease_delete():
     response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     active_lease_list = response.json().get('active_lease_list')
-    lease_ref = active_lease_list[0]
+    active_lease_ref = active_lease_list[0]
 
     ###
 
-    response = client.delete(f'/leasing/v1/lease/{lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    response = client.delete(f'/leasing/v1/lease/{active_lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    assert response.json().get('lease_ref') == lease_ref
+    lease_ref = response.json().get('lease_ref')
+    assert len(lease_ref) == 36
+    assert lease_ref == active_lease_ref
 
 
 def test_leasing_v1_lessor_lease_remove():
@@ -231,4 +238,5 @@ def test_leasing_v1_lessor_lease_remove():
 
     released_lease_list = response.json().get('released_lease_list')
     assert len(released_lease_list) == 1
+    assert len(released_lease_list[0]) == 36
     assert released_lease_list[0] == lease_ref

@@ -41,7 +41,6 @@ class Origin(Base):
     def create_or_update(engine: Engine, origin: "Origin"):
         session = sessionmaker(bind=engine)()
         entity = session.query(Origin).filter(Origin.origin_ref == origin.origin_ref).first()
-        print(entity)
         if entity is None:
             session.add(origin)
         else:

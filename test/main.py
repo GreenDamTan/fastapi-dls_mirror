@@ -44,11 +44,10 @@ def test_index():
     assert response.status_code == 200
 
 
-
 def test_health():
     response = client.get('/-/health')
     assert response.status_code == 200
-    assert response.json()['status'] == 'up'
+    assert response.json().get('status') == 'up'
 
 
 def test_config():
@@ -105,7 +104,7 @@ def test_auth_v1_origin():
 
     response = client.post('/auth/v1/origin', json=payload)
     assert response.status_code == 200
-    assert response.json()['origin_ref'] == ORIGIN_REF
+    assert response.json().get('origin_ref') == ORIGIN_REF
 
 
 def auth_v1_origin_update():
@@ -126,7 +125,7 @@ def auth_v1_origin_update():
 
     response = client.post('/auth/v1/origin/update', json=payload)
     assert response.status_code == 200
-    assert response.json()['origin_ref'] == ORIGIN_REF
+    assert response.json().get('origin_ref') == ORIGIN_REF
 
 
 def test_auth_v1_code():
@@ -138,8 +137,8 @@ def test_auth_v1_code():
     response = client.post('/auth/v1/code', json=payload)
     assert response.status_code == 200
 
-    payload = jwt.get_unverified_claims(token=response.json()['auth_code'])
-    assert payload['origin_ref'] == ORIGIN_REF
+    payload = jwt.get_unverified_claims(token=response.json().get('auth_code'))
+    assert payload.get('origin_ref') == ORIGIN_REF
 
 
 def test_auth_v1_token():
@@ -163,9 +162,9 @@ def test_auth_v1_token():
     response = client.post('/auth/v1/token', json=payload)
     assert response.status_code == 200
 
-    token = response.json()['auth_token']
+    token = response.json().get('auth_token')
     payload = jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
-    assert payload['origin_ref'] == ORIGIN_REF
+    assert payload.get('origin_ref') == ORIGIN_REF
 
 
 def test_leasing_v1_lessor():
@@ -193,7 +192,7 @@ def test_leasing_v1_lessor_lease():
     response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    active_lease_list = response.json()['active_lease_list']
+    active_lease_list = response.json().get('active_lease_list')
     assert len(active_lease_list) == 1
     assert active_lease_list[0] == LEASE_REF
 
@@ -218,6 +217,6 @@ def test_leasing_v1_lessor_lease_remove():
     response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    released_lease_list = response.json()['released_lease_list']
+    released_lease_list = response.json().get('released_lease_list')
     assert len(released_lease_list) == 1
     assert released_lease_list[0] == LEASE_REF

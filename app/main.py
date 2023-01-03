@@ -229,21 +229,21 @@ async def _client_token():
 async def auth_v1_origin(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
-    origin_ref = j['candidate_origin_ref']
+    origin_ref = j.get('candidate_origin_ref')
     logging.info(f'> [  origin  ]: {origin_ref}: {j}')
 
     data = Origin(
         origin_ref=origin_ref,
-        hostname=j['environment']['hostname'],
-        guest_driver_version=j['environment']['guest_driver_version'],
-        os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
+        hostname=j.get('environment').get('hostname'),
+        guest_driver_version=j.get('environment').get('guest_driver_version'),
+        os_platform=j.get('environment').get('os_platform'), os_version=j.get('environment').get('os_version'),
     )
 
     Origin.create_or_update(db, data)
 
     response = {
         "origin_ref": origin_ref,
-        "environment": j['environment'],
+        "environment": j.get('environment'),
         "svc_port_set_list": None,
         "node_url_list": None,
         "node_query_order": None,
@@ -260,20 +260,20 @@ async def auth_v1_origin(request: Request):
 async def auth_v1_origin_update(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
-    origin_ref = j['origin_ref']
+    origin_ref = j.get('origin_ref')
     logging.info(f'> [  update  ]: {origin_ref}: {j}')
 
     data = Origin(
         origin_ref=origin_ref,
-        hostname=j['environment']['hostname'],
-        guest_driver_version=j['environment']['guest_driver_version'],
-        os_platform=j['environment']['os_platform'], os_version=j['environment']['os_version'],
+        hostname=j.get('environment').get('hostname'),
+        guest_driver_version=j.get('environment').get('guest_driver_version'),
+        os_platform=j.get('environment').get('os_platform'), os_version=j.get('environment').get('os_version'),
     )
 
     Origin.create_or_update(db, data)
 
     response = {
-        "environment": j['environment'],
+        "environment": j.get('environment'),
         "prompts": None,
         "sync_timestamp": cur_time.isoformat()
     }
@@ -288,7 +288,7 @@ async def auth_v1_origin_update(request: Request):
 async def auth_v1_code(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
 
-    origin_ref = j['origin_ref']
+    origin_ref = j.get('origin_ref')
     logging.info(f'> [   code   ]: {origin_ref}: {j}')
 
     delta = relativedelta(minutes=15)
@@ -297,8 +297,8 @@ async def auth_v1_code(request: Request):
     payload = {
         'iat': timegm(cur_time.timetuple()),
         'exp': timegm(expires.timetuple()),
-        'challenge': j['code_challenge'],
-        'origin_ref': j['origin_ref'],
+        'challenge': j.get('code_challenge'),
+        'origin_ref': j.get('origin_ref'),
         'key_ref': SITE_KEY_XID,
         'kid': SITE_KEY_XID
     }
@@ -320,13 +320,13 @@ async def auth_v1_code(request: Request):
 @app.post('/auth/v1/token', description='exchange auth code and verifier for token')
 async def auth_v1_token(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8')), datetime.utcnow()
-    payload = jwt.decode(token=j['auth_code'], key=jwt_decode_key)
+    payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key)
 
-    origin_ref = payload['origin_ref']
+    origin_ref = payload.get('origin_ref')
     logging.info(f'> [   auth   ]: {origin_ref}: {j}')
 
     # validate the code challenge
-    if payload['challenge'] != b64enc(sha256(j['code_verifier'].encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
+    if payload.get('challenge') != b64enc(sha256(j.get('code_verifier').encode('utf-8')).digest()).rstrip(b'=').decode('utf-8'):
         raise HTTPException(status_code=401, detail='expected challenge did not match verifier')
 
     access_expires_on = cur_time + TOKEN_EXPIRE_DELTA
@@ -360,7 +360,7 @@ async def leasing_v1_lessor(request: Request):
     j, token, cur_time = json.loads((await request.body()).decode('utf-8')), __get_token(request), datetime.utcnow()
 
     origin_ref = token.get('origin_ref')
-    scope_ref_list = j['scope_ref_list']
+    scope_ref_list = j.get('scope_ref_list')
     logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
     lease_result_list = []
@@ -491,7 +491,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 async def leasing_v1_lessor_shutdown(request: Request):
     j, cur_time = json.loads((await request.body()).decode('utf-8'))
 
-    token = j['token']
+    token = j.get('token')
     token = jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
     origin_ref = token.get('origin_ref')
 

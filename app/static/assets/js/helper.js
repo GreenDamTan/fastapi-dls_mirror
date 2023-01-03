@@ -31,7 +31,7 @@ async function fetchOriginsWithLeases(element) {
                     </tr>`
             table.appendChild(thead)
             let tbody = document.createElement('thead');
-            x.forEach((o) => {
+            x.sort((a, b) => a.hostname.localeCompare(b.hostname)).forEach((o) => {
                 let row = document.createElement('tr');
                 row.innerHTML = `
                         <td><code>${o.origin_ref}</code></td>

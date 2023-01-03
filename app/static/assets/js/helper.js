@@ -49,6 +49,17 @@ async function fetchOriginsWithLeases(element) {
 }
 
 async function fetchLeases(element) {
+    // datetime config
+    const dtc = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short"
+    }
+
     let xhr = new XMLHttpRequest();
     xhr.open("GET", '/-/leases?origin=true', true);
     xhr.onreadystatechange = function () {
@@ -74,9 +85,9 @@ async function fetchLeases(element) {
                 let row = document.createElement('tr');
                 row.innerHTML = `
                         <td><code>${o.lease_ref}</code></td>
-                        <td>${o.lease_created}</td>
-                        <td>${o.lease_updated}</td>
-                        <td>${o.lease_expires}</td>
+                        <td>${new Date(o.lease_created).toLocaleDateString('system', dtc)}</td>
+                        <td>${new Date(o.lease_updated).toLocaleDateString('system', dtc)}</td>
+                        <td>${new Date(o.lease_expires).toLocaleDateString('system', dtc)}</td>
                         <td><code>${o.origin_ref}</code></td>`
                 tbody.appendChild(row);
             })

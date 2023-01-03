@@ -34,6 +34,7 @@ nvidia-gridd[2986]: License acquired successfully. (Info: license.nvidia.space, 
 Most variables and configs are stored in `/var/lib/docker/volumes/configurations/_data`.
 
 Files can be modified with `docker cp <container-id>:/venv/... /opt/localfile/...` and back.
+(May you need to fix permissions with `docker exec -u 0 <container-id> chown nonroot:nonroot /venv/...`)
 
 ## Dive / Docker image inspector
 

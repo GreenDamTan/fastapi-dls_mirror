@@ -363,8 +363,8 @@ async def leasing_v1_lessor(request: Request):
 
     lease_result_list = []
     for scope_ref in scope_ref_list:
-        if scope_ref not in [ALLOTMENT_REF]:
-            raise HTTPException(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
+        # if scope_ref not in [ALLOTMENT_REF]:
+        #     raise HTTPException(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
 
         lease_ref = str(uuid4())
         expires = cur_time + LEASE_EXPIRE_DELTA
@@ -381,7 +381,7 @@ async def leasing_v1_lessor(request: Request):
             }
         })
 
-        data = Lease(origin_ref=origin_ref, scope_ref=scope_ref, lease_ref=lease_ref, lease_created=cur_time, lease_expires=expires)
+        data = Lease(origin_ref=origin_ref, lease_ref=lease_ref, lease_created=cur_time, lease_expires=expires)
         Lease.create_or_update(db, data)
 
     response = {

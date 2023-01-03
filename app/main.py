@@ -36,7 +36,8 @@ db_init(db), migrate(db)
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
-INSTANCE_REF = str(env('INSTANCE_REF', '00000000-0000-0000-0000-000000000000'))
+INSTANCE_REF = str(env('INSTANCE_REF', '10000000-0000-0000-0000-000000000001'))
+ALLOTMENT_REF = str(env('ALLOTMENT_REF', '20000000-0000-0000-0000-000000000001'))
 INSTANCE_KEY_RSA = load_key(str(env('INSTANCE_KEY_RSA', join(dirname(__file__), 'cert/instance.private.pem'))))
 INSTANCE_KEY_PUB = load_key(str(env('INSTANCE_KEY_PUB', join(dirname(__file__), 'cert/instance.public.pem'))))
 TOKEN_EXPIRE_DELTA = relativedelta(hours=1)  # days=1
@@ -90,6 +91,7 @@ async def _config():
         'DLS_PORT': str(DLS_PORT),
         'SITE_KEY_XID': str(SITE_KEY_XID),
         'INSTANCE_REF': str(INSTANCE_REF),
+        'ALLOTMENT_REF': [ALLOTMENT_REF],
         'TOKEN_EXPIRE_DELTA': str(TOKEN_EXPIRE_DELTA),
         'LEASE_EXPIRE_DELTA': str(LEASE_EXPIRE_DELTA),
         'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
@@ -192,7 +194,7 @@ async def _client_token():
         "nbf": timegm(cur_time.timetuple()),
         "exp": timegm(exp_time.timetuple()),
         "update_mode": "ABSOLUTE",
-        "scope_ref_list": [str(uuid4())],  # this is our LEASE_REF
+        "scope_ref_list": [ALLOTMENT_REF],
         "fulfillment_class_ref_list": [],
         "service_instance_configuration": {
             "nls_service_instance_ref": INSTANCE_REF,
@@ -361,12 +363,16 @@ async def leasing_v1_lessor(request: Request):
 
     lease_result_list = []
     for scope_ref in scope_ref_list:
+        if scope_ref not in [ALLOTMENT_REF]:
+            raise HTTPException(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
+
+        lease_ref = str(uuid4())
         expires = cur_time + LEASE_EXPIRE_DELTA
         lease_result_list.append({
             "ordinal": 0,
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
-                "ref": scope_ref,
+                "ref": lease_ref,
                 "created": cur_time.isoformat(),
                 "expires": expires.isoformat(),
                 "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
@@ -375,7 +381,7 @@ async def leasing_v1_lessor(request: Request):
             }
         })
 
-        data = Lease(origin_ref=origin_ref, lease_ref=scope_ref, lease_created=cur_time, lease_expires=expires)
+        data = Lease(origin_ref=origin_ref, scope_ref=scope_ref, lease_ref=lease_ref, lease_created=cur_time, lease_expires=expires)
         Lease.create_or_update(db, data)
 
     response = {

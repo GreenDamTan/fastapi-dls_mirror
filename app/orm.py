@@ -72,17 +72,19 @@ class Lease(Base):
     lease_ref = Column(CHAR(length=36), primary_key=True, nullable=False, index=True)  # uuid4
 
     origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref, ondelete='CASCADE'), nullable=False, index=True)  # uuid4
+    scope_ref = Column(CHAR(length=36), nullable=False, index=True)  # uuid4
     lease_created = Column(DATETIME(), nullable=False)
     lease_expires = Column(DATETIME(), nullable=False)
     lease_updated = Column(DATETIME(), nullable=False)
 
     def __repr__(self):
-        return f'Lease(origin_ref={self.origin_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
+        return f'Lease(origin_ref={self.origin_ref}, scope_ref={self.scope_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
 
     def serialize(self) -> dict:
         return {
             'lease_ref': self.lease_ref,
             'origin_ref': self.origin_ref,
+            'scope_ref': self.scope_ref,
             'lease_created': self.lease_created.isoformat(),
             'lease_expires': self.lease_expires.isoformat(),
             'lease_updated': self.lease_updated.isoformat(),
@@ -178,4 +180,14 @@ def migrate(engine: Engine):
             Lease.__table__.drop(bind=engine)
             init(engine)
 
+    def upgrade_1_2_to_1_3():
+        x = db.dialect.get_columns(engine.connect(), Lease.__tablename__)
+        x = next((_ for _ in x if _['name'] == 'scope_ref'), None)
+        if x is None:
+            Lease.scope_ref.compile()
+            column_name = Lease.scope_ref.name
+            column_type = Lease.scope_ref.type.compile(engine.dialect)
+            engine.execute(f'ALTER TABLE "{Lease.__tablename__}" ADD COLUMN "{column_name}" {column_type}')
+
     upgrade_1_0_to_1_1()
+    upgrade_1_2_to_1_3()

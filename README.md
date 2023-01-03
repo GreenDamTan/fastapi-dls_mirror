@@ -292,7 +292,8 @@ After first success you have to replace `--issue` with `--renew`.
 | `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |
 | `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                               |
 | `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
-| `INSTANCE_REF`         | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                                         |
+| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                         |
+| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                        |
 | `INSTANCE_KEY_RSA`     | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                                           |
 | `INSTANCE_KEY_PUB`     | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                                 |
 

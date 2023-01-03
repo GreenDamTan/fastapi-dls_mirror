@@ -3,7 +3,7 @@ from hashlib import sha256
 from calendar import timegm
 from datetime import datetime
 from os.path import dirname, join
-from uuid import uuid4
+from uuid import uuid4, UUID
 
 from dateutil.relativedelta import relativedelta
 from jose import jwt, jwk
@@ -20,8 +20,7 @@ from app.util import load_key
 
 client = TestClient(main.app)
 
-ORIGIN_REF, LEASE_REF = str(uuid4()), str(uuid4())
-SECRET = "HelloWorld"
+ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
 
 # INSTANCE_KEY_RSA = generate_key()
 # INSTANCE_KEY_PUB = INSTANCE_KEY_RSA.public_key()
@@ -177,15 +176,16 @@ def test_leasing_v1_lessor():
             'product': {'name': 'NVIDIA RTX Virtual Workstation'}
         }],
         'proposal_evaluation_mode': 'ALL_OF',
-        'scope_ref_list': [LEASE_REF]
+        'scope_ref_list': [ALLOTMENT_REF]
     }
 
     response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    lease_result_list = response.json()['lease_result_list']
+    lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1
-    assert lease_result_list[0]['lease']['ref'] == LEASE_REF
+    assert str(UUID(lease_result_list[0]['lease']['ref'])) == lease_result_list[0]['lease']['ref']
+    return lease_result_list[0]['lease']['ref']
 
 
 def test_leasing_v1_lessor_lease():
@@ -194,29 +194,41 @@ def test_leasing_v1_lessor_lease():
 
     active_lease_list = response.json().get('active_lease_list')
     assert len(active_lease_list) == 1
-    assert active_lease_list[0] == LEASE_REF
+    assert str(UUID(active_lease_list[0])) == active_lease_list[0]
 
 
 def test_leasing_v1_lease_renew():
-    response = client.put(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    active_lease_list = response.json().get('active_lease_list')
+    lease_ref = active_lease_list[0]
+
+    ###
+
+    response = client.put(f'/leasing/v1/lease/{lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    assert response.json()['lease_ref'] == LEASE_REF
+    assert response.json().get('lease_ref') == lease_ref
 
 
 def test_leasing_v1_lease_delete():
-    response = client.delete(f'/leasing/v1/lease/{LEASE_REF}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    active_lease_list = response.json().get('active_lease_list')
+    lease_ref = active_lease_list[0]
+
+    ###
+
+    response = client.delete(f'/leasing/v1/lease/{lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
-    assert response.json()['lease_ref'] == LEASE_REF
+    assert response.json().get('lease_ref') == lease_ref
 
 
 def test_leasing_v1_lessor_lease_remove():
-    test_leasing_v1_lessor()
+    lease_ref = test_leasing_v1_lessor()
 
     response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
     released_lease_list = response.json().get('released_lease_list')
     assert len(released_lease_list) == 1
-    assert released_lease_list[0] == LEASE_REF
+    assert released_lease_list[0] == lease_ref

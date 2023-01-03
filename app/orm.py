@@ -13,6 +13,7 @@ class Origin(Base):
 
     origin_ref = Column(CHAR(length=36), primary_key=True, unique=True, index=True)  # uuid4
 
+    # service_instance_xid = Column(CHAR(length=36), nullable=False, index=True)  # uuid4 # not necessary, we only support one service_instance_xid ('INSTANCE_REF')
     hostname = Column(VARCHAR(length=256), nullable=True)
     guest_driver_version = Column(VARCHAR(length=10), nullable=True)
     os_platform = Column(VARCHAR(length=256), nullable=True)
@@ -24,6 +25,7 @@ class Origin(Base):
     def serialize(self) -> dict:
         return {
             'origin_ref': self.origin_ref,
+            # 'service_instance_xid': self.service_instance_xid,
             'hostname': self.hostname,
             'guest_driver_version': self.guest_driver_version,
             'os_platform': self.os_platform,
@@ -72,7 +74,7 @@ class Lease(Base):
     lease_ref = Column(CHAR(length=36), primary_key=True, nullable=False, index=True)  # uuid4
 
     origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref, ondelete='CASCADE'), nullable=False, index=True)  # uuid4
-    # scope_ref = Column(CHAR(length=36), nullable=False, index=True)  # uuid4 # not necessary, we only support one scope_ref
+    # scope_ref = Column(CHAR(length=36), nullable=False, index=True)  # uuid4 # not necessary, we only support one scope_ref ('ALLOTMENT_REF')
     lease_created = Column(DATETIME(), nullable=False)
     lease_expires = Column(DATETIME(), nullable=False)
     lease_updated = Column(DATETIME(), nullable=False)

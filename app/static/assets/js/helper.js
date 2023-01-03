@@ -1,3 +1,14 @@
+async function fetchConfig(element) {
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", '/-/config', true);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            element.innerHTML = JSON.stringify(JSON.parse(xhr.response),null,2);
+        }
+    };
+    xhr.send();
+}
+
 async function fetchOriginsWithLeases(element) {
     let xhr = new XMLHttpRequest();
     xhr.open("GET", '/-/origins?leases=true', true);

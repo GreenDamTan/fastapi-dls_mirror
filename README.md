@@ -109,7 +109,7 @@ Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example.
 version: '3.9'
 
 x-dls-variables: &dls-variables
-  DLS_URL: localhost # REQUIRED
+  DLS_URL: localhost # REQUIRED, change to your ip or hostname
   DLS_PORT: 443
   LEASE_EXPIRE_DAYS: 90
   DATABASE: sqlite:////app/database/db.sqlite

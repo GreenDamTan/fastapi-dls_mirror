@@ -331,7 +331,7 @@ async def auth_v1_token(request: Request):
     # validate the code challenge
     challenge = b64enc(sha256(j.get('code_verifier').encode('utf-8')).digest()).rstrip(b'=').decode('utf-8')
     if payload.get('challenge') != challenge:
-        raise JSONr(status_code=401, content={'status': 401, 'detail': 'expected challenge did not match verifier'})
+        return JSONr(status_code=401, content={'status': 401, 'detail': 'expected challenge did not match verifier'})
 
     access_expires_on = cur_time + TOKEN_EXPIRE_DELTA
 
@@ -374,7 +374,7 @@ async def leasing_v1_lessor(request: Request):
     lease_result_list = []
     for scope_ref in scope_ref_list:
         # if scope_ref not in [ALLOTMENT_REF]:
-        #     raise JSONr(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
+        #     return JSONr(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
 
         lease_ref = str(uuid4())
         expires = cur_time + LEASE_EXPIRE_DELTA

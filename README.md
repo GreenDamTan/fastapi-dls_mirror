@@ -336,9 +336,11 @@ Generate client token, (see [installation](#installation)).
 
 ### Others
 
-There are some more internal api endpoints for handling authentication and lease process.
+There are many other internal api endpoints for handling authentication and lease process.
 
 # Troubleshoot
+
+**Please make sure that fastapi-dls and your guests are on the same timezone!**
 
 ## Linux
 
@@ -448,10 +450,7 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 
 </details>
 
-### Error on releasing leases on shutdown (fixed in 1.3 by using reverse proxy)
-
-**UPDATE for version `1.3`**: This issue can be fixed by using a reverse proxy (e.g. `nginx`). Please read section
-below.
+### Error on releasing leases on shutdown (can be fixed with reverse proxy)
 
 The driver wants to release current leases on shutting down windows. This endpoint needs to be a http endpoint and
 is currently not implemented. The error message looks like and safely can be ignored (since we have no license

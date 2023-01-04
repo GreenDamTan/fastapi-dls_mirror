@@ -102,7 +102,6 @@ async function deleteOrigins() {
     let xhr = new XMLHttpRequest();
     xhr.open("DELETE", '/-/origins', true);
     xhr.send();
-    await fetchOriginsWithLeases()
 }
 
 async function deleteOrigin(origin_ref) {

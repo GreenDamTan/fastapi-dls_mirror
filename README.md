@@ -290,6 +290,7 @@ After first success you have to replace `--issue` with `--renew`.
 | `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
 | `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
 | `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)          |
 | `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
 | `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
 | `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |

@@ -13,7 +13,7 @@
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOrigin().finally(() => load())">
                         delete origin
                     </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOrigins().finally(() => load())">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOriginsWrapper()">
                         delete all
                     </button>
                 </div>
@@ -37,5 +37,12 @@
         }
 
         load()
+
+        function deleteOriginsWrapper() {
+            const response = confirm('Are you sure you want to delete all origins and their leases?');
+
+            if (response)
+                deleteOrigins().finally(() => load())
+        }
     </script>
 {% endblock %}

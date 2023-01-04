@@ -358,6 +358,9 @@ This message can be ignored.
 
 - Ref. https://github.com/encode/uvicorn/issues/441
 
+<details>
+  <summary>Log example</summary>
+
 ```
 WARNING:uvicorn.error:Invalid HTTP request received.
 Traceback (most recent call last):
@@ -375,6 +378,8 @@ Traceback (most recent call last):
     raise LocalProtocolError("no request line received")
 h11._util.RemoteProtocolError: no request line received
 ```
+
+</details>
 
 ## Windows
 
@@ -452,6 +457,9 @@ The driver wants to release current leases on shutting down windows. This endpoi
 is currently not implemented. The error message looks like and safely can be ignored (since we have no license
 limitation :P):
 
+<details>
+  <summary>Log example</summary>
+
 ```
 <1>:NLS initialized
 <1>:License acquired successfully. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2023-3-30 23:0:22 GMT)
@@ -473,6 +481,8 @@ limitation :P):
 <0>:License returned successfully. (Info: 192.168.178.33)
 <0>:End Logging
 ```
+
+</details>
 
 # Credits
 

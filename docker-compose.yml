@@ -2,13 +2,28 @@ version: '3.9'
 
 x-dls-variables: &dls-variables
   DLS_URL: localhost  # REQUIRED, change to your ip or hostname
-  DLS_PORT: 443  # must match nginx listen port
+  DLS_PORT: 443  # must match nginx listen & exposed port
   LEASE_EXPIRE_DAYS: 90
   DATABASE: sqlite:////app/database/db.sqlite
   DEBUG: false
 
 services:
-  web:
+  dls:
+    image: collinwebdesigns/fastapi-dls:latest
+    restart: always
+    environment:
+      <<: *dls-variables
+    volumes:
+      - /opt/docker/fastapi-dls/cert:/app/cert  # instance.private.pem, instance.public.pem
+      - db:/app/database
+    entrypoint: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app", "--proxy-headers"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/-/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+  proxy:
     image: nginx
     ports:
       # thees are ports where nginx (!) is listen to
@@ -17,14 +32,14 @@ services:
     volumes:
       - /opt/docker/fastapi-dls/cert:/opt/cert
     healthcheck:
-      test: [ "CMD", "curl", "--insecure", "--fail", "https://localhost/-/health" ]
+      test: ["CMD", "curl", "--insecure", "--fail", "https://localhost/-/health"]
       interval: 10s
       timeout: 5s
       retries: 3
       start_period: 30s
     command: |
-      bash -c 'bash -s <<"EOF"
-      cat > /etc/nginx/nginx.conf <<"EON"
+      bash -c "bash -s <<\"EOF\"
+      cat > /etc/nginx/nginx.conf <<\"EON\"
       daemon off;
       user root;
       worker_processes auto;
@@ -39,7 +54,7 @@ services:
         include /etc/nginx/mime.types;
       
         upstream dls-backend {
-          server dls:443;
+          server dls:8000;  # must match dls listen port
         }
       
         server {
@@ -60,18 +75,17 @@ services:
           ssl_prefer_server_ciphers on;
       
           location / {
-            proxy_ssl_verify off;
             proxy_set_header Host $$http_host;
             proxy_set_header X-Real-IP $$remote_addr;
             proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $$scheme;
-            proxy_pass https://dls-backend$$request_uri;
+            proxy_pass http://dls-backend$$request_uri;
           }
       
           location = /-/health {
             access_log off;
             add_header 'Content-Type' 'application/json';
-            return 200; # '{\"status\":\"up\",\"service\":\"nginx\"}';
+            return 200 '{\"status\":\"up\",\"service\":\"nginx\"}';
           }
         }
       
@@ -84,12 +98,11 @@ services:
           server_name _;
       
           location /leasing/v1/lessor/shutdown {
-            proxy_ssl_verify off;
             proxy_set_header Host $$http_host;
             proxy_set_header X-Real-IP $$remote_addr;
             proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $$scheme;
-            proxy_pass https://dls-backend/leasing/v1/lessor/shutdown;
+            proxy_pass http://dls-backend/leasing/v1/lessor/shutdown;
           }
       
           location / {
@@ -99,16 +112,7 @@ services:
       }
       EON
       nginx
-      EOF'
-
-  dls:
-    image: collinwebdesigns/fastapi-dls:latest
-    restart: always
-    environment:
-      <<: *dls-variables
-    volumes:
-      - /opt/docker/fastapi-dls/cert:/app/cert
-      - db:/app/database
+      EOF"
 
 volumes:
   db:

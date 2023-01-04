@@ -52,7 +52,7 @@ cat <<EOF
 #    Service should be up and running.                                        #
 #      Webservice is listen to https://localhost                              #
 #                                                                             #
-#    Configuration is stored in ${CONFIG_DIR}/env                             #
+#    Configuration is stored in /etc/fastapi-dls/env.                         #
 #                                                                             #
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

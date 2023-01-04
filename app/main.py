@@ -115,14 +115,18 @@ async def _manage(request: Request):
             <title>FastAPI-DLS Management</title>
         </head>
         <body>
-            <button onclick="deleteOrigins()">delete origins and their leases</button>
+            <button onclick="deleteOrigins()">delete ALL origins and their leases</button>
             <button onclick="deleteLease()">delete specific lease</button>
             
             <script>
                 function deleteOrigins() {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("DELETE", '/-/origins', true);
-                    xhr.send();
+                    const response = confirm('Are you sure you want to delete all origins and their leases?');
+
+                    if (response) {
+                        var xhr = new XMLHttpRequest();
+                        xhr.open("DELETE", '/-/origins', true);
+                        xhr.send();
+                    }
                 }
                 function deleteLease(lease_ref) {
                     if(lease_ref === undefined)

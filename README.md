@@ -14,64 +14,6 @@ Only the clients need a connection to this service on configured port.
 - check why windows guests display "can't acquire license" although in log there is no message displayed and license is
   also acquired successfully
 
-## Endpoints
-
-### `GET /`
-
-Redirect to `/-/readme`.
-
-### `GET /-/health`
-
-Status endpoint, used for *healthcheck*.
-
-### `GET /-/config`
-
-Shows current runtime environment variables and their values.
-
-### `GET /-/readme`
-
-HTML rendered README.md.
-
-### `GET /-/docs`, `GET /-/redoc`
-
-OpenAPI specifications rendered from `GET /-/openapi.json`.
-
-### `GET /-/manage`
-
-Shows a very basic UI to delete origins or leases.
-
-### `GET /-/origins?leases=false`
-
-List registered origins.
-
-| Query Parameter | Default | Usage                                |
-|-----------------|---------|--------------------------------------|
-| `leases`        | `false` | Include referenced leases per origin |
-
-### `DELETE /-/origins`
-
-Deletes all origins and their leases.
-
-### `GET /-/leases?origin=false`
-
-List current leases.
-
-| Query Parameter | Default | Usage                               |
-|-----------------|---------|-------------------------------------|
-| `origin`        | `false` | Include referenced origin per lease |
-
-### `DELETE /-/lease/{lease_ref}`
-
-Deletes an lease.
-
-### `GET /-/client-token`
-
-Generate client token, (see [installation](#installation)).
-
-### Others
-
-There are some more internal api endpoints for handling authentication and lease process.
-
 # Setup (Service)
 
 ## Docker
@@ -337,6 +279,64 @@ curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o "C:\P
 Restart-Service NVDisplay.ContainerLocalSystem
 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
 ```
+
+## Endpoints
+
+### `GET /`
+
+Redirect to `/-/readme`.
+
+### `GET /-/health`
+
+Status endpoint, used for *healthcheck*.
+
+### `GET /-/config`
+
+Shows current runtime environment variables and their values.
+
+### `GET /-/readme`
+
+HTML rendered README.md.
+
+### `GET /-/docs`, `GET /-/redoc`
+
+OpenAPI specifications rendered from `GET /-/openapi.json`.
+
+### `GET /-/manage`
+
+Shows a very basic UI to delete origins or leases.
+
+### `GET /-/origins?leases=false`
+
+List registered origins.
+
+| Query Parameter | Default | Usage                                |
+|-----------------|---------|--------------------------------------|
+| `leases`        | `false` | Include referenced leases per origin |
+
+### `DELETE /-/origins`
+
+Deletes all origins and their leases.
+
+### `GET /-/leases?origin=false`
+
+List current leases.
+
+| Query Parameter | Default | Usage                               |
+|-----------------|---------|-------------------------------------|
+| `origin`        | `false` | Include referenced origin per lease |
+
+### `DELETE /-/lease/{lease_ref}`
+
+Deletes an lease.
+
+### `GET /-/client-token`
+
+Generate client token, (see [installation](#installation)).
+
+### Others
+
+There are some more internal api endpoints for handling authentication and lease process.
 
 # Troubleshoot
 

@@ -9,10 +9,6 @@ Only the clients need a connection to this service on configured port.
 
 [[_TOC_]]
 
-## ToDo's
-
-- check why windows guests display "can't acquire license" although in log there is no message displayed and license is
-  also acquired successfully
 
 # Setup (Service)
 

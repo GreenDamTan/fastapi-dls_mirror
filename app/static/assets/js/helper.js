@@ -105,6 +105,16 @@ async function deleteOrigins() {
     await fetchOriginsWithLeases()
 }
 
+async function deleteOrigin(origin_ref) {
+    if (origin_ref === undefined)
+        origin_ref = window.prompt("Please enter 'origin_ref' which should be deleted");
+    if (origin_ref === null || origin_ref === "")
+        return
+    let xhr = new XMLHttpRequest();
+    xhr.open("DELETE", `/-/origins/${origin_ref}`, true);
+    xhr.send();
+}
+
 async function deleteLease(lease_ref) {
     if (lease_ref === undefined)
         lease_ref = window.prompt("Please enter 'lease_ref' which should be deleted");

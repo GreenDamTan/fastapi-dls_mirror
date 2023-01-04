@@ -196,6 +196,13 @@ async def _origins_delete(request: Request):
     return Response(status_code=201)
 
 
+@app.delete('/-/origins/{origin_ref}', summary='* Origins')
+async def _origins_delete_origin_ref(request: Request, origin_ref: str):
+    if Origin.delete(db, origin_ref) == 1:
+        return Response(status_code=201)
+    raise JSONResponse(status_code=404, content={'status': 404, 'detail': 'lease not found'})
+
+
 @app.get('/-/leases', summary='* Leases')
 async def _leases(request: Request, origin: bool = False):
     session = sessionmaker(bind=db)()

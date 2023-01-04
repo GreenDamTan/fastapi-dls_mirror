@@ -1,1 +1,2 @@
 /etc/fastapi-dls/env
+/etc/systemd/system/fastapi-dls.service

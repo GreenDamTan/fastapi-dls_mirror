@@ -49,7 +49,7 @@ build:apt:
     - cp .DEBIAN/env.default build/etc/fastapi-dls/env
     # create service file
     - mkdir -p build/etc/systemd/system
-    - cp .DEBIAN/fastapi-dls.service build/etc/systemd/system
+    - cp .DEBIAN/fastapi-dls.service build/etc/systemd/system/fastapi-dls.service
     # cd into "build/"
     - cd build/
   script:

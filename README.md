@@ -34,6 +34,8 @@ openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webse
 
 **Start container**
 
+To test if everything is set up properly you can start container as following:
+
 ```shell
 docker volume create dls-db
 docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/app/cert -v dls-db:/app/database collinwebdesigns/fastapi-dls:latest
@@ -41,7 +43,7 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 **Docker-Compose / Deploy stack**
 
-Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example.
+Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example (with reverse proxy usage).
 
 ```yaml
 version: '3.9'
@@ -446,11 +448,10 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 
 </details>
 
-### Error on releasing leases on shutdown (can be fixed with reverse proxy)
+### Error on releasing leases on shutdown (can be ignored and/or fixed with reverse proxy)
 
-The driver wants to release current leases on shutting down windows. This endpoint needs to be a http endpoint and
-is currently not implemented. The error message looks like and safely can be ignored (since we have no license
-limitation :P):
+The driver wants to release current leases on shutting down windows. This endpoint needs to be a http endpoint.
+The error message can safely be ignored (since we have no license limitation :P) and looks like this:
 
 <details>
   <summary>Log example</summary>
@@ -462,7 +463,7 @@ limitation :P):
 <0>:End Logging
 ```
 
-#### log with 1.3 and nginx as reverse proxy
+#### log with nginx as reverse proxy (see [docker-compose.yml](docker-compose.yml))
 
 ```
 <1>:NLS initialized

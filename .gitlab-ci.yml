@@ -279,7 +279,7 @@ release:prepare:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - source version.env
-    - echo &VERSION
+    - echo $VERSION
   artifacts:
     reports:
       dotenv: version.env

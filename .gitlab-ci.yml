@@ -297,7 +297,7 @@ release:
   script:
     - echo "Running release-job for $VERSION"
   release:
-    name: $CI_PROJECT_TITLE $version
+    name: $CI_PROJECT_TITLE $VERSION
     description: Release of $CI_PROJECT_TITLE version $VERSION
     tag_name: $VERSION
     ref: $CI_COMMIT_SHA

@@ -3,89 +3,26 @@
 WORKING_DIR=/usr/share/fastapi-dls
 CONFIG_DIR=/etc/fastapi-dls
 
-echo "> Create config directory ..."
-mkdir -p $CONFIG_DIR
-
-# normally we would define services in `conffiles` and as separate file, but we like to keep thinks simple.
-echo "> Install service ..."
-cat <<EOF >/etc/systemd/system/fastapi-dls.service
-[Unit]
-Description=Service for fastapi-dls
-Documentation=https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
-After=network.target
-
-[Service]
-User=www-data
-Group=www-data
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-WorkingDirectory=$WORKING_DIR/app
-EnvironmentFile=$CONFIG_DIR/env
-ExecStart=uvicorn main:app \\
-  --env-file /etc/fastapi-dls/env \\
-  --host \$DLS_URL --port \$DLS_PORT \\
-  --app-dir $WORKING_DIR/app \\
-  --ssl-keyfile /etc/fastapi-dls/webserver.key \\
-  --ssl-certfile /etc/fastapi-dls/webserver.crt \\
-  --proxy-headers
-Restart=always
-KillSignal=SIGQUIT
-Type=simple
-NotifyAccess=all
-
-[Install]
-WantedBy=multi-user.target
-
-EOF
-
-systemctl daemon-reload
-
-# normally we would define configfiles in `conffiles` and as separate file, but we like to keep thinks simple.
-if [[ ! -f $CONFIG_DIR/env ]]; then
-  echo "> Writing initial config ..."
-  touch $CONFIG_DIR/env
-  cat <<EOF >$CONFIG_DIR/env
-# Toggle debug mode
-#DEBUG=false
-
-# Where the client can find the DLS server
-DLS_URL=127.0.0.1
-DLS_PORT=443
-
-# CORS configuration
-## comma separated list without spaces
-#CORS_ORIGINS="https://$DLS_URL:$DLS_PORT"
-
-# Lease expiration in days
-LEASE_EXPIRE_DAYS=90
-
-# Database location
-## https://docs.sqlalchemy.org/en/14/core/engines.html
-DATABASE=sqlite:///$CONFIG_DIR/db.sqlite
-
-# UUIDs for identifying the instance
-#SITE_KEY_XID="00000000-0000-0000-0000-000000000000"
-#INSTANCE_REF="00000000-0000-0000-0000-000000000000"
-
-# Site-wide signing keys
-INSTANCE_KEY_RSA=$CONFIG_DIR/instance.private.pem
-INSTANCE_KEY_PUB=$CONFIG_DIR/instance.public.pem
-
-EOF
+if [[ ! -f $CONFIG_DIR/instance.private.pem ]]; then
+  echo "> Create dls-instance keypair ..."
+  openssl genrsa -out $CONFIG_DIR/instance.private.pem 2048
+  openssl rsa -in $CONFIG_DIR/instance.private.pem -outform PEM -pubout -out $CONFIG_DIR/instance.public.pem
+else
+  echo "> Create dls-instance keypair skipped! (exists)"
 fi
 
-echo "> Create dls-instance keypair ..."
-openssl genrsa -out $CONFIG_DIR/instance.private.pem 2048
-openssl rsa -in $CONFIG_DIR/instance.private.pem -outform PEM -pubout -out $CONFIG_DIR/instance.public.pem
-
 while true; do
-  read -p "> Do you wish to create self-signed webserver certificate? [Y/n]" yn
-  yn=${yn:-y} # ${parameter:-word} If parameter is unset or null, the expansion of word is substituted. Otherwise, the value of parameter is substituted.
+  [[ -f $CONFIG_DIR/webserver.key ]] && default_answer="N" || default_answer="Y"
+  [[ $default_answer == "Y" ]] && V="Y/n" || V="y/N"
+  read -p "> Do you wish to create self-signed webserver certificate? [${V}]" yn
+  yn=${yn:-$default_answer} # ${parameter:-word} If parameter is unset or null, the expansion of word is substituted. Otherwise, the value of parameter is substituted.
   case $yn in
   [Yy]*)
+    echo "> Generating keypair ..."
     openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout $CONFIG_DIR/webserver.key -out $CONFIG_DIR/webserver.crt
     break
     ;;
-  [Nn]*) break ;;
+  [Nn]*) echo "> Generating keypair skipped! (exists)"; break ;;
   *) echo "Please answer [y] or [n]." ;;
   esac
 done
@@ -115,7 +52,7 @@ cat <<EOF
 #    Service should be up and running.                                        #
 #      Webservice is listen to https://localhost                              #
 #                                                                             #
-#    Configuration is stored in ${CONFIG_DIR}/env                             #
+#    Configuration is stored in /etc/fastapi-dls/env.                         #
 #                                                                             #
 #                                                                             #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

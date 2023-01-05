@@ -2,72 +2,13 @@
 
 Minimal Delegated License Service (DLS).
 
+Compatibility tested with official DLS 2.0.1.
+
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
 [[_TOC_]]
 
-## ToDo's
-
-- Support http mode for using external https proxy (disable uvicorn ssl for using behind proxy)
-
-## Endpoints
-
-### [`GET /`](/)
-
-Redirect to `/-/readme`.
-
-### [`GET /status`](/status) (deprecated: use `/-/health`)
-
-Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
-
-### [`GET /-/health`](/-/health)
-
-Status endpoint, used for *healthcheck*. Shows also current version and commit hash.
-
-### [`GET /-/readme`](/-/readme)
-
-HTML rendered README.md.
-
-### [`GET /-/docs`](/-/docs), [`GET /-/redoc`](/-/redoc)
-
-OpenAPI specifications rendered from `GET /-/openapi.json`.
-
-### [`GET /-/manage`](/-/manage)
-
-Shows a very basic UI to delete origins or leases.
-
-### `GET /-/origins?leases=false`
-
-List registered origins.
-
-| Query Parameter | Default | Usage                                |
-|-----------------|---------|--------------------------------------|
-| `leases`        | `false` | Include referenced leases per origin |
-
-### `DELETE /-/origins`
-
-Deletes all origins and their leases.
-
-### `GET /-/leases?origin=false`
-
-List current leases.
-
-| Query Parameter | Default | Usage                               |
-|-----------------|---------|-------------------------------------|
-| `origin`        | `false` | Include referenced origin per lease |
-
-### `DELETE /-/lease/{lease_ref}`
-
-Deletes an lease.
-
-### `GET /client-token`
-
-Generate client token, (see [installation](#installation)).
-
-### Others
-
-There are some more internal api endpoints for handling authentication and lease process.
 
 # Setup (Service)
 
@@ -93,6 +34,8 @@ openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webse
 
 **Start container**
 
+To test if everything is set up properly you can start container as following:
+
 ```shell
 docker volume create dls-db
 docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/app/cert -v dls-db:/app/database collinwebdesigns/fastapi-dls:latest
@@ -100,11 +43,13 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 **Docker-Compose / Deploy stack**
 
+Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example (with reverse proxy usage).
+
 ```yaml
 version: '3.9'
 
 x-dls-variables: &dls-variables
-  DLS_URL: localhost # REQUIRED
+  DLS_URL: localhost # REQUIRED, change to your ip or hostname
   DLS_PORT: 443
   LEASE_EXPIRE_DAYS: 90
   DATABASE: sqlite:////app/database/db.sqlite
@@ -280,20 +225,29 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable            | Default                                | Usage                                                                               |
-|---------------------|----------------------------------------|-------------------------------------------------------------------------------------|
-| `DEBUG`             | `false`                                | Toggles `fastapi` debug mode                                                        |
-| `DLS_URL`           | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable           |
-| `DLS_PORT`          | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable           |
-| `LEASE_EXPIRE_DAYS` | `90`                                   | Lease time in days                                                                  |
-| `DATABASE`          | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html) |
-| `CORS_ORIGINS`      | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*               |
-| `SITE_KEY_XID`      | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                            |
-| `INSTANCE_REF`      | `00000000-0000-0000-0000-000000000000` | Instance identification uuid                                                        |
-| `INSTANCE_KEY_RSA`  | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs                                          |
-| `INSTANCE_KEY_PUB`  | `<app-dir>/cert/instance.public.pem`   | Site-wide public key                                                                |
+| Variable               | Default                                | Usage                                                                                                |
+|------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------|
+| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
+| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)          |
+| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
+| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
+| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |
+| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                               |
+| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
+| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                         |
+| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                        |
+| `INSTANCE_KEY_RSA`     | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                       |
+| `INSTANCE_KEY_PUB`     | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                             |
 
-\* Always use `https`, since guest-drivers only support secure connections!
+\*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
+every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
+client has 19.2 hours in which to re-establish connectivity before its license expires.
+
+\*2 Always use `https`, since guest-drivers only support secure connections!
+
+\*3 If you recreate instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 
@@ -308,7 +262,7 @@ Successfully tested with this package versions:
 ## Linux
 
 ```shell
-curl --insecure -X GET https://<dls-hostname-or-ip>/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token.tok
+curl --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_$(date '+%d-%m-%Y-%H-%M-%S').tok
 service nvidia-gridd restart
 nvidia-smi -q | grep "License"
 ```
@@ -321,12 +275,72 @@ Now restart `NvContainerLocalSystem` service.
 **Power-Shell**
 
 ```Shell
-curl.exe --insecure -X GET https://<dls-hostname-or-ip>/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
+curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
 Restart-Service NVDisplay.ContainerLocalSystem
 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
 ```
 
+## Endpoints
+
+### `GET /`
+
+Redirect to `/-/readme`.
+
+### `GET /-/health`
+
+Status endpoint, used for *healthcheck*.
+
+### `GET /-/config`
+
+Shows current runtime environment variables and their values.
+
+### `GET /-/readme`
+
+HTML rendered README.md.
+
+### `GET /-/docs`, `GET /-/redoc`
+
+OpenAPI specifications rendered from `GET /-/openapi.json`.
+
+### `GET /-/manage`
+
+Shows a very basic UI to delete origins or leases.
+
+### `GET /-/origins?leases=false`
+
+List registered origins.
+
+| Query Parameter | Default | Usage                                |
+|-----------------|---------|--------------------------------------|
+| `leases`        | `false` | Include referenced leases per origin |
+
+### `DELETE /-/origins`
+
+Deletes all origins and their leases.
+
+### `GET /-/leases?origin=false`
+
+List current leases.
+
+| Query Parameter | Default | Usage                               |
+|-----------------|---------|-------------------------------------|
+| `origin`        | `false` | Include referenced origin per lease |
+
+### `DELETE /-/lease/{lease_ref}`
+
+Deletes an lease.
+
+### `GET /-/client-token`
+
+Generate client token, (see [installation](#installation)).
+
+### Others
+
+There are many other internal api endpoints for handling authentication and lease process.
+
 # Troubleshoot
+
+**Please make sure that fastapi-dls and your guests are on the same timezone!**
 
 ## Linux
 
@@ -346,6 +360,9 @@ This message can be ignored.
 
 - Ref. https://github.com/encode/uvicorn/issues/441
 
+<details>
+  <summary>Log example</summary>
+
 ```
 WARNING:uvicorn.error:Invalid HTTP request received.
 Traceback (most recent call last):
@@ -363,6 +380,8 @@ Traceback (most recent call last):
     raise LocalProtocolError("no request line received")
 h11._util.RemoteProtocolError: no request line received
 ```
+
+</details>
 
 ## Windows
 
@@ -427,6 +446,38 @@ Dec 20 17:53:34 ubuntu-grid-server nvidia-gridd[10354]: License acquired success
 > [   auth   ]: B210CF72-FEC7-4440-9499-1156D1ACD13A (hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro): {'auth_code': 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE2NzE1NTUyMTIsImV4cCI6MTY3MTU1NjExMiwiY2hhbGxlbmdlIjoiaFlTS0k0a3BaY1dxUGF0TTVTYzlSU0N1ek1leXoycGlUbXJSUUtubkhybyIsIm9yaWdpbl9yZWYiOiJoWVNLSTRrcFpjV3FQYXRNNVNjOVJTQ3V6TWV5ejJwaVRtclJRS25uSHJvIiwia2V5X3JlZiI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImtpZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCJ9.G5GvGEBNMUga25EeaJeAbDk9yZuLBLyj5e0OzVfIjS70UOvDb-SvLSEhBv9vZ_rxjTtaWGQGK0iK8VnLce8KfqsxZzael6B5WqfwyQiok3WWIaQarrZZXKihWhgF49zYAIZx_0js1iSjoF9-vNSj8zan7j-miOCOssfPzGgfJqvWNnhR6_2YkCQgJssHMjGT1QxaJBZDVOuvY0ND7r6jxlS_Xze1nWtau1mtC6bu2hM8cxbYUtM-XOC8welCZ8ZOCKkutmVix0weV3TVNfR5vuBUz1QS6B9YC8R-eVVBhN2hl4j7kGZLmZ4TpyLViYEUVZsqGBayVIPeN2BhtqTO9g', 'code_verifier': 'IDiWUb62sjsNYuU/YtZ5YJdvvxE70gR9vEPOQo9+lh/DjMt1c6egVQRyXB0FAaASNB4/ME8YQjGQ1xUOS7ZwI4tjHDBbUXFBvt2DVu8jOlkDmZsNeI2IfQx5HRkz1nRIUlpqUC/m01gAQRYAuR6dbUyrkW8bq9B9cOLSbWzjJ0E'}
 > [  leases  ]: B210CF72-FEC7-4440-9499-1156D1ACD13A (hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro): found 0 active leases
 > [  create  ]: B210CF72-FEC7-4440-9499-1156D1ACD13A (hYSKI4kpZcWqPatM5Sc9RSCuzMeyz2piTmrRQKnnHro): create leases for scope_ref_list ['f27e8e79-a662-4e35-a728-7ea14341f0cb']
+```
+
+</details>
+
+### Error on releasing leases on shutdown (can be ignored and/or fixed with reverse proxy)
+
+The driver wants to release current leases on shutting down windows. This endpoint needs to be a http endpoint.
+The error message can safely be ignored (since we have no license limitation :P) and looks like this:
+
+<details>
+  <summary>Log example</summary>
+
+```
+<1>:NLS initialized
+<1>:License acquired successfully. (Info: 192.168.178.110, NVIDIA RTX Virtual Workstation; Expiry: 2023-3-30 23:0:22 GMT)
+<0>:Failed to return license to 192.168.178.110 (Error: Generic network communication failure)
+<0>:End Logging
+```
+
+#### log with nginx as reverse proxy (see [docker-compose.yml](docker-compose.yml))
+
+```
+<1>:NLS initialized
+<2>:NLS initialized
+<1>:Valid GRID license not found. GPU features and performance will be fully degraded. To enable full functionality please configure licensing details.
+<1>:License acquired successfully. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2023-1-4 16:48:20 GMT)
+<2>:Valid GRID license not found. GPU features and performance will be fully degraded. To enable full functionality please configure licensing details.
+<2>:License acquired successfully from local trusted store. (Info: 192.168.178.33, NVIDIA RTX Virtual Workstation; Expiry: 2023-1-4 16:48:20 GMT)
+<2>:End Logging
+<1>:End Logging
+<0>:License returned successfully. (Info: 192.168.178.33)
+<0>:End Logging
 ```
 
 </details>

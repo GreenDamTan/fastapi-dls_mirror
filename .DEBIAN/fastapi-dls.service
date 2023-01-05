@@ -1,0 +1,25 @@
+[Unit]
+Description=Service for fastapi-dls
+Documentation=https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+WorkingDirectory=/usr/share/fastapi-dls/app
+EnvironmentFile=/etc/fastapi-dls/env
+ExecStart=uvicorn main:app \
+  --env-file /etc/fastapi-dls/env \
+  --host $DLS_URL --port $DLS_PORT \
+  --app-dir /usr/share/fastapi-dls/app \
+  --ssl-keyfile /etc/fastapi-dls/webserver.key \
+  --ssl-certfile /etc/fastapi-dls/webserver.crt \
+  --proxy-headers
+Restart=always
+KillSignal=SIGQUIT
+Type=simple
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

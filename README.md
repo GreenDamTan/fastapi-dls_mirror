@@ -250,16 +250,6 @@ After first success you have to replace `--issue` with `--renew`.
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
-```python
-from datetime import timedelta
-
-LEASE_RENEWAL_PERIOD=0.2  # 20%
-delta = timedelta(days=1)
-renew = delta.total_seconds() * LEASE_RENEWAL_PERIOD
-renew = timedelta(seconds=renew)
-expires = delta - renew  # 19.2
-```
-
 \*2 Always use `https`, since guest-drivers only support secure connections!
 
 \*3 If you recreate instance keys you need to **recreate client-token for each guest**!

@@ -175,6 +175,10 @@ Successful tested with:
 - Debian 12 (Bookworm) (works but not recommended because it is currently in *testing* state)
 - Ubuntu 22.10 (Kinetic Kudu)
 
+Not working with:
+- Debian 11 (Bullseye) and lower (missing `python-jose` dependency)
+- Ubuntu 22.04 (Jammy Jellyfish) (not supported as for 15.01.2023 due to [fastapi - uvicorn version missmatch](https://bugs.launchpad.net/ubuntu/+source/fastapi/+bug/1970557))
+
 **Run this on your server instance**
 
 First go to [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages) and select your

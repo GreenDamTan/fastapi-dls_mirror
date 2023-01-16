@@ -70,7 +70,7 @@ volumes:
   dls-db:
 ```
 
-## Debian/Ubuntu (manual method using `git clone`)
+## Debian/Ubuntu (manual method using `git clone` and python virtual environment)
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
@@ -176,6 +176,7 @@ Successful tested with:
 - Ubuntu 22.10 (Kinetic Kudu)
 
 Not working with:
+
 - Debian 11 (Bullseye) and lower (missing `python-jose` dependency)
 - Ubuntu 22.04 (Jammy Jellyfish) (not supported as for 15.01.2023 due to [fastapi - uvicorn version missmatch](https://bugs.launchpad.net/ubuntu/+source/fastapi/+bug/1970557))
 

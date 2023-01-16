@@ -176,6 +176,7 @@ Successful tested with:
 - Ubuntu 22.10 (Kinetic Kudu)
 
 Not working with:
+
 - Debian 11 (Bullseye) and lower (missing `python-jose` dependency)
 - Ubuntu 22.04 (Jammy Jellyfish) (not supported as for 15.01.2023 due to [fastapi - uvicorn version missmatch](https://bugs.launchpad.net/ubuntu/+source/fastapi/+bug/1970557))
 
@@ -248,6 +249,16 @@ After first success you have to replace `--issue` with `--renew`.
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
+
+```python
+from datetime import timedelta
+
+LEASE_RENEWAL_PERIOD=0.2  # 20%
+delta = timedelta(days=1)
+renew = delta.total_seconds() * LEASE_RENEWAL_PERIOD
+renew = timedelta(seconds=renew)
+expires = delta - renew  # 19.2
+```
 
 \*2 Always use `https`, since guest-drivers only support secure connections!
 

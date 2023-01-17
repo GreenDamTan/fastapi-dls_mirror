@@ -170,8 +170,9 @@ async def _leases(request: Request, origin: bool = False):
     for lease in session.query(Lease).all():
         x = lease.serialize()
         if origin:
-            # assume that each lease has a valid origin record
-            x['origin'] = session.query(Origin).filter(Origin.origin_ref == lease.origin_ref).first().serialize()
+            lease_origin = session.query(Origin).filter(Origin.origin_ref == lease.origin_ref).first()
+            if lease_origin is not None:
+                x['origin'] = lease_origin.serialize()
         response.append(x)
     session.close()
     return JSONr(response)

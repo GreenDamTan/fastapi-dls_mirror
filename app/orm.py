@@ -81,7 +81,7 @@ class Lease(Base):
     def __repr__(self):
         return f'Lease(origin_ref={self.origin_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
 
-    def serialize(self) -> dict:
+    def serialize(self, renewal_period: float, renewal_delta: datetime.timedelta) -> dict:
         return {
             'lease_ref': self.lease_ref,
             'origin_ref': self.origin_ref,
@@ -89,6 +89,7 @@ class Lease(Base):
             'lease_created': self.lease_created.isoformat(),
             'lease_expires': self.lease_expires.isoformat(),
             'lease_updated': self.lease_updated.isoformat(),
+            'lease_renewal': Lease.calculate_renewal(renewal_period, renewal_delta),
         }
 
     @staticmethod
@@ -155,6 +156,19 @@ class Lease(Base):
         session.commit()
         session.close()
         return deletions
+
+    @staticmethod
+    def calculate_renewal(renewal_period: float, delta: datetime.timedelta):
+        """
+        LEASE_RENEWAL_PERIOD=0.2  # 20%
+        delta = datetime.timedelta(days=1)
+        renew = delta.total_seconds() * LEASE_RENEWAL_PERIOD
+        renew = timedelta(seconds=renew)
+        expires = delta - renew  # 19.2
+        """
+        renew = delta.total_seconds() * renewal_period
+        renew = datetime.timedelta(seconds=renew)
+        return delta - renew
 
 
 def init(engine: Engine):

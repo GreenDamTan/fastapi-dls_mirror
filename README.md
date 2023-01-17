@@ -270,27 +270,65 @@ Successfully tested with this package versions:
 
 ## Linux
 
+Download *client-token* and place it into `/etc/nvidia/ClientConfigToken`:
+
 ```shell
 curl --insecure -L -X GET https://<dls-hostname-or-ip>/-/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_$(date '+%d-%m-%Y-%H-%M-%S').tok
 # or
 wget --no-check-certificate -O /etc/nvidia/ClientConfigToken/client_configuration_token_$(date '+%d-%m-%Y-%H-%M-%S').tok https://<dls-hostname-or-ip>/-/client-token
+```
 
+Restart `nvidia-gridd` service:
+
+```shell
 service nvidia-gridd restart
+```
+
+Check licensing status:
+
+```shell
 nvidia-smi -q | grep "License"
 ```
 
-## Windows
+Output should be something like:
 
-Download *client-token* and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
-Now restart `NvContainerLocalSystem` service.
+```text
+vGPU Software Licensed Product
+    License Status                    : Licensed (Expiry: YYYY-M-DD hh:mm:ss GMT)
+```
+
+Done. For more information check [troubleshoot section](#troubleshoot).
+
+## Windows
 
 **Power-Shell** (run as administrator!)
 
-```Shell
+Download *client-token* and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`:
+
+```shell
 curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/-/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
-Restart-Service NVDisplay.ContainerLocalSystem
-'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
 ```
+
+Restart `NvContainerLocalSystem` service:
+
+```Shell
+Restart-Service NVDisplay.ContainerLocalSystem
+```
+
+Check licensing status:
+
+```shell
+& 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q  | Select-String "License"
+```
+
+Output should be something like:
+
+```text
+vGPU Software Licensed Product
+    License Status                    : Licensed (Expiry: YYYY-M-DD hh:mm:ss GMT)
+```
+
+Done. For more information check [troubleshoot section](#troubleshoot).
 
 # Endpoints
 

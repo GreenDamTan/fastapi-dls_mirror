@@ -5,4 +5,9 @@ if [ -f /etc/systemd/system/fastapi-dls.service ]; then
   rm /etc/systemd/system/fastapi-dls.service
 fi
 
+if [ -d /usr/share/fastapi-dls ]; then
+  echo "> Removing app."
+  rm -r /usr/share/fastapi-dls
+fi
+
 # todo

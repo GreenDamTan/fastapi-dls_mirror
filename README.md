@@ -212,7 +212,7 @@ pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
 
-## Let's Encrypt Certificate
+## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
 

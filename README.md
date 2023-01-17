@@ -281,7 +281,7 @@ nvidia-smi -q | grep "License"
 
 ## Windows
 
-Download file and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
+Download *client-token* and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
 Now restart `NvContainerLocalSystem` service.
 
 **Power-Shell** (run as administrator!)
@@ -292,7 +292,7 @@ Restart-Service NVDisplay.ContainerLocalSystem
 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
 ```
 
-## Endpoints
+# Endpoints
 
 ### `GET /`
 

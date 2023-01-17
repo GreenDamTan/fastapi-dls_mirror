@@ -284,7 +284,7 @@ nvidia-smi -q | grep "License"
 Download file and place it into `C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken`.
 Now restart `NvContainerLocalSystem` service.
 
-**Power-Shell**
+**Power-Shell** (run as administrator!)
 
 ```Shell
 curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/-/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"

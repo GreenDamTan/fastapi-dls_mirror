@@ -84,7 +84,7 @@ class Lease(Base):
 
     def serialize(self, renewal_period: float, renewal_delta: timedelta) -> dict:
         lease_renewal = int(Lease.calculate_renewal(renewal_period, renewal_delta).total_seconds())
-        lease_renewal = self.lease_created + relativedelta(seconds=lease_renewal)
+        lease_renewal = self.lease_updated + relativedelta(seconds=lease_renewal)
 
         return {
             'lease_ref': self.lease_ref,
@@ -173,7 +173,7 @@ class Lease(Base):
         """
         renew = delta.total_seconds() * renewal_period
         renew = timedelta(seconds=renew)
-        return delta - renew
+        return renew
 
 
 def init(engine: Engine):

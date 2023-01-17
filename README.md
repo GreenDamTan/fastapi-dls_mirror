@@ -206,7 +206,11 @@ Packages are available here:
 ```shell
 pacman -Sy
 FILENAME=/opt/fastapi-dls.pkg.tar.zst
-url -o $FILENAME <download-url>
+
+curl -o $FILENAME <download-url>
+# or
+wget -O $FILENAME <download-url>
+
 pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 ```
 
@@ -267,7 +271,10 @@ Successfully tested with this package versions:
 ## Linux
 
 ```shell
-curl --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_$(date '+%d-%m-%Y-%H-%M-%S').tok
+curl --insecure -L -X GET https://<dls-hostname-or-ip>/-/client-token -o /etc/nvidia/ClientConfigToken/client_configuration_token_$(date '+%d-%m-%Y-%H-%M-%S').tok
+# or
+wget --no-check-certificate -O /etc/nvidia/ClientConfigToken/client_configuration_token_$(date '+%d-%m-%Y-%H-%M-%S').tok https://<dls-hostname-or-ip>/-/client-token
+
 service nvidia-gridd restart
 nvidia-smi -q | grep "License"
 ```
@@ -280,7 +287,7 @@ Now restart `NvContainerLocalSystem` service.
 **Power-Shell**
 
 ```Shell
-curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
+curl.exe --insecure -L -X GET https://<dls-hostname-or-ip>/-/client-token -o "C:\Program Files\NVIDIA Corporation\vGPU Licensing\ClientConfigToken\client_configuration_token_$($(Get-Date).tostring('dd-MM-yy-hh-mm-ss')).tok"
 Restart-Service NVDisplay.ContainerLocalSystem
 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q | Select-String "License"
 ```

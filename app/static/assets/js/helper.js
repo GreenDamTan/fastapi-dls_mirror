@@ -122,6 +122,6 @@ async function deleteLease(lease_ref) {
     if (lease_ref === null || lease_ref === "")
         return
     let xhr = new XMLHttpRequest();
-    xhr.open("DELETE", `/-/lease/${{lease_ref}}`, true);
+    xhr.open("DELETE", `/-/lease/${lease_ref}`, true);
     xhr.send();
 }

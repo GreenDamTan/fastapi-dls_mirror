@@ -76,6 +76,7 @@ async function fetchLeases(element) {
                         <th scope="col">lease</th>
                         <th scope="col">created</th>
                         <th scope="col">updated</th>
+                        <th scope="col">next renew</th>
                         <th scope="col">expires</th>
                         <th scope="col">origin</th>
                     </tr>`
@@ -87,6 +88,7 @@ async function fetchLeases(element) {
                         <td><code>${o.lease_ref}</code></td>
                         <td>${new Date(o.lease_created).toLocaleDateString('system', dtc)}</td>
                         <td>${new Date(o.lease_updated).toLocaleDateString('system', dtc)}</td>
+                        <td>${new Date(o.lease_renewal).toLocaleDateString('system', dtc)}</td>
                         <td>${new Date(o.lease_expires).toLocaleDateString('system', dtc)}</td>
                         <td><code title="hostname: ${o.origin?.hostname}">${o.origin_ref}</code></td>`
                 tbody.appendChild(row);

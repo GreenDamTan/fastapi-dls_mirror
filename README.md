@@ -9,13 +9,14 @@ Only the clients need a connection to this service on configured port.
 
 [[_TOC_]]
 
-
 # Setup (Service)
 
 **System requirements**:
 
-- LXC with 256mb ram and 4gb hdd is enough (Ubuntu 22.10 from Proxmox templates) \
-  (actually its consuming 100mb ram and 750mb hdd)
+- 256mb ram
+- 4gb hdd
+
+Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
 
 **Prepare your system**:
 

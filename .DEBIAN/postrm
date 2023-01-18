@@ -6,4 +6,4 @@
 #  rm -r /usr/share/fastapi-dls
 #fi
 
-# todo
+echo -e "> Done."

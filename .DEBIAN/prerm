@@ -1,5 +1,3 @@
 #!/bin/bash
 
 echo -e "> Starting uninstallation of 'fastapi-dls'!"
-
-# todo

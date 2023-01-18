@@ -3,7 +3,7 @@
 WORKING_DIR=/usr/share/fastapi-dls
 CONFIG_DIR=/etc/fastapi-dls
 
-if [[ ! -f $CONFIG_DIR/instance.private.pem ]]; then
+if [ ! -f $CONFIG_DIR/instance.private.pem ]; then
   echo "> Create dls-instance keypair ..."
   openssl genrsa -out $CONFIG_DIR/instance.private.pem 2048
   openssl rsa -in $CONFIG_DIR/instance.private.pem -outform PEM -pubout -out $CONFIG_DIR/instance.public.pem
@@ -12,8 +12,8 @@ else
 fi
 
 while true; do
-  [[ -f $CONFIG_DIR/webserver.key ]] && default_answer="N" || default_answer="Y"
-  [[ $default_answer == "Y" ]] && V="Y/n" || V="y/N"
+  [ -f $CONFIG_DIR/webserver.key ] && default_answer="N" || default_answer="Y"
+  [ $default_answer == "Y" ] && V="Y/n" || V="y/N"
   read -p "> Do you wish to create self-signed webserver certificate? [${V}]" yn
   yn=${yn:-$default_answer} # ${parameter:-word} If parameter is unset or null, the expansion of word is substituted. Otherwise, the value of parameter is substituted.
   case $yn in
@@ -27,7 +27,7 @@ while true; do
   esac
 done
 
-if [[ -f $CONFIG_DIR/webserver.key ]]; then
+if [ -f $CONFIG_DIR/webserver.key ]; then
   echo "> Starting service ..."
   systemctl start fastapi-dls.service
 

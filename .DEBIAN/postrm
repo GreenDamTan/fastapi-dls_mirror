@@ -1,8 +1,9 @@
 #!/bin/bash
 
-if [[ -f /etc/systemd/system/fastapi-dls.service ]]; then
-  echo "> Removing service file."
-  rm /etc/systemd/system/fastapi-dls.service
-fi
+# is removed automatically
+#if [ "$1" = purge ] && [ -d /usr/share/fastapi-dls ]; then
+#  echo "> Removing app."
+#  rm -r /usr/share/fastapi-dls
+#fi
 
-# todo
+echo -e "> Done."

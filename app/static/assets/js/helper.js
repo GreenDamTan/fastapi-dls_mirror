@@ -88,7 +88,7 @@ async function fetchLeases(element) {
                         <td>${new Date(o.lease_created).toLocaleDateString('system', dtc)}</td>
                         <td>${new Date(o.lease_updated).toLocaleDateString('system', dtc)}</td>
                         <td>${new Date(o.lease_expires).toLocaleDateString('system', dtc)}</td>
-                        <td><code title="hostname: ${o.origin.hostname}">${o.origin_ref}</code></td>`
+                        <td><code title="hostname: ${o.origin?.hostname}">${o.origin_ref}</code></td>`
                 tbody.appendChild(row);
             })
             table.appendChild(tbody)

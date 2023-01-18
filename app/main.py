@@ -22,8 +22,9 @@ from sqlalchemy.orm import sessionmaker
 from util import load_key, load_file
 from orm import Origin, Lease, init as db_init, migrate
 
-logger = logging.getLogger()
 load_dotenv('../version.env')
+
+TZ = datetime.now().astimezone().tzinfo
 
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
@@ -58,6 +59,8 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 
@@ -97,6 +100,7 @@ async def _config():
         'LEASE_EXPIRE_DELTA': str(LEASE_EXPIRE_DELTA),
         'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
         'CORS_ORIGINS': str(CORS_ORIGINS),
+        'TZ': str(TZ),
     })
 
 
@@ -527,6 +531,11 @@ async def leasing_v1_lessor_shutdown(request: Request):
     }
 
     return JSONr(response)
+
+
+@app.on_event('startup')
+async def app_on_startup():
+    logger.info(f'Using timezone: {str(TZ)}. Make sure this is correct and match your clients!')
 
 
 if __name__ == '__main__':

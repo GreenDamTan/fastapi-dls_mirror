@@ -45,6 +45,7 @@ TOKEN_EXPIRE_DELTA = relativedelta(days=int(env('TOKEN_EXPIRE_DAYS', 1)), hours=
 LEASE_EXPIRE_DELTA = relativedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)), hours=int(env('LEASE_EXPIRE_HOURS', 0)))
 LEASE_RENEWAL_PERIOD = float(env('LEASE_RENEWAL_PERIOD', 0.15))
 LEASE_RENEWAL_DELTA = timedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)), hours=int(env('LEASE_EXPIRE_HOURS', 0)))
+CLIENT_TOKEN_EXPIRE_DELTA = relativedelta(years=12)
 CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) else [f'https://{DLS_URL}']
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
@@ -196,7 +197,7 @@ async def _lease_delete(request: Request, lease_ref: str):
 @app.get('/-/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
 async def _client_token():
     cur_time = datetime.utcnow()
-    exp_time = cur_time + relativedelta(years=12)
+    exp_time = cur_time + CLIENT_TOKEN_EXPIRE_DELTA
 
     payload = {
         "jti": str(uuid4()),

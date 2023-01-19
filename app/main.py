@@ -536,7 +536,14 @@ async def leasing_v1_lessor_shutdown(request: Request):
 
 @app.on_event('startup')
 async def app_on_startup():
-    logger.info(f'Using timezone: {str(TZ)}. Make sure this is correct and match your clients!')
+    logger.info(f'''
+    Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
+    
+    Your clients renew their license every {str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA))}.
+    If the renewal fails, the license is {str(LEASE_RENEWAL_DELTA)} valid.
+    
+    Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
+    ''')
 
 
 if __name__ == '__main__':

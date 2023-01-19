@@ -7,6 +7,14 @@ Compatibility tested with official DLS 2.0.1.
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
+**Official Links**
+
+- https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
+- https://gitea.publichub.eu/oscar.krause/fastapi-dls
+- Docker Image `collinwebdesigns/fastapi-dls:latest`
+
+*All other repositories are forks!*
+
 [[_TOC_]]
 
 # Setup (Service)

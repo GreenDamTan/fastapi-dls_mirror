@@ -21,14 +21,14 @@ Only the clients need a connection to this service on configured port.
 
 # Setup (Service)
 
-**System requirements**:
+**System requirements**
 
 - 256mb ram
 - 4gb hdd
 
 Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
 
-**Prepare your system**:
+**Prepare your system**
 
 - Make sure your timezone is set correct on you fastapi-dls server and your client
 

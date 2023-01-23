@@ -13,7 +13,7 @@ Only the clients need a connection to this service on configured port.
 - https://gitea.publichub.eu/oscar.krause/fastapi-dls
 - Docker Image `collinwebdesigns/fastapi-dls:latest`
 
-*All other repositories are forks!*
+*All other repositories are forks! (which  is no bad - just for information and bug reports)*
 
 ---
 

@@ -368,10 +368,6 @@ Shows current runtime environment variables and their values.
 
 HTML rendered README.md.
 
-### `GET /-/docs`, `GET /-/redoc`
-
-OpenAPI specifications rendered from `GET /-/openapi.json`.
-
 ### `GET /-/manage`
 
 Shows a very basic UI to delete origins or leases.

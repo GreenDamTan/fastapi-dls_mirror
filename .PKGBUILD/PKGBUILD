@@ -11,6 +11,7 @@ license=('MIT')
 depends=('python' 'python-jose' 'python-starlette' 'python-httpx' 'python-fastapi' 'python-dotenv' 'python-dateutil' 'python-sqlalchemy' 'python-pycryptodome' 'uvicorn' 'python-markdown' 'openssl')
 provider=("$pkgname")
 install="$pkgname.install"
+backup=('etc/default/fastapi-dls')
 source=('git+file:///builds/oscar.krause/fastapi-dls' # https://gitea.publichub.eu/oscar.krause/fastapi-dls.git
         "$pkgname.default"
         "$pkgname.service"

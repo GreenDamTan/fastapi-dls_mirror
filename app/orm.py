@@ -57,12 +57,12 @@ class Origin(Base):
         session.close()
 
     @staticmethod
-    def delete(engine: Engine, origins: ["Origin"] = None) -> int:
+    def delete(engine: Engine, origin_refs: [str] = None) -> int:
         session = sessionmaker(bind=engine)()
-        if origins is None:
+        if origin_refs is None:
             deletions = session.query(Origin).delete()
         else:
-            deletions = session.query(Origin).filter(Origin.origin_ref in origins).delete()
+            deletions = session.query(Origin).filter(Origin.origin_ref in origin_refs).delete()
         session.commit()
         session.close()
         return deletions
@@ -170,6 +170,14 @@ class Lease(Base):
         renew = delta.total_seconds() * LEASE_RENEWAL_PERIOD
         renew = datetime.timedelta(seconds=renew)
         expires = delta - renew  # 19.2
+
+        import datetime
+        LEASE_RENEWAL_PERIOD=0.15  # 15%
+        delta = datetime.timedelta(days=90)
+        renew = delta.total_seconds() * LEASE_RENEWAL_PERIOD
+        renew = datetime.timedelta(seconds=renew)
+        expires = delta - renew  # 76 days, 12:00:00 hours
+
         """
         renew = delta.total_seconds() * renewal_period
         renew = timedelta(seconds=renew)

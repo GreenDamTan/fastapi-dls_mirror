@@ -7,10 +7,30 @@ Compatibility tested with official DLS 2.0.1.
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
 
+**Official Links**
+
+- https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
+- https://gitea.publichub.eu/oscar.krause/fastapi-dls
+- Docker Image `collinwebdesigns/fastapi-dls:latest`
+
+*All other repositories are forks! (which  is no bad - just for information and bug reports)*
+
+---
+
 [[_TOC_]]
 
-
 # Setup (Service)
+
+**System requirements**
+
+- 256mb ram
+- 4gb hdd
+
+Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
+
+**Prepare your system**
+
+- Make sure your timezone is set correct on you fastapi-dls server and your client
 
 ## Docker
 
@@ -347,10 +367,6 @@ Shows current runtime environment variables and their values.
 ### `GET /-/readme`
 
 HTML rendered README.md.
-
-### `GET /-/docs`, `GET /-/redoc`
-
-OpenAPI specifications rendered from `GET /-/openapi.json`.
 
 ### `GET /-/manage`
 

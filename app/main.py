@@ -22,12 +22,13 @@ from sqlalchemy.orm import sessionmaker
 from util import load_key, load_file
 from orm import Origin, Lease, init as db_init, migrate
 
-logger = logging.getLogger()
 load_dotenv('../version.env')
+
+TZ = datetime.now().astimezone().tzinfo
 
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
-config = dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
+config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db), migrate(db)
@@ -44,6 +45,7 @@ TOKEN_EXPIRE_DELTA = relativedelta(days=int(env('TOKEN_EXPIRE_DAYS', 1)), hours=
 LEASE_EXPIRE_DELTA = relativedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)), hours=int(env('LEASE_EXPIRE_HOURS', 0)))
 LEASE_RENEWAL_PERIOD = float(env('LEASE_RENEWAL_PERIOD', 0.15))
 LEASE_RENEWAL_DELTA = timedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)), hours=int(env('LEASE_EXPIRE_HOURS', 0)))
+CLIENT_TOKEN_EXPIRE_DELTA = relativedelta(years=12)
 CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) else [f'https://{DLS_URL}']
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
@@ -58,6 +60,8 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+logging.basicConfig()
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
 
@@ -97,6 +101,7 @@ async def _config():
         'LEASE_EXPIRE_DELTA': str(LEASE_EXPIRE_DELTA),
         'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
         'CORS_ORIGINS': str(CORS_ORIGINS),
+        'TZ': str(TZ),
     })
 
 
@@ -192,7 +197,7 @@ async def _lease_delete(request: Request, lease_ref: str):
 @app.get('/-/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
 async def _client_token():
     cur_time = datetime.utcnow()
-    exp_time = cur_time + relativedelta(years=12)
+    exp_time = cur_time + CLIENT_TOKEN_EXPIRE_DELTA
 
     payload = {
         "jti": str(uuid4()),
@@ -527,6 +532,18 @@ async def leasing_v1_lessor_shutdown(request: Request):
     }
 
     return JSONr(response)
+
+
+@app.on_event('startup')
+async def app_on_startup():
+    logger.info(f'''
+    Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
+    
+    Your clients renew their license every {str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA))}.
+    If the renewal fails, the license is {str(LEASE_RENEWAL_DELTA)} valid.
+    
+    Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
+    ''')
 
 
 if __name__ == '__main__':

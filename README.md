@@ -71,7 +71,7 @@ version: '3.9'
 x-dls-variables: &dls-variables
   DLS_URL: localhost # REQUIRED, change to your ip or hostname
   DLS_PORT: 443
-  LEASE_EXPIRE_DAYS: 90
+  LEASE_EXPIRE_DAYS: 90  # 90 days is maximum
   DATABASE: sqlite:////app/database/db.sqlite
 
 services:
@@ -85,7 +85,12 @@ services:
     volumes:
       - /opt/docker/fastapi-dls/cert:/app/cert
       - dls-db:/app/database
-
+    logging:  # optional, for those who do not need logs
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 10m
+            
 volumes:
   dls-db:
 ```
@@ -135,6 +140,8 @@ This is only to test whether the service starts successfully.
 ```shell
 cd /opt/fastapi-dls/app
 su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
+# or
+sudo -u www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**

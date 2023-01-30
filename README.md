@@ -127,7 +127,7 @@ chown -R www-data:www-data $WORKING_DIR
 
 ```shell
 WORKING_DIR=/opt/fastapi-dls/app/cert
-mkdir $WORKING_DIR
+mkdir -p $WORKING_DIR
 cd $WORKING_DIR
 # create instance private and public key for singing JWT's
 openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
@@ -151,6 +151,7 @@ sudo -u www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/f
 **Create config file**
 
 ```shell
+mkdir /etc/fastapi-dls
 cat <<EOF >/etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443

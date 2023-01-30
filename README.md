@@ -101,6 +101,8 @@ volumes:
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
 
+**Make sure you are logged in as root.**
+
 **Install requirements**
 
 ```shell

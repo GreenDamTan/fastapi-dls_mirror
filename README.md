@@ -69,10 +69,12 @@ Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example (with 
 version: '3.9'
 
 x-dls-variables: &dls-variables
+  TZ: Europe/Berlin # REQUIRED, set your timezone correctly on fastapi-dls AND YOUR CLIENTS !!!
   DLS_URL: localhost # REQUIRED, change to your ip or hostname
   DLS_PORT: 443
   LEASE_EXPIRE_DAYS: 90  # 90 days is maximum
   DATABASE: sqlite:////app/database/db.sqlite
+  DEBUG: false
 
 services:
   dls:

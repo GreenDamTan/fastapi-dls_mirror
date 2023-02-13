@@ -69,10 +69,12 @@ Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example (with 
 version: '3.9'
 
 x-dls-variables: &dls-variables
+  TZ: Europe/Berlin # REQUIRED, set your timezone correctly on fastapi-dls AND YOUR CLIENTS !!!
   DLS_URL: localhost # REQUIRED, change to your ip or hostname
   DLS_PORT: 443
-  LEASE_EXPIRE_DAYS: 90
+  LEASE_EXPIRE_DAYS: 90  # 90 days is maximum
   DATABASE: sqlite:////app/database/db.sqlite
+  DEBUG: false
 
 services:
   dls:
@@ -85,7 +87,12 @@ services:
     volumes:
       - /opt/docker/fastapi-dls/cert:/app/cert
       - dls-db:/app/database
-
+    logging:  # optional, for those who do not need logs
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 10m
+            
 volumes:
   dls-db:
 ```
@@ -93,6 +100,8 @@ volumes:
 ## Debian/Ubuntu (manual method using `git clone` and python virtual environment)
 
 Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
+
+**Make sure you are logged in as root.**
 
 **Install requirements**
 
@@ -118,7 +127,7 @@ chown -R www-data:www-data $WORKING_DIR
 
 ```shell
 WORKING_DIR=/opt/fastapi-dls/app/cert
-mkdir $WORKING_DIR
+mkdir -p $WORKING_DIR
 cd $WORKING_DIR
 # create instance private and public key for singing JWT's
 openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
@@ -135,11 +144,14 @@ This is only to test whether the service starts successfully.
 ```shell
 cd /opt/fastapi-dls/app
 su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
+# or
+sudo -u www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**
 
 ```shell
+mkdir /etc/fastapi-dls
 cat <<EOF >/etc/fastapi-dls/env
 DLS_URL=127.0.0.1
 DLS_PORT=443
@@ -169,6 +181,108 @@ ExecStart=/opt/fastapi-dls/venv/bin/uvicorn main:app \\
   --app-dir /opt/fastapi-dls/app \\
   --ssl-keyfile /opt/fastapi-dls/app/cert/webserver.key \\
   --ssl-certfile /opt/fastapi-dls/app/cert/webserver.crt \\
+  --proxy-headers
+Restart=always
+KillSignal=SIGQUIT
+Type=simple
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+```
+
+Now you have to run `systemctl daemon-reload`. After that you can start service
+with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+
+## openSUSE Leap (manual method using `git clone` and python virtual environment)
+
+Tested on `openSUSE Leap 15.4`, openSUSE Tumbleweed may also work.
+
+**Install requirements**
+
+```shell
+zypper in -y python310 python3-virtualenv python3-pip
+```
+
+**Install FastAPI-DLS**
+
+```shell
+BASE_DIR=/opt/fastapi-dls
+SERVICE_USER=dls
+mkdir -p ${BASE_DIR}
+cd ${BASE_DIR}
+git clone https://git.collinwebdesigns.de/oscar.krause/fastapi-dls .
+python3.10 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+deactivate
+useradd -r ${SERVICE_USER} -M -d /opt/fastapi-dls
+chown -R ${SERVICE_USER} ${BASE_DIR}
+```
+
+**Create keypair and webserver certificate**
+
+```shell
+CERT_DIR=${BASE_DIR}/app/cert
+SERVICE_USER=dls
+mkdir ${CERT_DIR}
+cd ${CERT_DIR}
+# create instance private and public key for singing JWT's
+openssl genrsa -out ${CERT_DIR}/instance.private.pem 2048 
+openssl rsa -in ${CERT_DIR}/instance.private.pem -outform PEM -pubout -out ${CERT_DIR}/instance.public.pem
+# create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  ${CERT_DIR}/webserver.key -out ${CERT_DIR}/webserver.crt
+chown -R ${SERVICE_USER} ${CERT_DIR}
+```
+
+**Test Service**
+
+This is only to test whether the service starts successfully.
+
+```shell
+BASE_DIR=/opt/fastapi-dls
+SERVICE_USER=dls
+cd ${BASE_DIR}
+su - ${SERVICE_USER} -c "${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_DIR}/app"
+```
+
+**Create config file**
+
+```shell
+BASE_DIR=/opt/fastapi-dls
+cat <<EOF >/etc/fastapi-dls/env
+# Adjust DSL_URL as needed (accessing from LAN won't work with 127.0.0.1)
+DLS_URL=127.0.0.1
+DLS_PORT=443
+LEASE_EXPIRE_DAYS=90
+DATABASE=sqlite:///${BASE_DIR}/app/db.sqlite
+
+EOF
+```
+
+**Create service**
+
+```shell
+BASE_DIR=/opt/fastapi-dls
+SERVICE_USER=dls
+cat <<EOF >/etc/systemd/system/fastapi-dls.service
+[Unit]
+Description=Service for fastapi-dls vGPU licensing service
+After=network.target
+
+[Service]
+User=${SERVICE_USER}
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+WorkingDirectory=${BASE_DIR}/app
+EnvironmentFile=/etc/fastapi-dls/env
+ExecStart=${BASE_DIR}/venv/bin/uvicorn main:app \\
+  --env-file /etc/fastapi-dls/env \\
+  --host \$DLS_URL --port \$DLS_PORT \\
+  --app-dir ${BASE_DIR}/app \\
+  --ssl-keyfile ${BASE_DIR}/app/cert/webserver.key \\
+  --ssl-certfile ${BASE_DIR}/app/cert/webserver.crt \\
   --proxy-headers
 Restart=always
 KillSignal=SIGQUIT
@@ -552,5 +666,4 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 Thanks to vGPU community and all who uses this project and report bugs.
 
-Special thanks to @samicrusader who created build file for ArchLinux.
-
+Special thanks to @samicrusader who created build file for ArchLinux and @cyrus who wrote the section for openSUSE.

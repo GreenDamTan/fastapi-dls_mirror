@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
-from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 
 Base = declarative_base()
 
@@ -190,7 +189,7 @@ def init(engine: Engine):
     session = sessionmaker(bind=engine)()
     for table in tables:
         if not db.dialect.has_table(engine.connect(), table.__tablename__):
-            session.execute(str(table.create_statement(engine)))
+            session.execute(text(str(table.create_statement(engine))))
             session.commit()
     session.close()
 

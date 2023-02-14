@@ -2,6 +2,7 @@ include:
   - template: Jobs/Code-Quality.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
   - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
 
 cache:
   key: one-key-to-rule-them-all
@@ -117,10 +118,11 @@ test:
     - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
     - cd test
   script:
-    - pytest main.py
+    - python -m pytest main.py --junitxml=report.xml
   artifacts:
     reports:
       dotenv: version.env
+      junit: ['**/report.xml']
 
 .test:linux:
   stage: test
@@ -222,6 +224,14 @@ test_coverage:
       coverage_report:
         coverage_format: cobertura
         path: '**/coverage.xml'
+
+container_scanning:
+  dependencies: [ build:docker ]
+  rules:
+    - if: $CONTAINER_SCANNING_DISABLED
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 .deploy:
   rules:

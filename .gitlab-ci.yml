@@ -1,3 +1,6 @@
+include:
+  - template: Jobs/Code-Quality.gitlab-ci.yml
+
 cache:
   key: one-key-to-rule-them-all
 
@@ -178,6 +181,30 @@ test:archlinux:
   script:
     - pacman -Sy
     - pacman -U --noconfirm *.pkg.tar.zst
+
+code_quality:
+  rules:
+    - if: $CODE_QUALITY_DISABLED
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+test_coverage:
+  extends: test
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - pip install pytest pytest-cov
+    - coverage run -m pytest
+    - coverage report
+    - coverage xml
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: '**/coverage.xml'
 
 .deploy:
   rules:

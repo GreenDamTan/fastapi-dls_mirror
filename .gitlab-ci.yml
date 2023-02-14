@@ -1,6 +1,7 @@
 include:
   - template: Jobs/Code-Quality.gitlab-ci.yml
   - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/SAST.gitlab-ci.yml
 
 cache:
   key: one-key-to-rule-them-all
@@ -193,6 +194,13 @@ code_quality:
 secret_detection:
   rules:
     - if: $SECRET_DETECTION_DISABLED
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+semgrep-sast:
+  rules:
+    - if: $SAST_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

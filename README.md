@@ -32,6 +32,11 @@ Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb 
 
 - Make sure your timezone is set correct on you fastapi-dls server and your client
 
+**HA Setup Notes**
+
+- make sure you're using same configuration on each node
+- use same `instance.private.pem` and `instance.private.key` on each node
+
 ## Docker
 
 Docker-Images are available here:
@@ -368,31 +373,36 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable               | Default                                | Usage                                                                                                |
-|------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------|
-| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
-| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
-| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
-| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)          |
-| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
-| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
-| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html) \*2              |
-| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*3                               |
-| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
-| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                         |
-| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                        |
-| `INSTANCE_KEY_RSA`     | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*4                                                       |
-| `INSTANCE_KEY_PUB`     | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*4                                                                             |
+| Variable               | Default                                | Usage                                                                                                              |
+|------------------------|----------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                                       |
+| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                                          |
+| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                                          |
+| `HA_REPLICATE`         |                                        | `DLS_URL` + `DLS_PORT` of primary DLS instance, e.g. `dls-node:443` (for HA only **two** nodes are supported!) \*1 |
+| `HA_ROLE`              |                                        | `PRIMARY` or `SECONDARY`                                                                                           |
+| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)                        |
+| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                                 |
+| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*2               |
+| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html) \*3                            |
+| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*4                                             |
+| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                                           |
+| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                                       |
+| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                      |
+| `INSTANCE_KEY_RSA`     | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*5                                                                     |
+| `INSTANCE_KEY_PUB`     | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*5                                                                                           |
 
-\*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
+\*1 If you want to use HA, this value should be point to `secondary` on `primary` and `primary` on `secondary`. Don't
+use same database for both instances!
+
+\*2 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
-\*2 Other databases than sqlite are only supported outside of Docker (because of missing drivers)
+\*3 Other databases than sqlite are only supported outside of Docker (because of missing drivers)
 
-\*2 Always use `https`, since guest-drivers only support secure connections!
+\*4 Always use `https`, since guest-drivers only support secure connections!
 
-\*3 If you recreate instance keys you need to **recreate client-token for each guest**!
+\*5 If you recreate instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 

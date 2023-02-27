@@ -33,6 +33,16 @@ class Origin(Base):
         }
 
     @staticmethod
+    def deserialize(j) -> "Origin":
+        return Origin(
+            origin_ref=j.get('origin_ref'),
+            hostname=j.get('hostname'),
+            guest_driver_version=j.get('guest_driver_version'),
+            os_platform=j.get('os_platform'),
+            os_version=j.get('os_version'),
+        )
+
+    @staticmethod
     def create_statement(engine: Engine):
         from sqlalchemy.schema import CreateTable
         return CreateTable(Origin.__table__).compile(engine)
@@ -94,6 +104,17 @@ class Lease(Base):
             'lease_updated': self.lease_updated.isoformat(),
             'lease_renewal': lease_renewal.isoformat(),
         }
+
+    @staticmethod
+    def deserialize(j) -> "Lease":
+        return Lease(
+            lease_ref=j.get('lease_ref'),
+            origin_ref=j.get('origin_ref'),
+            lease_created=j.get('lease_created'),
+            lease_expires=j.get('lease_expires'),
+            lease_updated=j.get('lease_updated'),
+            lease_renewal=j.get('lease_renewal'),
+        )
 
     @staticmethod
     def create_statement(engine: Engine):

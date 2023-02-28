@@ -36,7 +36,7 @@ db_init(db), migrate(db)
 # everything prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
-HA_REPLICATE, HA_ROLE = str(env('HA_REPLICATE', None)), str(env('HA_ROLE', None))
+HA_REPLICATE, HA_ROLE = env('HA_REPLICATE', None), env('HA_ROLE', None)
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_REF = str(env('INSTANCE_REF', '10000000-0000-0000-0000-000000000001'))
 ALLOTMENT_REF = str(env('ALLOTMENT_REF', '20000000-0000-0000-0000-000000000001'))
@@ -623,13 +623,19 @@ async def app_on_startup():
     ''')
 
     if HA_REPLICATE is not None:
-        from hashlib import md5
+        from hashlib import sha1
+
+        sha1digest = sha1(INSTANCE_KEY_RSA.export_key()).hexdigest()
+        fingerprint_key = ':'.join(sha1digest[i: i + 2] for i in range(0, len(sha1digest), 2))
+        sha1digest = sha1(INSTANCE_KEY_PUB.export_key()).hexdigest()
+        fingerprint_pub = ':'.join(sha1digest[i: i + 2] for i in range(0, len(sha1digest), 2))
+
         logger.info(f'''
-        HA mode is enabled. Make sure theses md5-hashes matches on all your nodes:
-          - jwt_encode_key md5: "{str(md5(jwt_encode_key))}"
-          - jwt_decode_key md5: "{str(md5(jwt_decode_key))}"
-        
-        This node ({HA_ROLE}) listens to "https://{DLS_URL}:{DLS_PORT}" and replicates to "https://{HA_REPLICATE}".
+    HA mode is enabled. Make sure theses fingerprints matches on all your nodes:
+      - INSTANCE_KEY_RSA: "{str(fingerprint_key)}"
+      - INSTANCE_KEY_PUB: "{str(fingerprint_pub)}"
+    
+    This node ({HA_ROLE}) listens to "https://{DLS_URL}:{DLS_PORT}" and replicates to "https://{HA_REPLICATE}".
         ''')
 
 

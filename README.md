@@ -34,8 +34,13 @@ Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb 
 
 **HA Setup Notes**
 
+- only *failover mode* is supported by team-green (see *high availability* in official user guide)
 - make sure you're using same configuration on each node
 - use same `instance.private.pem` and `instance.private.key` on each node
+
+If you want to use *real* HA, you should use a proxy in front of this service and use a clustered database in backend.
+This is not documented and supported by me, but it *can* work. Please ask the community for help.
+Maybe the simplest solution for HA-ing this service is to use a Docker-Swarm with redundant storage and database.
 
 ## Docker
 

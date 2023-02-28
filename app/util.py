@@ -39,7 +39,7 @@ def ha_replicate(logger: "logging.Logger", ha_replicate: str, ha_role: str, vers
         'INSTANCE_REF': str(instance_ref),
         'origins': [origin.serialize() for origin in origins],
         'leases': [lease.serialize() for lease in leases],
-        'cur_time': datetime.utcnow(),
+        'sync_timestamp': datetime.utcnow().isoformat(),
     }
 
     r = httpx.put(f'https://{ha_replicate}/-/ha/replicate', json=data)

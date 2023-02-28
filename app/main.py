@@ -36,7 +36,7 @@ db_init(db), migrate(db)
 # everything prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
-HA_REPLICATE, HA_ROLE = env('HA_REPLICATE', None), env('HA_ROLE', None)
+HA_REPLICATE, HA_ROLE = env('HA_REPLICATE', None), env('HA_ROLE', None)  # only failover is supported
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_REF = str(env('INSTANCE_REF', '10000000-0000-0000-0000-000000000001'))
 ALLOTMENT_REF = str(env('ALLOTMENT_REF', '20000000-0000-0000-0000-000000000001'))
@@ -295,8 +295,8 @@ async def _ha_replicate_by_ha(request: Request):
         logger.error(f'Version missmatch on HA replication task!')
         return JSONr(status_code=503, content={'status': 503, 'detail': 'Missmatch for "INSTANCE_REF"'})
 
-    remote_time, max_seconds_behind = j.get('cur_time'), 30
-    if remote_time <= cur_time - timedelta(seconds=max_seconds_behind):
+    sync_timestamp, max_seconds_behind = j.get('sync_timestamp'), 30
+    if sync_timestamp <= cur_time - timedelta(seconds=max_seconds_behind):
         logger.error(f'Request time more than {max_seconds_behind}s behind!')
         return JSONr(status_code=503, content={'status': 503, 'detail': 'Request time behind'})
 
@@ -625,7 +625,7 @@ async def app_on_startup():
     Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
     ''')
 
-    if HA_REPLICATE is not None:
+    if HA_REPLICATE is not None and HA_ROLE is not None:
         from hashlib import sha1
 
         sha1digest = sha1(INSTANCE_KEY_RSA.export_key()).hexdigest()

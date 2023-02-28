@@ -262,9 +262,9 @@ async def _client_token():
 
 @app.get('/-/ha/replicate', summary='* HA Sync')
 async def _ha_replicate_to_ha(request: Request, background_tasks: BackgroundTasks):
-    if HA_REPLICATE is None:
-        logger.warning('HA replicate endpoint triggerd, but no value for "HA_REPLICATE" is set!')
-        return JSONr(status_code=503, content={'status': 503, 'detail': 'no value for "HA_REPLICATE" set'})
+    if HA_REPLICATE is None or HA_ROLE is None:
+        logger.warning('HA replicate endpoint triggerd, but no value for "HA_REPLICATE" or "HA_ROLE" is set!')
+        return JSONr(status_code=503, content={'status': 503, 'detail': 'no value for "HA_REPLICATE" or "HA_ROLE" set'})
     background_tasks.add_task(ha_replicate, logger, HA_REPLICATE, HA_ROLE, VERSION, DLS_URL, DLS_PORT, SITE_KEY_XID, INSTANCE_REF)
     return JSONr(status_code=202, content=None)
 

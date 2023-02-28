@@ -42,7 +42,7 @@ def ha_replicate(logger: "logging.Logger", ha_replicate: str, ha_role: str, vers
         'sync_timestamp': datetime.utcnow().isoformat(),
     }
 
-    r = httpx.put(f'https://{ha_replicate}/-/ha/replicate', json=data)
+    r = httpx.put(f'https://{ha_replicate}/-/ha/replicate', json=data, verify=False)
     if r.status_code == 202:
         logger.info(f'Successfully replicated this node ({ha_role}) to "{ha_replicate}".')
     else:

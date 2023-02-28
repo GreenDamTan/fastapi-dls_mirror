@@ -110,10 +110,9 @@ class Lease(Base):
         return Lease(
             lease_ref=j.get('lease_ref'),
             origin_ref=j.get('origin_ref'),
-            lease_created=j.get('lease_created'),
-            lease_expires=j.get('lease_expires'),
-            lease_updated=j.get('lease_updated'),
-            lease_renewal=j.get('lease_renewal'),
+            lease_created=datetime.fromisoformat(j.get('lease_created')),
+            lease_expires=datetime.fromisoformat(j.get('lease_expires')),
+            lease_updated=datetime.fromisoformat(j.get('lease_updated')),
         )
 
     @staticmethod

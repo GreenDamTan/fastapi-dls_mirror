@@ -265,9 +265,11 @@ async def _ha_replicate_to_ha(request: Request, background_tasks: BackgroundTask
     if HA_REPLICATE is None or HA_ROLE is None:
         logger.warning('HA replicate endpoint triggerd, but no value for "HA_REPLICATE" or "HA_ROLE" is set!')
         return JSONr(status_code=503, content={'status': 503, 'detail': 'no value for "HA_REPLICATE" or "HA_ROLE" set'})
+
     session = sessionmaker(bind=db)()
-    origins = session.query(Origin).all()
-    leases = session.query(Lease).all()
+    origins = [origin.serialize() for origin in session.query(Origin).all()]
+    leases = [lease.serialize(renewal_period=LEASE_RENEWAL_PERIOD, renewal_delta=LEASE_RENEWAL_DELTA) for lease in session.query(Lease).all()]
+
     background_tasks.add_task(ha_replicate, logger, HA_REPLICATE, HA_ROLE, VERSION, DLS_URL, DLS_PORT, SITE_KEY_XID, INSTANCE_REF, origins, leases)
     return JSONr(status_code=202, content=None)
 
@@ -295,7 +297,7 @@ async def _ha_replicate_by_ha(request: Request):
         logger.error(f'Version missmatch on HA replication task!')
         return JSONr(status_code=503, content={'status': 503, 'detail': 'Missmatch for "INSTANCE_REF"'})
 
-    sync_timestamp, max_seconds_behind = j.get('sync_timestamp'), 30
+    sync_timestamp, max_seconds_behind = datetime.fromisoformat(j.get('sync_timestamp')), 30
     if sync_timestamp <= cur_time - timedelta(seconds=max_seconds_behind):
         logger.error(f'Request time more than {max_seconds_behind}s behind!')
         return JSONr(status_code=503, content={'status': 503, 'detail': 'Request time behind'})
@@ -310,7 +312,7 @@ async def _ha_replicate_by_ha(request: Request):
     for lease in leases:
         lease_ref = lease.get('lease_ref')
         x = Lease.find_by_lease_ref(db, lease_ref)
-        if x.lease_updated > remote_time:
+        if x is not None and x.lease_updated > sync_timestamp:
             continue
         logging.info(f'> [    ha    ]: lease {lease_ref}')
         data = Lease.deserialize(lease)

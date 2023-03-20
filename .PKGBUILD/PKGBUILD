@@ -22,8 +22,9 @@ sha256sums=('SKIP'
             '3dc60140c08122a8ec0e7fa7f0937eb8c1288058890ba09478420fc30ce9e30c')
 
 pkgver() {
+  echo -e "VERSION=$VERSION\nCOMMIT=$CI_COMMIT_SHA" > $srcdir/$pkgname/version.env
   source $srcdir/$pkgname/version.env
-  echo ${VERSION}
+  echo $VERSION
 }
 
 check() {

@@ -82,7 +82,7 @@ async def _index():
 
 
 @app.get('/-/health', summary='* Health')
-async def _health(request: Request):
+async def _health():
     return JSONr({'status': 'up'})
 
 

@@ -39,6 +39,8 @@ Docker-Images are available here:
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
 
+The images include database drivers for `postgres`, `mysql`, `mariadb` and `sqlite`.
+
 **Run this on the Docker-Host**
 
 ```shell
@@ -388,9 +390,9 @@ After first success you have to replace `--issue` with `--renew`.
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
-\*2 Always use `https`, since guest-drivers only support secure connections!
+\*3 Always use `https`, since guest-drivers only support secure connections!
 
-\*3 If you recreate instance keys you need to **recreate client-token for each guest**!
+\*4 If you recreate instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 
@@ -398,9 +400,14 @@ client has 19.2 hours in which to re-establish connectivity before its license e
 
 Successfully tested with this package versions:
 
-- `14.3` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `513.91`)
-- `14.4` (Linux-Host: `510.108.03`, Linux-Guest: `510.108.03`, Windows-Guest: `514.08`)
-- `15.0` (Linux-Host: `525.60.12`, Linux-Guest: `525.60.13`, Windows-Guest: `527.41`)
+| vGPU Suftware | vGPU Manager | Linux Driver | Windows Driver | Release Date  |
+|---------------|--------------|--------------|----------------|---------------|
+| `15.1`        | `525.85.07`  | `525.85.05`  | `528.24`       | January 2023  |
+| `15.0`        | `525.60.12`  | `525.60.13`  | `527.41`       | December 2022 |
+| `14.4`        | `510.108.03` | `510.108.03` | `514.08`       | December 2022 |
+| `14.3`        | `510.108.03` | `510.108.03` | `513.91`       | November 2022 |
+
+- https://docs.nvidia.com/grid/index.html
 
 ## Linux
 

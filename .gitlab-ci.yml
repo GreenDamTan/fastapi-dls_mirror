@@ -37,13 +37,19 @@ build:apt:
   stage: build
   rules:
     - if: $CI_COMMIT_TAG
+      variables:
+        VERSION: $CI_BUILD_REF_NAME
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
         - app/**/*
         - .DEBIAN/**/*
+      variables:
+        VERSION: "0.0.1"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      variables:
+        VERSION: "0.0.1"
   before_script:
-    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
+    - echo -e "VERSION=$VERSION\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
     # create build directory for .deb sources
@@ -79,12 +85,18 @@ build:pacman:
   interruptible: true
   stage: build
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+      variables:
+        VERSION: $CI_BUILD_REF_NAME
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
         - app/**/*
         - .PKGBUILD/**/*
+      variables:
+        VERSION: "0.0.1"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      variables:
+        VERSION: "0.0.1"
   before_script:
     - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies

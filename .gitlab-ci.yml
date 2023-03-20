@@ -20,26 +20,30 @@ build:docker:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   tags: [ docker ]
   before_script:
-    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env  # COMMIT=`git rev-parse HEAD`
+    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env  # COMMIT=`git rev-parse HEAD`
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${CI_BUILD_REF}
+    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF
+    - docker build . --tag $IMAGE
+    - docker push $IMAGE
+    - echo "CS_IMAGE=$IMAGE" > container_scanning.env
+  artifacts:
+    reports:
+      dotenv: container_scanning.env
 
 build:apt:
   image: debian:bookworm-slim
   interruptible: true
   stage: build
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
         - app/**/*
         - .DEBIAN/**/*
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
-    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
-    - source version.env
+    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
     # create build directory for .deb sources
@@ -60,8 +64,8 @@ build:apt:
     # cd into "build/"
     - cd build/
   script:
-    # set version based on value in "$VERSION" (which is set above from version.env)
-    - sed -i -E 's/(Version\:\s)0.0/\1'"$VERSION"'/g' DEBIAN/control
+    # set version based on value in "$CI_BUILD_REF_NAME"
+    - sed -i -E 's/(Version\:\s)0.0/\1'"$CI_BUILD_REF_NAME"'/g' DEBIAN/control
     # build
     - dpkg -b . build.deb
     - dpkg -I build.deb
@@ -82,7 +86,7 @@ build:pacman:
         - .PKGBUILD/**/*
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   before_script:
-    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
+    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies
     - pacman -Syu --noconfirm git
     # create a build-user because "makepkg" don't like root user
@@ -108,6 +112,7 @@ test:
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH
+    - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
     DATABASE: sqlite:///../app/db.sqlite
@@ -192,28 +197,24 @@ code_quality:
     - if: $CODE_QUALITY_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 secret_detection:
   rules:
     - if: $SECRET_DETECTION_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 semgrep-sast:
   rules:
     - if: $SAST_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 test_coverage:
   extends: test
   allow_failure: true
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - pip install pytest pytest-cov
     - coverage run -m pytest main.py
@@ -232,43 +233,36 @@ container_scanning:
     - if: $CONTAINER_SCANNING_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 gemnasium-python-dependency_scanning:
   rules:
     - if: $DEPENDENCY_SCANNING_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 .deploy:
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
-      when: never
 
 deploy:docker:
   extends: .deploy
   stage: deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
-    - echo "COMMIT=${CI_COMMIT_SHA}" >> version.env
-    - source version.env
-    - echo "Building docker image for commit ${COMMIT} with version ${VERSION}"
+    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
+    - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_BUILD_REF_NAME"
   script:
     - echo "GitLab-Registry"
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${VERSION}
-    - docker build . --tag ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:latest
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:${VERSION}
-    - docker push ${CI_REGISTRY}/${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}:latest
+    - docker build . --tag $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF_NAME
+    - docker build . --tag $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:latest
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF_NAME
+    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:latest
     - echo "Docker-Hub"
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
-    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
-    - docker build . --tag $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
-    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:${VERSION}
-    - docker push $PUBLIC_REGISTRY_USER/${CI_PROJECT_NAME}:latest
+    - docker build . --tag $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:$CI_BUILD_REF_NAME
+    - docker build . --tag $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:latest
+    - docker push $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:$CI_BUILD_REF_NAME
+    - docker push $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:latest
 
 deploy:apt:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
@@ -276,7 +270,7 @@ deploy:apt:
   image: debian:bookworm-slim
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
   needs:
     - job: build:apt
       artifacts: true
@@ -317,7 +311,7 @@ deploy:pacman:
   image: archlinux:base-devel
   stage: deploy
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
   needs:
     - job: build:pacman
       artifacts: true
@@ -325,9 +319,9 @@ deploy:pacman:
     - source .PKGBUILD/PKGBUILD
     - source version.env
     # fastapi-dls-1.0-1-any.pkg.tar.zst
-    - BUILD_NAME=${pkgname}-${VERSION}-${pkgrel}-any.pkg.tar.zst
+    - BUILD_NAME=${pkgname}-${CI_BUILD_REF_NAME}-${pkgrel}-any.pkg.tar.zst
     - PACKAGE_NAME=${pkgname}
-    - PACKAGE_VERSION=${VERSION}
+    - PACKAGE_VERSION=${CI_BUILD_REF_NAME}
     - PACKAGE_ARCH=any
     - EXPORT_NAME=${BUILD_NAME}
     - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'
@@ -339,19 +333,15 @@ deploy:pacman:
 release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   stage: .post
-  needs:
-    - job: test
-      artifacts: true
+  needs: [ test ]
   rules:
     - if: $CI_COMMIT_TAG
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
-    - echo "Running release-job for $VERSION"
+    - echo "Running release-job for $CI_COMMIT_TAG"
   release:
-    name: $CI_PROJECT_TITLE $VERSION
-    description: Release of $CI_PROJECT_TITLE version $VERSION
-    tag_name: $VERSION
+    name: $CI_PROJECT_TITLE $CI_COMMIT_TAG
+    description: Release of $CI_PROJECT_TITLE version $CI_COMMIT_TAG
+    tag_name: $CI_COMMIT_TAG
     ref: $CI_COMMIT_SHA
     assets:
       links:

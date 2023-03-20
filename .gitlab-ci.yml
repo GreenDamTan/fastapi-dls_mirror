@@ -43,12 +43,14 @@ build:apt:
       changes:
         - app/**/*
         - .DEBIAN/**/*
+        - .gitlab-ci.yml
       variables:
         VERSION: "0.0.1"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       variables:
         VERSION: "0.0.1"
   before_script:
+    - echo $VERSION
     - echo -e "VERSION=$VERSION\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
@@ -71,7 +73,7 @@ build:apt:
     - cd build/
   script:
     # set version based on value in "$CI_BUILD_REF_NAME"
-    - sed -i -E 's/(Version\:\s)0.0/\1'"$CI_BUILD_REF_NAME"'/g' DEBIAN/control
+    - sed -i -E 's/(Version\:\s)0.0/\1'"$VERSION"'/g' DEBIAN/control
     # build
     - dpkg -b . build.deb
     - dpkg -I build.deb
@@ -92,13 +94,14 @@ build:pacman:
       changes:
         - app/**/*
         - .PKGBUILD/**/*
+        - .gitlab-ci.yml
       variables:
         VERSION: "0.0.1"
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       variables:
         VERSION: "0.0.1"
   before_script:
-    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
+    #- echo -e "VERSION=$VERSION\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies
     - pacman -Syu --noconfirm git
     # create a build-user because "makepkg" don't like root user
@@ -113,7 +116,7 @@ build:pacman:
     # download dependencies
     - source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
     # build
-    - sudo -u build makepkg -s
+    - sudo --preserve-env -u build makepkg -s
   artifacts:
     expire_in: 1 week
     paths:

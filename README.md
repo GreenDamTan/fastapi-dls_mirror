@@ -352,6 +352,17 @@ pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
 
+## unRAID
+
+1. Download [this xml file](.UNRAID/FastAPI-DLS.xml)
+2. Put it in /boot/config/plugins/dockerMan/templates-user/
+3. Go to Docker page, scroll down to `Add Container`, click on Template list and choose `FastAPI-DLS`
+4. Open terminal/ssh, follow the instructions in overview description
+5. Setup your container `IP`, `Port`, `DLS_URL` and `DLS_PORT`
+6. Apply and let it boot up
+
+*Unraid users must also make sure they have Host access to custom networks enabled if unraid is the vgpu guest*.
+
 ## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
@@ -673,4 +684,8 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 Thanks to vGPU community and all who uses this project and report bugs.
 
-Special thanks to @samicrusader who created build file for ArchLinux and @cyrus who wrote the section for openSUSE.
+Special thanks to 
+
+- @samicrusader who created build file for ArchLinux
+- @cyrus who wrote the section for openSUSE
+- @midi who wrote the section for unRAID

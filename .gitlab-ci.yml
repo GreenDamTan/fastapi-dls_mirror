@@ -50,7 +50,6 @@ build:apt:
       variables:
         VERSION: "0.0.1"
   before_script:
-    - echo $VERSION
     - echo -e "VERSION=$VERSION\nCOMMIT=$CI_COMMIT_SHA" > version.env
     # install build dependencies
     - apt-get update -qq && apt-get install -qq -y build-essential
@@ -284,8 +283,6 @@ deploy:apt:
   extends: .deploy
   image: debian:bookworm-slim
   stage: deploy
-  rules:
-    - if: $CI_COMMIT_TAG
   needs:
     - job: build:apt
       artifacts: true
@@ -325,8 +322,6 @@ deploy:pacman:
   extends: .deploy
   image: archlinux:base-devel
   stage: deploy
-  rules:
-    - if: $CI_COMMIT_TAG
   needs:
     - job: build:pacman
       artifacts: true

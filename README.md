@@ -363,6 +363,8 @@ Start with `systemctl start fastapi-dls.service` and enable autostart with `syst
 
 *Unraid users must also make sure they have Host access to custom networks enabled if unraid is the vgpu guest*.
 
+Continue [here](#unraid-guest) for docker guest setup.
+
 ## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
@@ -481,6 +483,19 @@ vGPU Software Licensed Product
 ```
 
 Done. For more information check [troubleshoot section](#troubleshoot).
+
+## unRAID Guest
+
+1. Make sure you create a folder in a linux filesystem (BTRFS/XFS/EXT4...), I recommend `/mnt/user/system/nvidia` (this is where docker and libvirt preferences are saved, so it's a good place to have that)
+2. Edit the script to put your `DLS_IP`, `DLS_PORT` and `TOKEN_PATH`, properly 
+3. Install `User Scripts` plugin from *Community Apps* (the Apps page, or google User Scripts Unraid if you're not using CA)
+4. Go to `Settings > Users Scripts > Add New Script`
+5. Give it a name  (the name must not contain spaces preferably)
+6. Click on the *gear icon* to the left of the script name then edit script
+7. Paste the script and save
+8. Set schedule to `At First Array Start Only`
+9. Click on Apply 
+
 
 # Endpoints
 

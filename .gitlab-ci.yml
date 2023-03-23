@@ -22,11 +22,11 @@ build:docker:
   before_script:
     - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env  # COMMIT=`git rev-parse HEAD`
     - docker buildx inspect
-    - docker buildx create --use # tcp://docker:2375
+    - docker buildx create --use
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF
-    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64,linux/arm/v7 --tag $IMAGE --push .
+    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --tag $IMAGE --push .
 #    - docker push $IMAGE
     - echo "CS_IMAGE=$IMAGE" > container_scanning.env
   artifacts:

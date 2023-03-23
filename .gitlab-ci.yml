@@ -8,6 +8,7 @@ include:
 cache:
   key: one-key-to-rule-them-all
 
+# https://docs.docker.com/build/building/multi-platform/
 build:docker:
   image: docker:dind
   interruptible: true
@@ -21,10 +22,12 @@ build:docker:
   tags: [ docker ]
   before_script:
     - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env  # COMMIT=`git rev-parse HEAD`
+    - docker buildx ls
+    - docker buildx inspect
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF
-    - docker build . --tag $IMAGE
+    - docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 . --tag $IMAGE
     - docker push $IMAGE
     - echo "CS_IMAGE=$IMAGE" > container_scanning.env
   artifacts:

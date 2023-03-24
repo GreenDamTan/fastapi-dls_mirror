@@ -219,6 +219,8 @@ secret_detection:
     - if: $SECRET_DETECTION_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    - git config --global --add safe.directory $CI_PROJECT_DIR
 
 semgrep-sast:
   rules:

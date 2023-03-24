@@ -21,11 +21,13 @@ build:docker:
   tags: [ docker ]
   before_script:
     - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env  # COMMIT=`git rev-parse HEAD`
+    - docker buildx inspect
+    - docker buildx create --use
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF
-    - docker build . --tag $IMAGE
-    - docker push $IMAGE
+    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --tag $IMAGE --push .
+    - docker buildx imagetools inspect $IMAGE
     - echo "CS_IMAGE=$IMAGE" > container_scanning.env
   artifacts:
     reports:
@@ -217,6 +219,8 @@ secret_detection:
     - if: $SECRET_DETECTION_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  before_script:
+    - git config --global --add safe.directory $CI_PROJECT_DIR
 
 semgrep-sast:
   rules:

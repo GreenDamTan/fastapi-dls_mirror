@@ -415,6 +415,7 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | vGPU Manager | Linux Driver | Windows Driver | Release Date  |
 |---------------|--------------|--------------|----------------|---------------|
+| `15.2`        | `525.105.14` | `525.105.17` | `528.89`       | March 2023    |
 | `15.1`        | `525.85.07`  | `525.85.05`  | `528.24`       | January 2023  |
 | `15.0`        | `525.60.12`  | `525.60.13`  | `527.41`       | December 2022 |
 | `14.4`        | `510.108.03` | `510.108.03` | `514.08`       | December 2022 |

@@ -145,9 +145,9 @@ This is only to test whether the service starts successfully.
 
 ```shell
 cd /opt/fastapi-dls/app
-su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
+sudo -u www-data /opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app
 # or
-sudo -u www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
+su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**
@@ -247,6 +247,8 @@ This is only to test whether the service starts successfully.
 BASE_DIR=/opt/fastapi-dls
 SERVICE_USER=dls
 cd ${BASE_DIR}
+sudo -u ${SERVICE_USER} ${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_DIR}/app
+# or
 su - ${SERVICE_USER} -c "${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_DIR}/app"
 ```
 

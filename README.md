@@ -473,7 +473,7 @@ Restart-Service NVDisplay.ContainerLocalSystem
 Check licensing status:
 
 ```shell
-& 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q  | Select-String "License"
+& 'nvidia-smi' -q  | Select-String "License"
 ```
 
 Output should be something like:

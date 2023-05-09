@@ -1,5 +1,9 @@
 FROM python:3.11-alpine
 
+ARG VERSION
+ARG COMMIT=""
+RUN echo -e "VERSION=$VERSION\nCOMMIT=$COMMIT" > /version.env
+
 COPY requirements.txt /tmp/requirements.txt
 
 RUN apk update \
@@ -11,7 +15,6 @@ RUN apk update \
  && apk del build-deps
 
 COPY app /app
-COPY version.env /version.env
 COPY README.md /README.md
 
 HEALTHCHECK --start-period=30s --interval=10s --timeout=5s --retries=3 CMD curl --insecure --fail https://localhost/-/health || exit 1

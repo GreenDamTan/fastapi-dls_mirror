@@ -20,13 +20,12 @@ build:docker:
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   tags: [ docker ]
   before_script:
-    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env  # COMMIT=`git rev-parse HEAD`
     - docker buildx inspect
     - docker buildx create --use
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF
-    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --tag $IMAGE --push .
+    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE --push .
     - docker buildx imagetools inspect $IMAGE
     - echo "CS_IMAGE=$IMAGE" > container_scanning.env
   artifacts:
@@ -266,21 +265,22 @@ deploy:docker:
   extends: .deploy
   stage: deploy
   before_script:
-    - echo -e "VERSION=$CI_BUILD_REF_NAME\nCOMMIT=$CI_COMMIT_SHA" > version.env
     - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_BUILD_REF_NAME"
   script:
-    - echo "GitLab-Registry"
+    - echo "========== GitLab-Registry =========="
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . --tag $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF_NAME
-    - docker build . --tag $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:latest
-    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF_NAME
-    - docker push $CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:latest
-    - echo "Docker-Hub"
+    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME
+    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_BUILD_REF_NAME
+    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
+    - docker push $IMAGE:$CI_BUILD_REF_NAME
+    - docker push $IMAGE:latest
+    - echo "========== Docker-Hub =========="
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
-    - docker build . --tag $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:$CI_BUILD_REF_NAME
-    - docker build . --tag $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:latest
-    - docker push $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:$CI_BUILD_REF_NAME
-    - docker push $PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME:latest
+    - IMAGE=$PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME
+    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_BUILD_REF_NAME
+    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
+    - docker push $IMAGE:$CI_BUILD_REF_NAME
+    - docker push $IMAGE:latest
 
 deploy:apt:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package

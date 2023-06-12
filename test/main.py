@@ -153,8 +153,7 @@ def test_auth_v1_token():
         "kid": "00000000-0000-0000-0000-000000000000"
     }
     payload = {
-        "auth_code": jwt.encode(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')},
-                                algorithm=ALGORITHMS.RS256),
+        "auth_code": jwt.encode(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256),
         "code_verifier": SECRET,
     }
 

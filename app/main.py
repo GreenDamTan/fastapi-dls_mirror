@@ -30,7 +30,8 @@ TZ = datetime.now().astimezone().tzinfo
 # fetch version info
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
-config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
+# fastapi setup
+config = dict(openapi_url='/-/openapi.json', docs_url=None, redoc_url=None)
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
 
 # database setup

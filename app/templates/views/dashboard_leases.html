@@ -13,6 +13,9 @@
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteLease().finally(() => load())">
                         delete lease
                     </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteExpiredLeases().finally(() => load())">
+                        delete all expired leases
+                    </button>
                 </div>
 
                 <button type="button" class="btn btn-sm btn-outline-secondary" onclick="load()" title="refresh">

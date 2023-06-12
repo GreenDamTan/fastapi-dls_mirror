@@ -125,3 +125,9 @@ async function deleteLease(lease_ref) {
     xhr.open("DELETE", `/-/lease/${lease_ref}`, true);
     xhr.send();
 }
+
+async function deleteExpiredLeases() {
+    let xhr = new XMLHttpRequest();
+    xhr.open("DELETE", `/-/leases/expired`, true);
+    xhr.send();
+}

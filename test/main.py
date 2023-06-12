@@ -1,14 +1,15 @@
+from os import getenv as env
 from base64 import b64encode as b64enc
 from hashlib import sha256
 from calendar import timegm
 from datetime import datetime
-from os.path import dirname, join
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 from dateutil.relativedelta import relativedelta
-from jose import jwt, jwk
+from jose import jwt
 from jose.constants import ALGORITHMS
 from starlette.testclient import TestClient
+from sqlalchemy import create_engine
 import sys
 
 # add relative path to use packages as they were in the app/ dir
@@ -16,26 +17,35 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from app.util import load_key
+from app.orm import init as db_init, migrate, Site, Instance
 
-client = TestClient(main.app)
 
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
 
-# INSTANCE_KEY_RSA = generate_key()
-# INSTANCE_KEY_PUB = INSTANCE_KEY_RSA.public_key()
+# fastapi setup
+client = TestClient(main.app)
 
-INSTANCE_KEY_RSA = load_key(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
-INSTANCE_KEY_PUB = load_key(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
+# database setup
+db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
+db_init(db), migrate(db)
 
-jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
-jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
+# test vars
+DEFAULT_SITE, DEFAULT_INSTANCE = Site.get_default_site(db), Instance.get_default_instance(db)
+
+SITE_KEY = DEFAULT_SITE.site_key
+jwt_encode_key, jwt_decode_key = DEFAULT_INSTANCE.get_jwt_encode_key(), DEFAULT_INSTANCE.get_jwt_decode_key()
 
 
 def __bearer_token(origin_ref: str) -> str:
     token = jwt.encode({"origin_ref": origin_ref}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
     token = f'Bearer {token}'
     return token
+
+
+def test_initial_default_site_and_instance():
+    default_site, default_instance = Site.get_default_site(db), Instance.get_default_instance(db)
+    assert default_site.site_key == Site.INITIAL_SITE_KEY_XID
+    assert default_instance.instance_ref == Instance.DEFAULT_INSTANCE_REF
 
 
 def test_index():

@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text, BLOB, INT, FLOAT
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import sessionmaker, declarative_base, Session
+from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
 from app.util import parse_key
 
@@ -57,6 +57,8 @@ class Instance(Base):
     lease_expire_delta = Column(INT(), nullable=False, default=DEFAULT_LEASE_EXPIRE_DELTA, comment='in seconds')
     lease_renewal_period = Column(FLOAT(precision=2), nullable=False, default=DEFAULT_LEASE_RENEWAL_PERIOD)
     client_token_expire_delta = Column(INT(), nullable=False, default=DEFAULT_CLIENT_TOKEN_EXPIRE_DELTA, comment='in seconds')
+
+    __origin = relationship(Site, foreign_keys=[site_key])
 
     def __str__(self):
         return f'INSTANCE_REF: {self.instance_ref} (SITE_KEY_XID: {self.site_key})'
@@ -196,6 +198,9 @@ class Lease(Base):
     lease_created = Column(DATETIME(), nullable=False)
     lease_expires = Column(DATETIME(), nullable=False)
     lease_updated = Column(DATETIME(), nullable=False)
+
+    __instance = relationship(Instance, foreign_keys=[instance_ref])
+    __origin = relationship(Origin, foreign_keys=[origin_ref])
 
     def __repr__(self):
         return f'Lease(origin_ref={self.origin_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'

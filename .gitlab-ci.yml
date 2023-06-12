@@ -24,8 +24,8 @@ build:docker:
     - docker buildx create --use
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME:$CI_BUILD_REF
-    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE --push .
+    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHA
+    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE --push .
     - docker buildx imagetools inspect $IMAGE
     - echo "CS_IMAGE=$IMAGE" > container_scanning.env
   artifacts:
@@ -39,7 +39,7 @@ build:apt:
   rules:
     - if: $CI_COMMIT_TAG
       variables:
-        VERSION: $CI_BUILD_REF_NAME
+        VERSION: $CI_COMMIT_REF_NAME
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
         - app/**/*
@@ -72,7 +72,7 @@ build:apt:
     # cd into "build/"
     - cd build/
   script:
-    # set version based on value in "$CI_BUILD_REF_NAME"
+    # set version based on value in "$CI_COMMIT_REF_NAME"
     - sed -i -E 's/(Version\:\s)0.0/\1'"$VERSION"'/g' DEBIAN/control
     # build
     - dpkg -b . build.deb
@@ -89,7 +89,7 @@ build:pacman:
   rules:
     - if: $CI_COMMIT_TAG
       variables:
-        VERSION: $CI_BUILD_REF_NAME
+        VERSION: $CI_COMMIT_REF_NAME
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
         - app/**/*
@@ -265,21 +265,21 @@ deploy:docker:
   extends: .deploy
   stage: deploy
   before_script:
-    - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_BUILD_REF_NAME"
+    - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_COMMIT_REF_NAME"
   script:
     - echo "========== GitLab-Registry =========="
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_BUILD_REF_NAME
-    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_BUILD_REF_NAME
-    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
-    - docker push $IMAGE:$CI_BUILD_REF_NAME
+    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME
+    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
+    - docker push $IMAGE:$CI_COMMIT_REF_NAME
     - docker push $IMAGE:latest
     - echo "========== Docker-Hub =========="
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
     - IMAGE=$PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME
-    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_BUILD_REF_NAME
-    - docker build . --build-arg VERSION=$CI_BUILD_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
-    - docker push $IMAGE:$CI_BUILD_REF_NAME
+    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME
+    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
+    - docker push $IMAGE:$CI_COMMIT_REF_NAME
     - docker push $IMAGE:latest
 
 deploy:apt:
@@ -333,9 +333,9 @@ deploy:pacman:
     - source .PKGBUILD/PKGBUILD
     - source version.env
     # fastapi-dls-1.0-1-any.pkg.tar.zst
-    - BUILD_NAME=${pkgname}-${CI_BUILD_REF_NAME}-${pkgrel}-any.pkg.tar.zst
+    - BUILD_NAME=${pkgname}-${CI_COMMIT_REF_NAME}-${pkgrel}-any.pkg.tar.zst
     - PACKAGE_NAME=${pkgname}
-    - PACKAGE_VERSION=${CI_BUILD_REF_NAME}
+    - PACKAGE_VERSION=${CI_COMMIT_REF_NAME}
     - PACKAGE_ARCH=any
     - EXPORT_NAME=${BUILD_NAME}
     - 'echo "PACKAGE_NAME:    ${PACKAGE_NAME}"'

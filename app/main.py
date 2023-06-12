@@ -195,6 +195,12 @@ async def _leases(request: Request, origin: bool = False):
     return JSONr(response)
 
 
+@app.delete('/-/leases/expired', summary='* Leases')
+async def _lease_delete_expired(request: Request):
+    Lease.delete_expired(db)
+    return Response(status_code=201)
+
+
 @app.delete('/-/lease/{lease_ref}', summary='* Lease')
 async def _lease_delete(request: Request, lease_ref: str):
     if Lease.delete(db, lease_ref) == 1:

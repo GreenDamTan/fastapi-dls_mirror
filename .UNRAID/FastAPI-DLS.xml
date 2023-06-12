@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>FastAPI-DLS</Name>
+  <Repository>collinwebdesigns/fastapi-dls:latest</Repository>
+  <Registry>https://hub.docker.com/r/collinwebdesigns/fastapi-dls</Registry>
+  <Network>br0</Network>
+  <MyIP></MyIP>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support/>
+  <Project/>
+  <Overview>Source:&#xD;
+https://git.collinwebdesigns.de/oscar.krause/fastapi-dls#docker&#xD;
+&#xD;
+Make sure you create these certificates before starting the container for the first time:&#xD;
+```&#xD;
+# Check https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/tree/main/#docker for more information:&#xD;
+WORKING_DIR=/mnt/user/appdata/fastapi-dls/cert&#xD;
+mkdir -p $WORKING_DIR&#xD;
+cd $WORKING_DIR&#xD;
+# create instance private and public key for singing JWT's&#xD;
+openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 &#xD;
+openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem&#xD;
+# create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl&#xD;
+openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt&#xD;
+```&#xD;
+</Overview>
+  <Category/>
+  <WebUI>https://[IP]:[PORT:443]</WebUI>
+  <TemplateURL/>
+  <Icon>https://git.collinwebdesigns.de/uploads/-/system/project/avatar/106/png-transparent-nvidia-grid-logo-business-nvidia-electronics-text-trademark.png?width=64</Icon>
+  <ExtraParams>--restart always</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1679161568</DateInstalled>
+  <DonateText/>
+  <DonateLink/>
+  <Requires/>
+  <Config Name="HTTPS Port" Target="" Default="443" Mode="tcp" Description="Same as DLS Port below." Type="Port" Display="always-hide" Required="true" Mask="false">443</Config>
+  <Config Name="App Cert" Target="/app/cert" Default="/mnt/user/appdata/fastapi-dls/cert" Mode="rw" Description="[REQUIRED] Read the description above to make this folder. &#13;&#10;&#13;&#10;You do not need to change the path." Type="Path" Display="always-hide" Required="true" Mask="false">/mnt/user/appdata/fastapi-dls/cert</Config>
+  <Config Name="DLS Port" Target="DSL_PORT" Default="443" Mode="" Description="Choose port you want to use. Make sure to change the HTTPS port above to match it." Type="Variable" Display="always-hide" Required="true" Mask="false">443</Config>
+  <Config Name="App database" Target="/app/database" Default="/mnt/user/appdata/fastapi-dls/data" Mode="rw" Description="[REQUIRED] Read the description above to make this folder. &#13;&#10;&#13;&#10;You do not need to change the path." Type="Path" Display="always-hide" Required="true" Mask="false">/mnt/user/appdata/fastapi-dls/data</Config>
+  <Config Name="DSL IP" Target="DLS_URL" Default="localhost" Mode="" Description="Put your container's IP (or your host's IP if it's shared)." Type="Variable" Display="always-hide" Required="true" Mask="false"></Config>
+  <Config Name="Time Zone" Target="TZ" Default="" Mode="" Description="Format example: America/New_York. MUST MATCH YOUR CURRENT TIMEZONE AND THE GUEST VMS TIMEZONE! Otherwise you'll get into issues, read the guide above." Type="Variable" Display="always-hide" Required="true" Mask="false"></Config>
+  <Config Name="Database" Target="DATABASE" Default="sqlite:////app/database/db.sqlite" Mode="" Description="Set to sqlite:////app/database/db.sqlite" Type="Variable" Display="advanced-hide" Required="true" Mask="false">sqlite:////app/database/db.sqlite</Config>
+  <Config Name="Debug" Target="DEBUG" Default="true" Mode="" Description="true to enable debugging, false to disable them." Type="Variable" Display="advanced-hide" Required="false" Mask="false">true</Config>
+  <Config Name="Lease" Target="LEASE_EXPIRE_DAYS" Default="90" Mode="" Description="90 days is the maximum value." Type="Variable" Display="advanced" Required="false" Mask="false">90</Config>
+</Container>

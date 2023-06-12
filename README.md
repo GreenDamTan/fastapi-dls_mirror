@@ -9,9 +9,9 @@ Only the clients need a connection to this service on configured port.
 
 **Official Links**
 
-- https://git.collinwebdesigns.de/oscar.krause/fastapi-dls
-- https://gitea.publichub.eu/oscar.krause/fastapi-dls
-- Docker Image `collinwebdesigns/fastapi-dls:latest`
+- https://git.collinwebdesigns.de/oscar.krause/fastapi-dls (Private Git)
+- https://gitea.publichub.eu/oscar.krause/fastapi-dls (Public Git)
+- https://hub.docker.com/r/collinwebdesigns/fastapi-dls (Docker-Hub `collinwebdesigns/fastapi-dls:latest`)
 
 *All other repositories are forks! (which  is no bad - just for information and bug reports)*
 
@@ -145,9 +145,9 @@ This is only to test whether the service starts successfully.
 
 ```shell
 cd /opt/fastapi-dls/app
-su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
+sudo -u www-data /opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app
 # or
-sudo -u www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
+su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fastapi-dls/app"
 ```
 
 **Create config file**
@@ -247,6 +247,8 @@ This is only to test whether the service starts successfully.
 BASE_DIR=/opt/fastapi-dls
 SERVICE_USER=dls
 cd ${BASE_DIR}
+sudo -u ${SERVICE_USER} ${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_DIR}/app
+# or
 su - ${SERVICE_USER} -c "${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_DIR}/app"
 ```
 
@@ -308,7 +310,7 @@ Packages are available here:
 
 Successful tested with:
 
-- Debian 12 (Bookworm) (works but not recommended because it is currently in *testing* state)
+- Debian 12 (Bookworm)
 - Ubuntu 22.10 (Kinetic Kudu)
 
 Not working with:
@@ -351,6 +353,19 @@ pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 ```
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+
+## unRAID
+
+1. Download [this xml file](.UNRAID/FastAPI-DLS.xml)
+2. Put it in /boot/config/plugins/dockerMan/templates-user/
+3. Go to Docker page, scroll down to `Add Container`, click on Template list and choose `FastAPI-DLS`
+4. Open terminal/ssh, follow the instructions in overview description
+5. Setup your container `IP`, `Port`, `DLS_URL` and `DLS_PORT`
+6. Apply and let it boot up
+
+*Unraid users must also make sure they have Host access to custom networks enabled if unraid is the vgpu guest*.
+
+Continue [here](#unraid-guest) for docker guest setup.
 
 ## Let's Encrypt Certificate (optional)
 
@@ -402,6 +417,7 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | vGPU Manager | Linux Driver | Windows Driver | Release Date  |
 |---------------|--------------|--------------|----------------|---------------|
+| `15.2`        | `525.105.14` | `525.105.17` | `528.89`       | March 2023    |
 | `15.1`        | `525.85.07`  | `525.85.05`  | `528.24`       | January 2023  |
 | `15.0`        | `525.60.12`  | `525.60.13`  | `527.41`       | December 2022 |
 | `14.4`        | `510.108.03` | `510.108.03` | `514.08`       | December 2022 |
@@ -459,7 +475,7 @@ Restart-Service NVDisplay.ContainerLocalSystem
 Check licensing status:
 
 ```shell
-& 'C:\Program Files\NVIDIA Corporation\NVSMI\nvidia-smi.exe' -q  | Select-String "License"
+& 'nvidia-smi' -q  | Select-String "License"
 ```
 
 Output should be something like:
@@ -470,6 +486,19 @@ vGPU Software Licensed Product
 ```
 
 Done. For more information check [troubleshoot section](#troubleshoot).
+
+## unRAID Guest
+
+1. Make sure you create a folder in a linux filesystem (BTRFS/XFS/EXT4...), I recommend `/mnt/user/system/nvidia` (this is where docker and libvirt preferences are saved, so it's a good place to have that)
+2. Edit the script to put your `DLS_IP`, `DLS_PORT` and `TOKEN_PATH`, properly 
+3. Install `User Scripts` plugin from *Community Apps* (the Apps page, or google User Scripts Unraid if you're not using CA)
+4. Go to `Settings > Users Scripts > Add New Script`
+5. Give it a name  (the name must not contain spaces preferably)
+6. Click on the *gear icon* to the left of the script name then edit script
+7. Paste the script and save
+8. Set schedule to `At First Array Start Only`
+9. Click on Apply 
+
 
 # Endpoints
 
@@ -673,4 +702,8 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 Thanks to vGPU community and all who uses this project and report bugs.
 
-Special thanks to @samicrusader who created build file for ArchLinux and @cyrus who wrote the section for openSUSE.
+Special thanks to 
+
+- @samicrusader who created build file for ArchLinux
+- @cyrus who wrote the section for openSUSE
+- @midi who wrote the section for unRAID

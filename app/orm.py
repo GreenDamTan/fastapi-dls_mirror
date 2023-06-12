@@ -111,23 +111,26 @@ class Instance(Base):
     def get_client_token_expire_delta(self) -> "dateutil.relativedelta.relativedelta":
         return relativedelta(seconds=self.client_token_expire_delta)
 
+    def __get_private_key(self) -> "RsaKey":
+        return parse_key(self.private_key)
+
     def get_public_key(self) -> "RsaKey":
         return parse_key(self.public_key)
 
     def get_jwt_encode_key(self) -> "jose.jkw":
         from jose import jwk
         from jose.constants import ALGORITHMS
-        return jwk.construct(self.private_key, algorithm=ALGORITHMS.RS256)
+        return jwk.construct(self.__get_private_key().export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
     def get_jwt_decode_key(self) -> "jose.jwt":
         from jose import jwk
         from jose.constants import ALGORITHMS
-        return jwk.construct(self.public_key, algorithm=ALGORITHMS.RS256)
+        return jwk.construct(self.get_public_key().export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
-    def get_private_key_str(self, encoding: str = 'utf-8'):
+    def get_private_key_str(self, encoding: str = 'utf-8') -> str:
         return self.private_key.decode(encoding)
 
-    def get_public_key_str(self, encoding: str = 'utf-8'):
+    def get_public_key_str(self, encoding: str = 'utf-8') -> str:
         return self.private_key.decode(encoding)
 
 
@@ -192,6 +195,7 @@ class Origin(Base):
 class Lease(Base):
     __tablename__ = "lease"
 
+    instance_ref = Column(CHAR(length=36), ForeignKey(Instance.instance_ref, ondelete='CASCADE'), nullable=False, index=True)  # uuid4
     lease_ref = Column(CHAR(length=36), primary_key=True, nullable=False, index=True)  # uuid4
     origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref, ondelete='CASCADE'), nullable=False, index=True)  # uuid4
     # scope_ref = Column(CHAR(length=36), nullable=False, index=True)  # uuid4 # not necessary, we only support one scope_ref ('ALLOTMENT_REF')
@@ -205,7 +209,10 @@ class Lease(Base):
     def __repr__(self):
         return f'Lease(origin_ref={self.origin_ref}, lease_ref={self.lease_ref}, expires={self.lease_expires})'
 
-    def serialize(self, renewal_period: float, renewal_delta: timedelta) -> dict:
+    def serialize(self) -> dict:
+        renewal_period = self.__instance.lease_renewal_period
+        renewal_delta = self.__instance.get_lease_renewal_delta
+
         lease_renewal = int(Lease.calculate_renewal(renewal_period, renewal_delta).total_seconds())
         lease_renewal = self.lease_updated + relativedelta(seconds=lease_renewal)
 
@@ -322,7 +329,7 @@ def init_default_site(session: Session):
     session.commit()
 
     instance = Instance(
-        instance_ref=str(uuid4()),
+        instance_ref=Instance.DEFAULT_INSTANCE_REF,
         site_key=site.site_key,
         private_key=private_key.export_key(),
         public_key=public_key.export_key(),

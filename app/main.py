@@ -24,16 +24,20 @@ from orm import Origin, Lease, init as db_init, migrate
 
 load_dotenv('../version.env')
 
+# get local timezone
 TZ = datetime.now().astimezone().tzinfo
 
+# fetch version info
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
 config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
+
+# database setup
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db), migrate(db)
 
-# everything prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service
+# DLS setup (static)
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
@@ -51,6 +55,7 @@ CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
+# fastapi middleware
 app.debug = DEBUG
 app.add_middleware(
     CORSMiddleware,
@@ -60,6 +65,7 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+# logging
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
@@ -108,6 +114,8 @@ async def _config():
 @app.get('/-/readme', summary='* Readme')
 async def _readme():
     from markdown import markdown
+    from util import load_file
+
     content = load_file('../README.md').decode('utf-8')
     return HTMLr(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 

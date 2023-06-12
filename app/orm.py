@@ -12,7 +12,6 @@ class Origin(Base):
     __tablename__ = "origin"
 
     origin_ref = Column(CHAR(length=36), primary_key=True, unique=True, index=True)  # uuid4
-
     # service_instance_xid = Column(CHAR(length=36), nullable=False, index=True)  # uuid4 # not necessary, we only support one service_instance_xid ('INSTANCE_REF')
     hostname = Column(VARCHAR(length=256), nullable=True)
     guest_driver_version = Column(VARCHAR(length=10), nullable=True)
@@ -71,7 +70,6 @@ class Lease(Base):
     __tablename__ = "lease"
 
     lease_ref = Column(CHAR(length=36), primary_key=True, nullable=False, index=True)  # uuid4
-
     origin_ref = Column(CHAR(length=36), ForeignKey(Origin.origin_ref, ondelete='CASCADE'), nullable=False, index=True)  # uuid4
     # scope_ref = Column(CHAR(length=36), nullable=False, index=True)  # uuid4 # not necessary, we only support one scope_ref ('ALLOTMENT_REF')
     lease_created = Column(DATETIME(), nullable=False)

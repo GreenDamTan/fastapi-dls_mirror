@@ -161,6 +161,14 @@ class Lease(Base):
         return deletions
 
     @staticmethod
+    def delete_expired(engine: Engine) -> int:
+        session = sessionmaker(bind=engine)()
+        deletions = session.query(Lease).filter(Lease.lease_expires <= datetime.utcnow()).delete()
+        session.commit()
+        session.close()
+        return deletions
+
+    @staticmethod
     def calculate_renewal(renewal_period: float, delta: timedelta) -> timedelta:
         """
         import datetime

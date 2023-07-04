@@ -566,6 +566,10 @@ There are many other internal api endpoints for handling authentication and leas
 
 **Please make sure that fastapi-dls and your guests are on the same timezone!**
 
+## Docker
+
+Logs are available with `docker logs <container>`. To get the correct container-id use `docker container ls` or `docker ps`.
+
 ## Linux
 
 Logs are available with `journalctl -u nvidia-gridd -f`.

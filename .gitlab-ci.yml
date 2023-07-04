@@ -8,6 +8,9 @@ include:
 cache:
   key: one-key-to-rule-them-all
 
+variables:
+  DOCKER_BUILDX_PLATFORM: "linux/amd64,linux/arm64"
+
 build:docker:
   image: docker:dind
   interruptible: true
@@ -25,7 +28,7 @@ build:docker:
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHA
-    - docker buildx build --progress=plain --platform linux/amd64,linux/arm64 --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE --push .
+    - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE --push .
     - docker buildx imagetools inspect $IMAGE
     - echo "CS_IMAGE=$IMAGE" > container_scanning.env
   artifacts:
@@ -270,17 +273,13 @@ deploy:docker:
     - echo "========== GitLab-Registry =========="
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
-    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME
-    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
-    - docker push $IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $IMAGE:latest
+    - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME --push .
+    - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest --push .
     - echo "========== Docker-Hub =========="
     - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_TOKEN
     - IMAGE=$PUBLIC_REGISTRY_USER/$CI_PROJECT_NAME
-    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME
-    - docker build . --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest
-    - docker push $IMAGE:$CI_COMMIT_REF_NAME
-    - docker push $IMAGE:latest
+    - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME --push .
+    - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest --push .
 
 deploy:apt:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package

@@ -511,6 +511,9 @@ Done. For more information check [troubleshoot section](#troubleshoot).
 
 # Endpoints
 
+<details>
+  <summary>show</summary>
+
 ### `GET /`
 
 Redirect to `/-/readme`.
@@ -562,6 +565,7 @@ Generate client token, (see [installation](#installation)).
 ### Others
 
 There are many other internal api endpoints for handling authentication and lease process.
+</details>
 
 # Troubleshoot
 

@@ -7,7 +7,7 @@ RUN echo -e "VERSION=$VERSION\nCOMMIT=$COMMIT" > /version.env
 COPY requirements.txt /tmp/requirements.txt
 
 RUN apk update \
- && apk add --no-cache --virtual build-deps gcc g++ python3-dev musl-dev \
+ && apk add --no-cache --virtual build-deps gcc g++ python3-dev musl-dev pkgconf \
  && apk add --no-cache curl postgresql postgresql-dev mariadb-connector-c-dev sqlite-dev \
  && pip install --no-cache-dir --upgrade uvicorn \
  && pip install --no-cache-dir psycopg2==2.9.6 mysqlclient==2.2.0 pysqlite3==0.5.1 \

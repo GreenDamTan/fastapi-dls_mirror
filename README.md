@@ -65,7 +65,7 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 **Docker-Compose / Deploy stack**
 
-Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example (with reverse proxy usage).
+See [`examples`](examples) directory for more advanced examples (with reverse proxy usage).
 
 ```yaml
 version: '3.9'
@@ -682,7 +682,7 @@ The error message can safely be ignored (since we have no license limitation :P)
 <0>:End Logging
 ```
 
-#### log with nginx as reverse proxy (see [docker-compose.yml](docker-compose.yml))
+#### log with nginx as reverse proxy (see [docker-compose-http-and-https.yml](examples/docker-compose-http-and-https.yml))
 
 ```
 <1>:NLS initialized

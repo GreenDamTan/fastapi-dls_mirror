@@ -25,6 +25,7 @@ Only the clients need a connection to this service on configured port.
 
 - 256mb ram
 - 4gb hdd
+- *maybe IPv6 must be disabled*
 
 Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
 
@@ -565,6 +566,8 @@ There are many other internal api endpoints for handling authentication and leas
 # Troubleshoot
 
 **Please make sure that fastapi-dls and your guests are on the same timezone!**
+
+Maybe you have to disable IPv6 on the machine you are running FastAPI-DLS.
 
 ## Docker
 

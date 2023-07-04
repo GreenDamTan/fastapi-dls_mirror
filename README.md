@@ -39,7 +39,7 @@ Docker-Images are available here:
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
 
-The images include database drivers for `postgres`, `mysql`, `mariadb` and `sqlite`.
+The images include database drivers for `postgres`, `mariadb` and `sqlite`.
 
 **Run this on the Docker-Host**
 

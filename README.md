@@ -25,6 +25,7 @@ Only the clients need a connection to this service on configured port.
 
 - 256mb ram
 - 4gb hdd
+- *maybe IPv6 must be disabled*
 
 Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
 
@@ -37,9 +38,9 @@ Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb 
 Docker-Images are available here:
 
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
-- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls/main:latest`
+- [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls:latest`
 
-The images include database drivers for `postgres`, `mysql`, `mariadb` and `sqlite`.
+The images include database drivers for `postgres`, `mariadb` and `sqlite`.
 
 **Run this on the Docker-Host**
 
@@ -66,6 +67,8 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 **Docker-Compose / Deploy stack**
 
 See [`examples`](examples) directory for more advanced examples (with reverse proxy usage).
+
+> Adjust *REQUIRED* variables as needed
 
 ```yaml
 version: '3.9'
@@ -151,6 +154,8 @@ su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fast
 ```
 
 **Create config file**
+
+> Adjust `DLS_URL` as needed (accessing from LAN won't work with 127.0.0.1)
 
 ```shell
 mkdir /etc/fastapi-dls
@@ -254,10 +259,11 @@ su - ${SERVICE_USER} -c "${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_
 
 **Create config file**
 
+> Adjust `DLS_URL` as needed (accessing from LAN won't work with 127.0.0.1)
+
 ```shell
 BASE_DIR=/opt/fastapi-dls
 cat <<EOF >/etc/fastapi-dls/env
-# Adjust DSL_URL as needed (accessing from LAN won't work with 127.0.0.1)
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
@@ -332,6 +338,7 @@ apt-get install -f --fix-missing
 ```
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+Now you have to edit `/etc/fastapi-dls/env` as needed.
 
 ## ArchLinux (using `pacman`)
 
@@ -353,6 +360,7 @@ pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 ```
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+Now you have to edit `/etc/default/fastapi-dls` as needed.
 
 ## unRAID
 
@@ -503,6 +511,9 @@ Done. For more information check [troubleshoot section](#troubleshoot).
 
 # Endpoints
 
+<details>
+  <summary>show</summary>
+
 ### `GET /`
 
 Redirect to `/-/readme`.
@@ -554,10 +565,17 @@ Generate client token, (see [installation](#installation)).
 ### Others
 
 There are many other internal api endpoints for handling authentication and lease process.
+</details>
 
 # Troubleshoot
 
 **Please make sure that fastapi-dls and your guests are on the same timezone!**
+
+Maybe you have to disable IPv6 on the machine you are running FastAPI-DLS.
+
+## Docker
+
+Logs are available with `docker logs <container>`. To get the correct container-id use `docker container ls` or `docker ps`.
 
 ## Linux
 
@@ -616,7 +634,7 @@ only
 gets a valid local license.
 
 <details>
-  <summary>Log</summary>
+  <summary>Log example</summary>
 
 **Display-Container-LS**
 

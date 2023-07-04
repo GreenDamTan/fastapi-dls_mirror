@@ -266,9 +266,13 @@ gemnasium-python-dependency_scanning:
 
 deploy:docker:
   extends: .deploy
+  image: docker:dind
   stage: deploy
+  tags: [ docker ]
   before_script:
     - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_COMMIT_REF_NAME"
+    - docker buildx inspect
+    - docker buildx create --use
   script:
     - echo "========== GitLab-Registry =========="
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY

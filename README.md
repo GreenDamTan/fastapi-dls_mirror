@@ -67,6 +67,8 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 See [`examples`](examples) directory for more advanced examples (with reverse proxy usage).
 
+> Adjust *REQUIRED* variables as needed
+
 ```yaml
 version: '3.9'
 
@@ -151,6 +153,8 @@ su - www-data -c "/opt/fastapi-dls/venv/bin/uvicorn main:app --app-dir=/opt/fast
 ```
 
 **Create config file**
+
+> Adjust `DLS_URL` as needed (accessing from LAN won't work with 127.0.0.1)
 
 ```shell
 mkdir /etc/fastapi-dls
@@ -254,10 +258,11 @@ su - ${SERVICE_USER} -c "${BASE_DIR}/venv/bin/uvicorn main:app --app-dir=${BASE_
 
 **Create config file**
 
+> Adjust `DLS_URL` as needed (accessing from LAN won't work with 127.0.0.1)
+
 ```shell
 BASE_DIR=/opt/fastapi-dls
 cat <<EOF >/etc/fastapi-dls/env
-# Adjust DSL_URL as needed (accessing from LAN won't work with 127.0.0.1)
 DLS_URL=127.0.0.1
 DLS_PORT=443
 LEASE_EXPIRE_DAYS=90
@@ -332,6 +337,7 @@ apt-get install -f --fix-missing
 ```
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+Now you have to edit `/etc/fastapi-dls/env` as needed.
 
 ## ArchLinux (using `pacman`)
 
@@ -353,6 +359,7 @@ pacman -U --noconfirm fastapi-dls.pkg.tar.zst
 ```
 
 Start with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
+Now you have to edit `/etc/default/fastapi-dls` as needed.
 
 ## unRAID
 

@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official DLS 2.0.1.
+Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0.
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -65,7 +65,7 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 **Docker-Compose / Deploy stack**
 
-Goto [`docker-compose.yml`](docker-compose.yml) for more advanced example (with reverse proxy usage).
+See [`examples`](examples) directory for more advanced examples (with reverse proxy usage).
 
 ```yaml
 version: '3.9'
@@ -417,6 +417,7 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | vGPU Manager | Linux Driver | Windows Driver | Release Date  |
 |---------------|--------------|--------------|----------------|---------------|
+| `15.3`        | `525.125.03` | `525.125.06` | `529.11`       | June 2023     |
 | `15.2`        | `525.105.14` | `525.105.17` | `528.89`       | March 2023    |
 | `15.1`        | `525.85.07`  | `525.85.05`  | `528.24`       | January 2023  |
 | `15.0`        | `525.60.12`  | `525.60.13`  | `527.41`       | December 2022 |
@@ -681,7 +682,7 @@ The error message can safely be ignored (since we have no license limitation :P)
 <0>:End Logging
 ```
 
-#### log with nginx as reverse proxy (see [docker-compose.yml](docker-compose.yml))
+#### log with nginx as reverse proxy (see [docker-compose-http-and-https.yml](examples/docker-compose-http-and-https.yml))
 
 ```
 <1>:NLS initialized

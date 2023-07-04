@@ -630,7 +630,7 @@ only
 gets a valid local license.
 
 <details>
-  <summary>Log</summary>
+  <summary>Log example</summary>
 
 **Display-Container-LS**
 

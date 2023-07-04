@@ -1,8 +1,8 @@
-fastapi==0.97.0
+fastapi==0.99.1
 uvicorn[standard]==0.22.0
 python-jose==3.3.0
 pycryptodome==3.18.0
 python-dateutil==2.8.2
-sqlalchemy==2.0.16
+sqlalchemy==2.0.17
 markdown==3.4.3
 python-dotenv==1.0.0

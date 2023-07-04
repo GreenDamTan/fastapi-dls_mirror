@@ -330,7 +330,6 @@ deploy:pacman:
       artifacts: true
   script:
     - source .PKGBUILD/PKGBUILD
-    - source version.env
     # fastapi-dls-1.0-1-any.pkg.tar.zst
     - BUILD_NAME=${pkgname}-${CI_COMMIT_REF_NAME}-${pkgrel}-any.pkg.tar.zst
     - PACKAGE_NAME=${pkgname}

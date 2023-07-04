@@ -1,9 +1,10 @@
 version: '3.9'
 
 x-dls-variables: &dls-variables
-  DLS_URL: localhost  # REQUIRED, change to your ip or hostname
-  DLS_PORT: 443  # must match nginx listen & exposed port
-  LEASE_EXPIRE_DAYS: 90
+  TZ: Europe/Berlin # REQUIRED, set your timezone correctly on fastapi-dls AND YOUR CLIENTS !!!
+  DLS_URL: localhost # REQUIRED, change to your ip or hostname
+  DLS_PORT: 443
+  LEASE_EXPIRE_DAYS: 90  # 90 days is maximum
   DATABASE: sqlite:////app/database/db.sqlite
   DEBUG: false
 

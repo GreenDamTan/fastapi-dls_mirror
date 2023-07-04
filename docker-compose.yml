@@ -14,108 +14,16 @@ services:
     restart: always
     environment:
       <<: *dls-variables
-    volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /opt/docker/fastapi-dls/cert:/app/cert  # instance.private.pem, instance.public.pem
-      - db:/app/database
-    entrypoint: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app", "--proxy-headers"]
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/-/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-  proxy:
-    image: nginx
     ports:
-      # thees are ports where nginx (!) is listen to
-      - "80:80"  # for "/leasing/v1/lessor/shutdown" used by windows guests, can't be changed!
-      - "443:443"  # first part must match "DLS_PORT"
+      - "443:443"
     volumes:
-      - /etc/timezone:/etc/timezone:ro
-      - /opt/docker/fastapi-dls/cert:/opt/cert
-    healthcheck:
-      test: ["CMD", "curl", "--insecure", "--fail", "https://localhost/-/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    command: |
-      bash -c "bash -s <<\"EOF\"
-      cat > /etc/nginx/nginx.conf <<\"EON\"
-      daemon off;
-      user root;
-      worker_processes auto;
-      
-      events {
-        worker_connections 1024;
-      }
-      
-      http {
-        gzip on;
-        gzip_disable "msie6";
-        include /etc/nginx/mime.types;
-      
-        upstream dls-backend {
-          server dls:8000;  # must match dls listen port
-        }
-      
-        server {
-          listen 443 ssl http2 default_server;
-          listen [::]:443 ssl http2 default_server;
-      
-          root /var/www/html;
-          index index.html;
-          server_name _;
-      
-          ssl_certificate "/opt/cert/webserver.crt";
-          ssl_certificate_key "/opt/cert/webserver.key";
-          ssl_session_cache shared:SSL:1m;
-          ssl_session_timeout  10m;
-          ssl_protocols TLSv1.3 TLSv1.2;
-          # ssl_ciphers "ECDHE-ECDSA-CHACHA20-POLY1305";
-          # ssl_ciphers PROFILE=SYSTEM;
-          ssl_prefer_server_ciphers on;
-      
-          location / {
-            proxy_set_header Host $$http_host;
-            proxy_set_header X-Real-IP $$remote_addr;
-            proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $$scheme;
-            proxy_pass http://dls-backend$$request_uri;
-          }
-      
-          location = /-/health {
-            access_log off;
-            add_header 'Content-Type' 'application/json';
-            return 200 '{\"status\":\"up\",\"service\":\"nginx\"}';
-          }
-        }
-      
-        server {
-          listen 80;
-          listen [::]:80;
-      
-          root /var/www/html;
-          index index.html;
-          server_name _;
-      
-          location /leasing/v1/lessor/shutdown {
-            proxy_set_header Host $$http_host;
-            proxy_set_header X-Real-IP $$remote_addr;
-            proxy_set_header X-Forwarded-For $$proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $$scheme;
-            proxy_pass http://dls-backend/leasing/v1/lessor/shutdown;
-          }
-      
-          location / {
-            return 301 https://$$host$$request_uri;
-          }
-        }
-      }
-      EON
-      nginx
-      EOF"
+      - /opt/docker/fastapi-dls/cert:/app/cert
+      - dls-db:/app/database
+    logging: # optional, for those who do not need logs
+      driver: "json-file"
+      options:
+        max-file: 5
+        max-size: 10m
 
 volumes:
-  db:
+  dls-db:

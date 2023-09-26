@@ -35,7 +35,7 @@ Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb 
 
 ## Docker
 
-Docker-Images are available here:
+Docker-Images are available here for Intel (x86), AMD (amd64) and ARM (arm64):
 
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls:latest`

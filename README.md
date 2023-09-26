@@ -102,9 +102,10 @@ volumes:
   dls-db:
 ```
 
-## Debian/Ubuntu (manual method using `git clone` and python virtual environment)
+## Debian/Ubuntu/macOS (manual method using `git clone` and python virtual environment)
 
-Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
+Tested on `Debian 11 (bullseye)` and `macOS Ventura (13.6)`, Ubuntu may also work. **Please note that setup on macOS
+differs from Debian based systems.**
 
 **Make sure you are logged in as root.**
 

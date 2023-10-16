@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0.
+Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0. For Driver compatibility see [here](#setup-client).
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -27,7 +27,7 @@ Only the clients need a connection to this service on configured port.
 - 4gb hdd
 - *maybe IPv6 must be disabled*
 
-Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
+Tested with Ubuntu 22.10 (EOL!) (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
 
 **Prepare your system**
 
@@ -35,7 +35,7 @@ Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb 
 
 ## Docker
 
-Docker-Images are available here:
+Docker-Images are available here for Intel (x86), AMD (amd64) and ARM (arm64):
 
 - [Docker-Hub](https://hub.docker.com/repository/docker/collinwebdesigns/fastapi-dls): `collinwebdesigns/fastapi-dls:latest`
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry): `registry.git.collinwebdesigns.de/oscar.krause/fastapi-dls:latest`
@@ -102,9 +102,10 @@ volumes:
   dls-db:
 ```
 
-## Debian/Ubuntu (manual method using `git clone` and python virtual environment)
+## Debian/Ubuntu/macOS (manual method using `git clone` and python virtual environment)
 
-Tested on `Debian 11 (bullseye)`, Ubuntu may also work.
+Tested on `Debian 11 (bullseye)` and `macOS Ventura (13.6)`, Ubuntu may also work. **Please note that setup on macOS
+differs from Debian based systems.**
 
 **Make sure you are logged in as root.**
 
@@ -317,7 +318,8 @@ Packages are available here:
 Successful tested with:
 
 - Debian 12 (Bookworm)
-- Ubuntu 22.10 (Kinetic Kudu)
+- Ubuntu 22.10 (Kinetic Kudu) (EOL!)
+- Ubuntu 23.04 (Lunar)
 
 Not working with:
 
@@ -425,7 +427,8 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | Linux vGPU Manager | Linux Driver | Windows Driver | Release Date  |
 |---------------|--------------------|--------------|----------------|---------------|
-| `16.0`        | `535.54.06`        | `535.54.03`  | `536.25`       | July 2023     |
+| `16.1`        | `535.54.06`        | `535.54.03`  | `536.25`       | August 2023   |
+| `16.0`        | `535.104.06`       | `535.104.05` | `537.13`       | July 2023     |
 | `15.3`        | `525.125.03`       | `525.125.06` | `529.11`       | June 2023     |
 | `15.2`        | `525.105.14`       | `525.105.17` | `528.89`       | March 2023    |
 | `15.1`        | `525.85.07`        | `525.85.05`  | `528.24`       | January 2023  |

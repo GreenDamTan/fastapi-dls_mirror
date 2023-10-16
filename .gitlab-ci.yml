@@ -193,7 +193,7 @@ test:debian:
 
 test:ubuntu:
   extends: .test:linux
-  image: ubuntu:22.10
+  image: ubuntu:23.04
 
 test:archlinux:
   image: archlinux:base

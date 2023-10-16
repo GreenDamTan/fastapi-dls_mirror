@@ -27,7 +27,7 @@ Only the clients need a connection to this service on configured port.
 - 4gb hdd
 - *maybe IPv6 must be disabled*
 
-Tested with Ubuntu 22.10 (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
+Tested with Ubuntu 22.10 (EOL!) (from Proxmox templates), actually its consuming 100mb ram and 750mb hdd.
 
 **Prepare your system**
 
@@ -318,7 +318,8 @@ Packages are available here:
 Successful tested with:
 
 - Debian 12 (Bookworm)
-- Ubuntu 22.10 (Kinetic Kudu)
+- Ubuntu 22.10 (Kinetic Kudu) (EOL!)
+- Ubuntu 23.04 (Lunar)
 
 Not working with:
 

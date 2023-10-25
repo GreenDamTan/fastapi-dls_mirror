@@ -104,8 +104,8 @@ volumes:
 
 ## Debian/Ubuntu/macOS (manual method using `git clone` and python virtual environment)
 
-Tested on `Debian 11 (bullseye)` and `macOS Ventura (13.6)`, Ubuntu may also work. **Please note that setup on macOS
-differs from Debian based systems.**
+Tested on `Debian 11 (bullseye)`, `Debian 12 (bookworm)` and `macOS Ventura (13.6)`, Ubuntu may also work.
+**Please note that setup on macOS differs from Debian based systems.**
 
 **Make sure you are logged in as root.**
 

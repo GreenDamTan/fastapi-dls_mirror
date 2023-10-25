@@ -134,8 +134,14 @@ test:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   variables:
     DATABASE: sqlite:///../app/db.sqlite
+  parallel:
+    matrix:
+      - REQUIREMENTS:
+          - requirements.txt
+          - .DEBIAN/requirements-bookworm-12.txt
+          - .DEBIAN/requirements-ubuntu-23.04.txt
   before_script:
-    - pip install -r requirements.txt
+    - pip install -r $REQUIREMENTS
     - pip install pytest httpx
     - mkdir -p app/cert
     - openssl genrsa -out app/cert/instance.private.pem 2048

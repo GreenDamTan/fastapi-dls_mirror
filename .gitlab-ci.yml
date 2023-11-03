@@ -126,7 +126,7 @@ build:pacman:
       - "*.pkg.tar.zst"
 
 test:
-  image: python:3.11-slim-bullseye
+  image: python:3.11-slim-bookworm
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH

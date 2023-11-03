@@ -141,6 +141,7 @@ test:
           - .DEBIAN/requirements-bookworm-12.txt
           - .DEBIAN/requirements-ubuntu-23.04.txt
   before_script:
+    - apt-get update && apt-get install -y python3-dev
     - pip install -r $REQUIREMENTS
     - pip install pytest httpx
     - mkdir -p app/cert

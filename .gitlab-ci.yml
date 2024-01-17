@@ -218,6 +218,8 @@ test:archlinux:
     - pacman -U --noconfirm *.pkg.tar.zst
 
 code_quality:
+  variables:
+    SOURCE_CODE: app
   rules:
     - if: $CODE_QUALITY_DISABLED
       when: never

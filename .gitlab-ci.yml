@@ -140,6 +140,7 @@ test:
           - requirements.txt
           - .DEBIAN/requirements-bookworm-12.txt
           - .DEBIAN/requirements-ubuntu-23.04.txt
+          - .DEBIAN/requirements-ubuntu-23.10.txt
   before_script:
     - apt-get update && apt-get install -y python3-dev gcc
     - pip install cython
@@ -201,7 +202,7 @@ test:debian:
 
 test:ubuntu:
   extends: .test:linux
-  image: ubuntu:23.04
+  image: ubuntu:23.10
 
 test:archlinux:
   image: archlinux:base

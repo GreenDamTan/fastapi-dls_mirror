@@ -1,7 +1,11 @@
+version: "2"
 plugins:
   bandit:
     enabled: true
   sonar-python:
     enabled: true
+    config:
+      tests_patterns:
+        - test/**
   pylint:
     enabled: true

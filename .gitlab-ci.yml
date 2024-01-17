@@ -242,10 +242,22 @@ semgrep-sast:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
 
 test_coverage:
-  extends: test
+#  extends: test
+  image: python:3.11-slim-bookworm
   allow_failure: true
+  stage: test
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+  variables:
+    DATABASE: sqlite:///../app/db.sqlite
+  before_script:
+    - apt-get update && apt-get install -y python3-dev gcc
+    - pip install -r requirements.txt
+    - pip install pytest httpx
+    - mkdir -p app/cert
+    - openssl genrsa -out app/cert/instance.private.pem 2048
+    - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
+    - cd test
   script:
     - pip install pytest pytest-cov
     - coverage run -m pytest main.py

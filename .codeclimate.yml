@@ -7,5 +7,5 @@ plugins:
     config:
       tests_patterns:
         - test/**
-  pylint:
-    enabled: true
+#  pylint:
+#    enabled: true

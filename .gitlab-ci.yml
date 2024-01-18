@@ -128,6 +128,7 @@ build:pacman:
 test:
   image: python:3.11-slim-bookworm
   stage: test
+  interruptible: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG

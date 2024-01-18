@@ -224,6 +224,7 @@ code_quality:
     - if: $CODE_QUALITY_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 secret_detection:
   rules:
@@ -238,6 +239,7 @@ semgrep-sast:
     - if: $SAST_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 test_coverage:
 #  extends: test
@@ -280,6 +282,7 @@ gemnasium-python-dependency_scanning:
     - if: $DEPENDENCY_SCANNING_DISABLED
       when: never
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 .deploy:
   rules:

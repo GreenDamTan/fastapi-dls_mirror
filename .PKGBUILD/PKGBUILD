@@ -12,7 +12,7 @@ depends=('python' 'python-jose' 'python-starlette' 'python-httpx' 'python-fastap
 provider=("$pkgname")
 install="$pkgname.install"
 backup=('etc/default/fastapi-dls')
-source=("git+file://${CI_PROJECT_DIR}" # todo: support dynamic CI/CD paths
+source=("git+file://${CI_PROJECT_DIR}"
         "$pkgname.default"
         "$pkgname.service"
         "$pkgname.tmpfiles")

@@ -220,8 +220,6 @@ test:archlinux:
 code_quality:
   variables:
     SOURCE_CODE: app
-    CODECLIMATE_DEBUG: 1
-    REPORT_STDOUT: 1
   rules:
     - if: $CODE_QUALITY_DISABLED
       when: never

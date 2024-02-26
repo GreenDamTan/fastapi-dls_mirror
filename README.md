@@ -428,6 +428,7 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | Linux vGPU Manager | Linux Driver | Windows Driver | Release Date  |
 |---------------|--------------------|--------------|----------------|---------------|
+| `16.3`        | `535.154.02`       | `535.154.05` | `538.15`       | January 2024  |
 | `16.2`        | `535.129.03`       | `535.129.03` | `537.70`       | October 2023  |
 | `16.1`        | `535.104.06`       | `535.104.05` | `537.13`       | August 2023   |
 | `16.0`        | `535.54.06`        | `535.54.03`  | `536.22`       | July 2023     |
@@ -439,6 +440,11 @@ Successfully tested with this package versions:
 | `14.3`        | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |
 
 - https://docs.nvidia.com/grid/index.html
+
+*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit` 
+
+
+https://archive.biggerthanshit.com/NVIDIA/ (nvidia / b1gg3rth4nsh1t)
 
 ## Linux
 

@@ -1,0 +1,10 @@
+# https://packages.ubuntu.com
+fastapi==0.101.0
+uvicorn[standard]==0.23.2
+python-jose[pycryptodome]==3.3.0
+pycryptodome==3.11.0
+python-dateutil==2.8.2
+sqlalchemy==1.4.47
+markdown==3.4.4
+python-dotenv==1.0.0
+jinja2==3.1.2

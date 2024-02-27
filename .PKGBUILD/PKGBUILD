@@ -12,7 +12,7 @@ depends=('python' 'python-jose' 'python-starlette' 'python-httpx' 'python-fastap
 provider=("$pkgname")
 install="$pkgname.install"
 backup=('etc/default/fastapi-dls')
-source=('git+file:///builds/oscar.krause/fastapi-dls' # https://gitea.publichub.eu/oscar.krause/fastapi-dls.git
+source=("git+file://${CI_PROJECT_DIR}"
         "$pkgname.default"
         "$pkgname.service"
         "$pkgname.tmpfiles")

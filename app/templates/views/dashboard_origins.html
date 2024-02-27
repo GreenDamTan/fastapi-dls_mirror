@@ -13,6 +13,9 @@
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOrigin().finally(() => load())">
                         delete origin
                     </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteExpiredOrigins().finally(() => load())">
+                        delete all expired origins
+                    </button>
                     <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOriginsWrapper()">
                         delete all
                     </button>

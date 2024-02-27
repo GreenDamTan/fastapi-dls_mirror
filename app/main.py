@@ -196,7 +196,13 @@ async def _origins_delete(request: Request):
     return Response(status_code=201)
 
 
-@app.delete('/-/origins/{origin_ref}', summary='* Origins')
+@app.delete('/-/origins/expired', summary='* Delete all Origins without active Lease')
+async def _origins_delete_expired(request: Request):
+    Origin.delete_expired(db)
+    return Response(status_code=201)
+
+
+@app.delete('/-/origins/{origin_ref}', summary='* Delete specific Origin')
 async def _origins_delete_origin_ref(request: Request, origin_ref: str):
     if Origin.delete(db, [origin_ref]) == 1:
         return Response(status_code=201)
@@ -219,13 +225,13 @@ async def _leases(request: Request, origin: bool = False):
     return JSONr(response)
 
 
-@app.delete('/-/leases/expired', summary='* Leases')
+@app.delete('/-/leases/expired', summary='* Delete all expired Leases')
 async def _lease_delete_expired(request: Request):
     Lease.delete_expired(db)
     return Response(status_code=201)
 
 
-@app.delete('/-/lease/{lease_ref}', summary='* Lease')
+@app.delete('/-/lease/{lease_ref}', summary='* Delete specific Lease')
 async def _lease_delete(request: Request, lease_ref: str):
     if Lease.delete(db, lease_ref) == 1:
         return Response(status_code=201)

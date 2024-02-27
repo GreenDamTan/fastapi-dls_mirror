@@ -116,6 +116,12 @@ async function deleteOrigin(origin_ref) {
     xhr.send();
 }
 
+async function deleteExpiredOrigins() {
+    let xhr = new XMLHttpRequest();
+    xhr.open("DELETE", `/-/origins/expired`, true);
+    xhr.send();
+}
+
 async function deleteLease(lease_ref) {
     if (lease_ref === undefined)
         lease_ref = window.prompt("Please enter 'lease_ref' which should be deleted");

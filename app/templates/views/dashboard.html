@@ -29,7 +29,26 @@
         </div>
     </div>
 
-    <pre id="config"></pre>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Configuration</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+                Using timezone: {{ CONFIG.TZ }}. Make sure this is correct and match your clients!
+            </h6>
+            <p class="card-text">
+                Your clients renew their license every {{ CONFIG.LEASE_CALCULATED_RENEWAL }}.<br/>
+                If the renewal fails, the license is {{ CONFIG.LEASE_RENEWAL_DELTA }} valid.<br/>
+                <br/>
+                Your client-token file (.tok) is valid for {{ CONFIG.CLIENT_TOKEN_EXPIRE_DELTA }}.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <pre id="config"></pre>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

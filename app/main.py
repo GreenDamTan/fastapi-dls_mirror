@@ -111,7 +111,27 @@ def __get_token(request: Request) -> dict:
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
-# Endpoints
+def __json_config() -> dict:
+    return {
+        'VERSION': str(VERSION),
+        'COMMIT': str(COMMIT),
+        'DEBUG': str(DEBUG),
+        'DLS_URL': str(DLS_URL),
+        'DLS_PORT': str(DLS_PORT),
+        'SITE_KEY_XID': str(SITE_KEY_XID),
+        'INSTANCE_REF': str(INSTANCE_REF),
+        'ALLOTMENT_REF': [str(ALLOTMENT_REF)],
+        'TOKEN_EXPIRE_DELTA': str(TOKEN_EXPIRE_DELTA),
+        'LEASE_EXPIRE_DELTA': str(LEASE_EXPIRE_DELTA),
+        'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
+        'CORS_ORIGINS': str(CORS_ORIGINS),
+        'TZ': str(TZ),
+        # static / calculated
+        'LEASE_RENEWAL_DELTA': str(LEASE_RENEWAL_DELTA),
+        'LEASE_CALCULATED_RENEWAL': str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA)),
+        'CLIENT_TOKEN_EXPIRE_DELTA': str(CLIENT_TOKEN_EXPIRE_DELTA),
+    }
+
 
 @app.get('/', summary='* Index')
 async def index():
@@ -130,21 +150,7 @@ async def _health():
 
 @app.get('/-/config', summary='* Config', description='returns environment variables.')
 async def _config():
-    return JSONr({
-        'VERSION': str(VERSION),
-        'COMMIT': str(COMMIT),
-        'DEBUG': str(DEBUG),
-        'DLS_URL': str(DLS_URL),
-        'DLS_PORT': str(DLS_PORT),
-        'SITE_KEY_XID': str(SITE_KEY_XID),
-        'INSTANCE_REF': str(INSTANCE_REF),
-        'ALLOTMENT_REF': [str(ALLOTMENT_REF)],
-        'TOKEN_EXPIRE_DELTA': str(TOKEN_EXPIRE_DELTA),
-        'LEASE_EXPIRE_DELTA': str(LEASE_EXPIRE_DELTA),
-        'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
-        'CORS_ORIGINS': str(CORS_ORIGINS),
-        'TZ': str(TZ),
-    })
+    return JSONr(__json_config())
 
 
 @app.get('/-/readme', summary='* Readme')
@@ -163,7 +169,8 @@ async def _manage(request: Request):
 
 @app.get('/-/dashboard', summary='* Dashboard')
 async def _dashboard(request: Request):
-    return templates.TemplateResponse(name='views/dashboard.html', context={'request': request, 'VERSION': VERSION})
+    context = {'request': request, 'VERSION': VERSION, 'CONFIG': __json_config()}
+    return templates.TemplateResponse(name='views/dashboard.html', context=context)
 
 
 @app.get('/-/dashboard/origins', summary='* Dashboard - Origins')
@@ -206,7 +213,7 @@ async def _origins_delete_expired(request: Request):
 async def _origins_delete_origin_ref(request: Request, origin_ref: str):
     if Origin.delete(db, [origin_ref]) == 1:
         return Response(status_code=201)
-    raise JSONResponse(status_code=404, content={'status': 404, 'detail': 'lease not found'})
+    return JSONr(status_code=404, content={'status': 404, 'detail': 'lease not found'})
 
 
 @app.get('/-/leases', summary='* Leases')

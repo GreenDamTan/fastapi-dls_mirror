@@ -416,9 +416,9 @@ After first success you have to replace `--issue` with `--renew`.
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
-\*3 Always use `https`, since guest-drivers only support secure connections!
+\*2 Always use `https`, since guest-drivers only support secure connections!
 
-\*4 If you recreate instance keys you need to **recreate client-token for each guest**!
+\*3 If you recreate your instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 

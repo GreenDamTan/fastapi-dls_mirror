@@ -8,15 +8,50 @@
             </li>
              <li class="nav-item">
                 <a class="nav-link {{ 'active' if request.url.path == '/-/dashboard/origins' }}" aria-current="page" href="/-/dashboard/origins">
-                    <i class="bi-pc-display-horizontal"></i> Origins
+                    <i class="bi-pc-display-horizontal"></i> Origins <span id="origin-cnt" class="badge text-bg-secondary"></span>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ 'active' if request.url.path == '/-/dashboard/leases' }}" aria-current="page" href="/-/dashboard/leases">
-                    <i class="bi-layers"></i> Leases
+                    <i class="bi-layers"></i> Leases <span id="lease-cnt" class="badge text-bg-secondary"></span>
                 </a>
             </li>
         </ul>
+        <script type="application/javascript">
+            function loadLOriginCnt() {
+                let xhr = new XMLHttpRequest();
+                xhr.open("GET", '/-/origins?leases=false', true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                        const x = JSON.parse(xhr.response)
+                        document.getElementById('origin-cnt').innerHTML = x.length
+                    }
+                };
+                xhr.send();
+            }
+
+            function loadLeaseCnt() {
+                let xhr = new XMLHttpRequest();
+                xhr.open("GET", '/-/leases?origin=false', true);
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+                        const x = JSON.parse(xhr.response)
+                        document.getElementById('lease-cnt').innerHTML = x.length
+                    }
+                };
+                xhr.send();
+            }
+
+            // load initial
+            loadLOriginCnt()
+            loadLeaseCnt()
+
+            // refresh every 5 seconds
+            setTimeout(() => {
+                loadLOriginCnt()
+                loadLeaseCnt()
+            }, 5000);
+        </script>
 
         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted text-uppercase">
             <span>Help</span>

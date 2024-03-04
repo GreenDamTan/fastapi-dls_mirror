@@ -158,13 +158,14 @@ async def _readme(request: Request):
     from markdown import markdown
     content = load_file(join(dirname(__file__), '../README.md')).decode('utf-8')
     markdown = markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc'])
-    context = {'request': request, 'markdown': markdown, 'VERSION': VERSION}
+    context = {'request': request, 'VERSION': VERSION, 'markdown': markdown }
     return templates.TemplateResponse(name='views/dashboard_readme.html', context=context)
 
 
 @app.get('/-/manage', summary='* Management UI')
 async def _manage(request: Request):
-    return templates.TemplateResponse(name='views/manage.html', context={'request': request, 'VERSION': VERSION})
+    context = {'request': request, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/manage.html', context=context)
 
 
 @app.get('/-/dashboard', summary='* Dashboard')
@@ -175,12 +176,14 @@ async def _dashboard(request: Request):
 
 @app.get('/-/dashboard/origins', summary='* Dashboard - Origins')
 async def _dashboard_origins(request: Request):
-    return templates.TemplateResponse(name='views/dashboard_origins.html', context={'request': request, 'VERSION': VERSION})
+    context = {'request': request, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/dashboard_origins.html', context=context)
 
 
 @app.get('/-/dashboard/leases', summary='* Dashboard - Leases')
 async def _dashboard_origins(request: Request):
-    return templates.TemplateResponse(name='views/dashboard_leases.html', context={'request': request, 'VERSION': VERSION})
+    context = {'request': request, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/dashboard_leases.html', context=context)
 
 
 @app.get('/-/origins', summary='* Origins')

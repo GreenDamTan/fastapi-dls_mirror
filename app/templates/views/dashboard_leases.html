@@ -18,9 +18,10 @@
                     </button>
                 </div>
 
-                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="load()" title="refresh">
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="load()" title="refresh">
                     <i class="bi bi-arrow-clockwise"></i>
                 </button>
+                <button id="btn-auto-refresh" type="button" class="btn btn-sm active">auto-refresh</button>
             </div>
         </div>
 
@@ -31,11 +32,29 @@
 {% block scripts %}
 {{ super() }}
 <script type="application/javascript">
+    let autoRefresh = true
+
     function load() {
         const leases = document.getElementById('leases')
         fetchLeases(leases)
     }
 
     load()
+
+    setInterval(() => {
+        if(autoRefresh)
+            load()
+    }, 5000);
+
+    const btnAutoRefresh = document.getElementById('btn-auto-refresh')
+    btnAutoRefresh.addEventListener("click", () => {
+        if(btnAutoRefresh.classList.contains('active')) {
+            autoRefresh = false
+            btnAutoRefresh.classList.remove('active')
+        } else {
+            autoRefresh = false
+            btnAutoRefresh.classList.add('active')
+        }
+    }, true);
 </script>
 {% endblock %}

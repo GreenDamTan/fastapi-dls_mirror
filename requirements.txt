@@ -3,6 +3,6 @@ uvicorn[standard]==0.27.1
 python-jose==3.3.0
 pycryptodome==3.20.0
 python-dateutil==2.8.2
-sqlalchemy==2.0.27
+sqlalchemy==2.0.28
 markdown==3.5.2
 python-dotenv==1.0.1

@@ -15,6 +15,8 @@ Only the clients need a connection to this service on configured port.
 
 *All other repositories are forks! (which  is no bad - just for information and bug reports)*
 
+[Releases & Release Notes](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/releases)
+
 ---
 
 [[_TOC_]]

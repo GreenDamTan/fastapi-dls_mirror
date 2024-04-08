@@ -430,6 +430,7 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | Linux vGPU Manager | Linux Driver | Windows Driver | Release Date  |
 |---------------|--------------------|--------------|----------------|---------------|
+| `17.1`        | `550.54.16`        | `550.54.15`  | `551.78`       | March 2024    |
 | `17.0`        | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |
 | `16.4`        | `535.161.05`       | `535.161.05` | `538.33`       | February 2024 |
 | `16.3`        | `535.154.02`       | `535.154.05` | `538.15`       | January 2024  |

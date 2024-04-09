@@ -446,10 +446,7 @@ Successfully tested with this package versions:
 
 - https://docs.nvidia.com/grid/index.html
 
-*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit` 
-
-
-https://archive.biggerthanshit.com/NVIDIA/ (nvidia / b1gg3rth4nsh1t)
+*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
 
 ## Linux
 

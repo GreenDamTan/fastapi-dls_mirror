@@ -15,6 +15,8 @@ Only the clients need a connection to this service on configured port.
 
 *All other repositories are forks! (which  is no bad - just for information and bug reports)*
 
+[Releases & Release Notes](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/releases)
+
 ---
 
 [[_TOC_]]
@@ -416,9 +418,9 @@ After first success you have to replace `--issue` with `--renew`.
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
-\*3 Always use `https`, since guest-drivers only support secure connections!
+\*2 Always use `https`, since guest-drivers only support secure connections!
 
-\*4 If you recreate instance keys you need to **recreate client-token for each guest**!
+\*3 If you recreate your instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 
@@ -426,25 +428,27 @@ client has 19.2 hours in which to re-establish connectivity before its license e
 
 Successfully tested with this package versions:
 
-| vGPU Suftware | Linux vGPU Manager | Linux Driver | Windows Driver | Release Date  |
-|---------------|--------------------|--------------|----------------|---------------|
-| `16.3`        | `535.154.02`       | `535.154.05` | `538.15`       | January 2024  |
-| `16.2`        | `535.129.03`       | `535.129.03` | `537.70`       | October 2023  |
-| `16.1`        | `535.104.06`       | `535.104.05` | `537.13`       | August 2023   |
-| `16.0`        | `535.54.06`        | `535.54.03`  | `536.22`       | July 2023     |
-| `15.3`        | `525.125.03`       | `525.125.06` | `529.11`       | June 2023     |
-| `15.2`        | `525.105.14`       | `525.105.17` | `528.89`       | March 2023    |
-| `15.1`        | `525.85.07`        | `525.85.05`  | `528.24`       | January 2023  |
-| `15.0`        | `525.60.12`        | `525.60.13`  | `527.41`       | December 2022 |
-| `14.4`        | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 |
-| `14.3`        | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |
+| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
+|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
+|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 | February 2025 |
+|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
+|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |     July 2026 |
+|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
+|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
+|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
+|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
+|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
+|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 |  October 2023 |
+|    `15.3`     |     R525      | `525.125.03`       | `525.125.06` | `529.11`       |     June 2023 |               |
+|    `15.2`     |     R525      | `525.105.14`       | `525.105.17` | `528.89`       |    March 2023 |               |
+|    `15.1`     |     R525      | `525.85.07`        | `525.85.05`  | `528.24`       |  January 2023 |               |
+|    `15.0`     |     R525      | `525.60.12`        | `525.60.13`  | `527.41`       | December 2022 |               |
+|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+|    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
 
 - https://docs.nvidia.com/grid/index.html
 
-*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit` 
-
-
-https://archive.biggerthanshit.com/NVIDIA/ (nvidia / b1gg3rth4nsh1t)
+*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
 
 ## Linux
 

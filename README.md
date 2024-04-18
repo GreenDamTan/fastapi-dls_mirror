@@ -22,6 +22,8 @@ Only the clients need a connection to this service on configured port.
 * [NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox) - This document serves as a guide to install NVIDIA vGPU host drivers on the latest Proxmox VE version
 * [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock) - Unlock vGPU functionality for consumer-grade Nvidia GPUs.
 * [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q) - Guide for `vgpu_unlock`
+* [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/) - Also known as `proxmox-installer.sh`
+
 ---
 
 [[_TOC_]]
@@ -750,5 +752,6 @@ Special thanks to
 - @polloloco who wrote the *[NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox)*
 - @DualCoder who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
 - Krutav Shah who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
+- Wim van 't Hoog for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
 
 And thanks to all people who contributed to all these libraries!

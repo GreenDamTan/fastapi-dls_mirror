@@ -9,13 +9,20 @@ Only the clients need a connection to this service on configured port.
 
 **Official Links**
 
-- https://git.collinwebdesigns.de/oscar.krause/fastapi-dls (Private Git)
-- https://gitea.publichub.eu/oscar.krause/fastapi-dls (Public Git)
-- https://hub.docker.com/r/collinwebdesigns/fastapi-dls (Docker-Hub `collinwebdesigns/fastapi-dls:latest`)
+* https://git.collinwebdesigns.de/oscar.krause/fastapi-dls (Private Git)
+* https://gitea.publichub.eu/oscar.krause/fastapi-dls (Public Git)
+* https://hub.docker.com/r/collinwebdesigns/fastapi-dls (Docker-Hub `collinwebdesigns/fastapi-dls:latest`)
 
 *All other repositories are forks! (which  is no bad - just for information and bug reports)*
 
 [Releases & Release Notes](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/releases)
+
+**Further Reading**
+
+* [NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox) - This document serves as a guide to install NVIDIA vGPU host drivers on the latest Proxmox VE version
+* [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock) - Unlock vGPU functionality for consumer-grade Nvidia GPUs.
+* [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q) - Guide for `vgpu_unlock`
+* [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/) - Also known as `proxmox-installer.sh`
 
 ---
 
@@ -104,7 +111,7 @@ volumes:
   dls-db:
 ```
 
-## Debian/Ubuntu/macOS (manual method using `git clone` and python virtual environment)
+## Debian / Ubuntu / macOS (manual method using `git clone` and python virtual environment)
 
 Tested on `Debian 11 (bullseye)`, `Debian 12 (bookworm)` and `macOS Ventura (13.6)`, Ubuntu may also work.
 **Please note that setup on macOS differs from Debian based systems.**
@@ -311,7 +318,7 @@ EOF
 Now you have to run `systemctl daemon-reload`. After that you can start service
 with `systemctl start fastapi-dls.service` and enable autostart with `systemctl enable fastapi-dls.service`.
 
-## Debian/Ubuntu (using `dpkg`)
+## Debian / Ubuntu (using `dpkg` / `apt`)
 
 Packages are available here:
 
@@ -583,7 +590,7 @@ Generate client token, (see [installation](#installation)).
 There are many other internal api endpoints for handling authentication and lease process.
 </details>
 
-# Troubleshoot
+# Troubleshoot / Debug
 
 **Please make sure that fastapi-dls and your guests are on the same timezone!**
 
@@ -739,6 +746,12 @@ Thanks to vGPU community and all who uses this project and report bugs.
 
 Special thanks to 
 
-- @samicrusader who created build file for ArchLinux
-- @cyrus who wrote the section for openSUSE
-- @midi who wrote the section for unRAID
+- @samicrusader who created build file for **ArchLinux**
+- @cyrus who wrote the section for **openSUSE**
+- @midi who wrote the section for **unRAID**
+- @polloloco who wrote the *[NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox)*
+- @DualCoder who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
+- Krutav Shah who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
+- Wim van 't Hoog for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
+
+And thanks to all people who contributed to all these libraries!

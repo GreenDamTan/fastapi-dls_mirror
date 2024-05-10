@@ -126,7 +126,7 @@ build:pacman:
       - "*.pkg.tar.zst"
 
 test:
-  image: python:3.11-slim-bookworm
+  image: $IMAGE
   stage: test
   interruptible: true
   rules:
@@ -141,6 +141,7 @@ test:
     DATABASE: sqlite:///../app/db.sqlite
   parallel:
     matrix:
+      - IMAGE: ['python:3.11-slim-bookworm']
       - REQUIREMENTS:
           - requirements.txt
           - .DEBIAN/requirements-bookworm-12.txt

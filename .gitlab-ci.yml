@@ -126,7 +126,7 @@ build:pacman:
       - "*.pkg.tar.zst"
 
 test:
-  image: python:3.11-slim-bookworm
+  image: $IMAGE
   stage: test
   interruptible: true
   rules:
@@ -141,7 +141,8 @@ test:
     DATABASE: sqlite:///../app/db.sqlite
   parallel:
     matrix:
-      - REQUIREMENTS:
+      - IMAGE: [ 'python:3.11-slim-bookworm', 'python:3.12-slim-bullseye' ]
+        REQUIREMENTS:
           - requirements.txt
           - .DEBIAN/requirements-bookworm-12.txt
           - .DEBIAN/requirements-ubuntu-23.10.txt
@@ -206,7 +207,7 @@ test:debian:
 
 test:ubuntu:
   extends: .test:linux
-  image: ubuntu:23.10
+  image: ubuntu:24.04
 
 test:archlinux:
   image: archlinux:base

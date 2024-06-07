@@ -326,7 +326,7 @@ Packages are available here:
 
 Successful tested with:
 
-- Debian 12 (Bookworm)
+- Debian 12 (Bookworm) (EOL: tba.)
 - Ubuntu 22.10 (Kinetic Kudu) (EOL: July 20, 2023)
 - Ubuntu 23.04 (Lunar Lobster) (EOL: January 2024)
 - Ubuntu 23.10 (Mantic Minotaur) (EOL: July 2024)

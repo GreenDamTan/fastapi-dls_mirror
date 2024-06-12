@@ -26,7 +26,7 @@ Only the clients need a connection to this service on configured port.
 
 ---
 
-[[_TOC_]]
+[TOC]
 
 # Setup (Service)
 

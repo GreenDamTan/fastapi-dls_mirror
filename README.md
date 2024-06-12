@@ -457,6 +457,7 @@ Successfully tested with this package versions:
 |    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
 
 - https://docs.nvidia.com/grid/index.html
+- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
 
 *To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
 

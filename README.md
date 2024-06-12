@@ -326,7 +326,7 @@ Packages are available here:
 
 Successful tested with:
 
-- Debian 12 (Bookworm)
+- Debian 12 (Bookworm) (EOL: tba.)
 - Ubuntu 22.10 (Kinetic Kudu) (EOL: July 20, 2023)
 - Ubuntu 23.04 (Lunar Lobster) (EOL: January 2024)
 - Ubuntu 23.10 (Mantic Minotaur) (EOL: July 2024)
@@ -438,9 +438,11 @@ Successfully tested with this package versions:
 
 | vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
 |:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
-|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 | February 2025 |
+|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 | February 2025 |
+|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
 |    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
-|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |     July 2026 |
+|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |     July 2026 |
+|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
 |    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
 |    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
 |    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
@@ -455,6 +457,7 @@ Successfully tested with this package versions:
 |    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
 
 - https://docs.nvidia.com/grid/index.html
+- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
 
 *To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
 

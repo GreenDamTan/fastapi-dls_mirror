@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, declarative_base

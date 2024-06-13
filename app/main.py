@@ -60,9 +60,11 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logging.basicConfig()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
+logger.setLevel(LOG_LEVEL)
+logging.getLogger('util').setLevel(LOG_LEVEL)
 
 
 def __get_token(request: Request) -> dict:

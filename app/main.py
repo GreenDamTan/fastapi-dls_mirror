@@ -108,7 +108,7 @@ async def _config():
 @app.get('/-/readme', summary='* Readme')
 async def _readme():
     from markdown import markdown
-    content = load_file('../README.md').decode('utf-8')
+    content = load_file(join(dirname(__file__), '../README.md')).decode('utf-8')
     return HTMLr(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 
 

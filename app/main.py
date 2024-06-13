@@ -553,6 +553,8 @@ async def app_on_startup():
     Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
     ''')
 
+    logger.info(f'Debug is {"enabled" if DEBUG else "disabled"}.')
+
 
 if __name__ == '__main__':
     import uvicorn

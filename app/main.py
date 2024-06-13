@@ -1,6 +1,7 @@
 import logging
 from base64 import b64encode as b64enc
 from calendar import timegm
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from hashlib import sha256
 from json import loads as json_loads
@@ -50,6 +51,28 @@ CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) 
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
+
+# FastAPI
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # on startup
+    logger.info(f'''
+    
+    Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
+    
+    Your clients renew their license every {str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA))}.
+    If the renewal fails, the license is {str(LEASE_RENEWAL_DELTA)} valid.
+    
+    Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
+    ''')
+
+    logger.info(f'Debug is {"enabled" if DEBUG else "disabled"}.')
+
+    yield
+
+    # on shutdown
+    logger.info(f'Shutting down ...')
+
 
 app.debug = DEBUG
 app.add_middleware(
@@ -540,20 +563,6 @@ async def leasing_v1_lessor_shutdown(request: Request):
     }
 
     return JSONr(response)
-
-
-@app.on_event('startup')
-async def app_on_startup():
-    logger.info(f'''
-    Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
-    
-    Your clients renew their license every {str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA))}.
-    If the renewal fails, the license is {str(LEASE_RENEWAL_DELTA)} valid.
-    
-    Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
-    ''')
-
-    logger.info(f'Debug is {"enabled" if DEBUG else "disabled"}.')
 
 
 if __name__ == '__main__':

@@ -23,18 +23,20 @@ from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLRe
 from orm import Origin, Lease, init as db_init, migrate
 from util import load_key, load_file
 
+# Load variables
 load_dotenv('../version.env')
 
+# Get current timezone
 TZ = datetime.now().astimezone().tzinfo
 
+# Load basic variables
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
-config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
-app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
+# Database connection
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db), migrate(db)
 
-# everything prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service
+# Load DLS variables (all prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service)
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
@@ -51,6 +53,7 @@ CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) 
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
+
 
 # FastAPI
 @asynccontextmanager
@@ -74,6 +77,9 @@ async def lifespan(_: FastAPI):
     logger.info(f'Shutting down ...')
 
 
+config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
+app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, lifespan=lifespan, **config)
+
 app.debug = DEBUG
 app.add_middleware(
     CORSMiddleware,
@@ -83,6 +89,7 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
+# Logging
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -90,11 +97,14 @@ logger.setLevel(LOG_LEVEL)
 logging.getLogger('util').setLevel(LOG_LEVEL)
 
 
+# Helper
 def __get_token(request: Request) -> dict:
     authorization_header = request.headers.get('authorization')
     token = authorization_header.split(' ')[1]
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
+
+# Endpoints
 
 @app.get('/', summary='Index')
 async def index():

@@ -1,11 +1,12 @@
 import logging
 from datetime import datetime, timedelta
+
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text, BLOB, INT, FLOAT
+from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
-from app.util import parse_key
+from util import NV
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -148,6 +149,8 @@ class Origin(Base):
         return f'Origin(origin_ref={self.origin_ref}, hostname={self.hostname})'
 
     def serialize(self) -> dict:
+        _ = NV().find(self.guest_driver_version)
+
         return {
             'origin_ref': self.origin_ref,
             # 'service_instance_xid': self.service_instance_xid,
@@ -155,6 +158,7 @@ class Origin(Base):
             'guest_driver_version': self.guest_driver_version,
             'os_platform': self.os_platform,
             'os_version': self.os_version,
+            '$driver': _ if _ is not None else None,
         }
 
     @staticmethod

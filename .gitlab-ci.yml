@@ -126,7 +126,7 @@ build:pacman:
       - "*.pkg.tar.zst"
 
 test:
-  image: python:3.11-slim-bookworm
+  image: $IMAGE
   stage: test
   interruptible: true
   rules:
@@ -141,10 +141,12 @@ test:
     DATABASE: sqlite:///../app/db.sqlite
   parallel:
     matrix:
-      - REQUIREMENTS:
+      - IMAGE: [ 'python:3.11-slim-bookworm', 'python:3.12-slim-bullseye' ]
+        REQUIREMENTS:
           - requirements.txt
           - .DEBIAN/requirements-bookworm-12.txt
           - .DEBIAN/requirements-ubuntu-23.10.txt
+          - .DEBIAN/requirements-ubuntu-24.04.txt
   before_script:
     - apt-get update && apt-get install -y python3-dev gcc
     - pip install -r $REQUIREMENTS
@@ -205,7 +207,7 @@ test:debian:
 
 test:ubuntu:
   extends: .test:linux
-  image: ubuntu:23.10
+  image: ubuntu:24.04
 
 test:archlinux:
   image: archlinux:base
@@ -295,17 +297,13 @@ gemnasium-python-dependency_scanning:
 
 deploy:docker:
   extends: .deploy
-  image: docker:dind
   stage: deploy
-  tags: [ docker ]
   before_script:
     - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_COMMIT_REF_NAME"
-    - docker buildx inspect
-    - docker buildx create --use
   script:
     - echo "========== GitLab-Registry =========="
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH
+    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
     - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME --push .
     - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest --push .
     - echo "========== Docker-Hub =========="

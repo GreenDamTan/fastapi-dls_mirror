@@ -91,7 +91,7 @@ app.add_middleware(
 
 # Logging
 LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
-logging.basicConfig()
+logging.basicConfig(format='[{levelname:^7}] [{module:^15}] {message}', style='{')
 logger = logging.getLogger(__name__)
 logger.setLevel(LOG_LEVEL)
 logging.getLogger('util').setLevel(LOG_LEVEL)

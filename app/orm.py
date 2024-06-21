@@ -5,6 +5,8 @@ from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+from util import NV
+
 Base = declarative_base()
 
 
@@ -23,6 +25,8 @@ class Origin(Base):
         return f'Origin(origin_ref={self.origin_ref}, hostname={self.hostname})'
 
     def serialize(self) -> dict:
+        _ = NV().find(self.guest_driver_version)
+
         return {
             'origin_ref': self.origin_ref,
             # 'service_instance_xid': self.service_instance_xid,
@@ -30,6 +34,7 @@ class Origin(Base):
             'guest_driver_version': self.guest_driver_version,
             'os_platform': self.os_platform,
             'os_version': self.os_version,
+            '$driver': _ if _ is not None else None,
         }
 
     @staticmethod

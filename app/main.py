@@ -2,7 +2,7 @@ import logging
 from base64 import b64encode as b64enc
 from calendar import timegm
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 from hashlib import sha256
 from json import loads as json_loads
 from os import getenv as env
@@ -13,12 +13,13 @@ from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.requests import Request
-from jose import jws, jwk, jwt, JWTError
+from jose import jws, jwt, JWTError
 from jose.constants import ALGORITHMS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
+from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, \
+    RedirectResponse
 
 from orm import init as db_init, migrate, Site, Instance, Origin, Lease
 
@@ -94,7 +95,7 @@ logging.getLogger('NV').setLevel(LOG_LEVEL)
 
 
 # Helper
-def __get_token(request: Request) -> dict:
+def __get_token(request: Request, jwt_decode_key: "jose.jwt") -> dict:
     authorization_header = request.headers.get('authorization')
     token = authorization_header.split(' ')[1]
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})

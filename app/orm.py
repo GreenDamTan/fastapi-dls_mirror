@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from dateutil.relativedelta import relativedelta
-from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
+from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text, BLOB, INT, FLOAT
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 
@@ -327,7 +327,6 @@ class Lease(Base):
 
 
 def init_default_site(session: Session):
-    from uuid import uuid4
     from app.util import generate_key
 
     private_key = generate_key()
@@ -398,30 +397,37 @@ def migrate(engine: Engine):
 
         # INSTANCE_KEY_RSA, INSTANCE_KEY_PUB
         default_instance_private_key_path = str(join(dirname(__file__), 'cert/instance.private.pem'))
-        if instance_private_key := env('INSTANCE_KEY_RSA', None) is not None:
+        instance_private_key = env('INSTANCE_KEY_RSA', None)
+        if instance_private_key is not None:
             instance.private_key = load_key(str(instance_private_key))
         elif isfile(default_instance_private_key_path):
             instance.private_key = load_key(default_instance_private_key_path)
         default_instance_public_key_path = str(join(dirname(__file__), 'cert/instance.public.pem'))
-        if instance_public_key := env('INSTANCE_KEY_PUB', None) is not None:
+        instance_public_key = env('INSTANCE_KEY_PUB', None)
+        if instance_public_key is not None:
             instance.public_key = load_key(str(instance_public_key))
         elif isfile(default_instance_public_key_path):
             instance.public_key = load_key(default_instance_public_key_path)
 
         # TOKEN_EXPIRE_DELTA
-        if token_expire_delta := env('TOKEN_EXPIRE_DAYS', None) not in (None, 0):
+        token_expire_delta = env('TOKEN_EXPIRE_DAYS', None)
+        if token_expire_delta not in (None, 0):
             instance.token_expire_delta = token_expire_delta * 86_400
-        if token_expire_delta := env('TOKEN_EXPIRE_HOURS', None) not in (None, 0):
+        token_expire_delta = env('TOKEN_EXPIRE_HOURS', None)
+        if token_expire_delta not in (None, 0):
             instance.token_expire_delta = token_expire_delta * 3_600
 
         # LEASE_EXPIRE_DELTA, LEASE_RENEWAL_DELTA
-        if lease_expire_delta := env('LEASE_EXPIRE_DAYS', None) not in (None, 0):
+        lease_expire_delta = env('LEASE_EXPIRE_DAYS', None)
+        if lease_expire_delta not in (None, 0):
             instance.lease_expire_delta = lease_expire_delta * 86_400
-        if lease_expire_delta := env('LEASE_EXPIRE_HOURS', None) not in (None, 0):
+        lease_expire_delta = env('LEASE_EXPIRE_HOURS', None)
+        if lease_expire_delta not in (None, 0):
             instance.lease_expire_delta = lease_expire_delta * 3_600
 
         # LEASE_RENEWAL_PERIOD
-        if lease_renewal_period := env('LEASE_RENEWAL_PERIOD', None) is not None:
+        lease_renewal_period = env('LEASE_RENEWAL_PERIOD', None)
+        if lease_renewal_period is not None:
             instance.lease_renewal_period = lease_renewal_period
 
         # todo: update site, instance

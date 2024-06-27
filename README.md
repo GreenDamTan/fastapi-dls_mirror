@@ -568,7 +568,7 @@ Deletes an lease.
 
 Generate client token, (see [installation](#installation)).
 
-### Others
+**Others**
 
 There are many other internal api endpoints for handling authentication and lease process.
 </details>

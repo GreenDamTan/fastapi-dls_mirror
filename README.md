@@ -595,9 +595,9 @@ Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Con
 
 ## Linux
 
-### `uvicorn.error:Invalid HTTP request received.`
+### Invalid HTTP request
 
-This message can be ignored.
+This error message: `uvicorn.error:Invalid HTTP request received.` can be ignored.
 
 - Ref. https://github.com/encode/uvicorn/issues/441
 

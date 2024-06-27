@@ -515,32 +515,32 @@ Done. For more information check [troubleshoot section](#troubleshoot).
 8. Set schedule to `At First Array Start Only`
 9. Click on Apply 
 
-# Endpoints
+# API Endpoints
 
 <details>
   <summary>show</summary>
 
-### `GET /`
+**`GET /`**
 
 Redirect to `/-/readme`.
 
-### `GET /-/health`
+**`GET /-/health`**
 
 Status endpoint, used for *healthcheck*.
 
-### `GET /-/config`
+**`GET /-/config`**
 
 Shows current runtime environment variables and their values.
 
-### `GET /-/readme`
+**`GET /-/readme`**
 
 HTML rendered README.md.
 
-### `GET /-/manage`
+**`GET /-/manage`**
 
 Shows a very basic UI to delete origins or leases.
 
-### `GET /-/origins?leases=false`
+**`GET /-/origins?leases=false`**
 
 List registered origins.
 
@@ -548,11 +548,11 @@ List registered origins.
 |-----------------|---------|--------------------------------------|
 | `leases`        | `false` | Include referenced leases per origin |
 
-### `DELETE /-/origins`
+**`DELETE /-/origins`**
 
 Deletes all origins and their leases.
 
-### `GET /-/leases?origin=false`
+**`GET /-/leases?origin=false`**
 
 List current leases.
 
@@ -560,11 +560,11 @@ List current leases.
 |-----------------|---------|-------------------------------------|
 | `origin`        | `false` | Include referenced origin per lease |
 
-### `DELETE /-/lease/{lease_ref}`
+**`DELETE /-/lease/{lease_ref}`**
 
 Deletes an lease.
 
-### `GET /-/client-token`
+**`GET /-/client-token`**
 
 Generate client token, (see [installation](#installation)).
 

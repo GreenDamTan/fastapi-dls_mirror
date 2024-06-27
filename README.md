@@ -43,6 +43,9 @@ Tested with Ubuntu 22.10 (EOL!) (from Proxmox templates), actually its consuming
 
 - Make sure your timezone is set correct on you fastapi-dls server and your client
 
+This guide does not show how to install vGPU host drivers! Look at the official documentation packed with the driver
+releases.
+
 ## Docker
 
 Docker-Images are available here for Intel (x86), AMD (amd64) and ARM (arm64):
@@ -434,6 +437,9 @@ client has 19.2 hours in which to re-establish connectivity before its license e
 # Setup (Client)
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
+
+This guide does not show how to install vGPU guest drivers! Look at the official documentation packed with the driver
+releases.
 
 ## Linux
 

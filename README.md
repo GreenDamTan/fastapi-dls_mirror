@@ -24,6 +24,35 @@ Only the clients need a connection to this service on configured port.
 * [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q) - Guide for `vgpu_unlock`
 * [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/) - Also known as `proxmox-installer.sh`
 
+**vGPU Software Compatibility Matrix**
+
+Successfully tested with this package versions.
+
+| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
+|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
+|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 | February 2025 |
+|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
+|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
+|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |     July 2026 |
+|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
+|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
+|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
+|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
+|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
+|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
+|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 |  October 2023 |
+|    `15.3`     |     R525      | `525.125.03`       | `525.125.06` | `529.11`       |     June 2023 |               |
+|    `15.2`     |     R525      | `525.105.14`       | `525.105.17` | `528.89`       |    March 2023 |               |
+|    `15.1`     |     R525      | `525.85.07`        | `525.85.05`  | `528.24`       |  January 2023 |               |
+|    `15.0`     |     R525      | `525.60.12`        | `525.60.13`  | `527.41`       | December 2022 |               |
+|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+|    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
+
+- https://docs.nvidia.com/grid/index.html
+- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
+
+*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing`
+
 ---
 
 [TOC]
@@ -434,33 +463,6 @@ client has 19.2 hours in which to re-establish connectivity before its license e
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
 
-Successfully tested with this package versions:
-
-| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
-|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
-|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 | February 2025 |
-|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
-|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
-|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |     July 2026 |
-|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
-|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
-|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
-|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
-|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
-|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
-|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 |  October 2023 |
-|    `15.3`     |     R525      | `525.125.03`       | `525.125.06` | `529.11`       |     June 2023 |               |
-|    `15.2`     |     R525      | `525.105.14`       | `525.105.17` | `528.89`       |    March 2023 |               |
-|    `15.1`     |     R525      | `525.85.07`        | `525.85.05`  | `528.24`       |  January 2023 |               |
-|    `15.0`     |     R525      | `525.60.12`        | `525.60.13`  | `527.41`       | December 2022 |               |
-|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
-|    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
-
-- https://docs.nvidia.com/grid/index.html
-- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
-
-*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
-
 ## Linux
 
 Download *client-token* and place it into `/etc/nvidia/ClientConfigToken`:
@@ -748,7 +750,7 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 Thanks to vGPU community and all who uses this project and report bugs.
 
-Special thanks to 
+Special thanks to:
 
 - @samicrusader who created build file for **ArchLinux**
 - @cyrus who wrote the section for **openSUSE**

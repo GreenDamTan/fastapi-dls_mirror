@@ -4,7 +4,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-URL = 'https://docs.nvidia.com/grid/'
+URL = 'https://docs.nvidia.com/vgpu/index.html'
 
 BRANCH_STATUS_KEY, SOFTWARE_BRANCH_KEY, = 'vGPU Branch Status', 'vGPU Software Branch'
 VGPU_KEY, GRID_KEY, DRIVER_BRANCH_KEY = 'vGPU Software', 'vGPU Software', 'Driver Branch'
@@ -25,15 +25,15 @@ def __driver_versions(html: 'BeautifulSoup'):
         return _
 
     # find wrapper for "DriverVersions" and find tables
-    data = html.find('div', {'id': 'DriverVersions'})
-    tables = data.findAll('table')
-    for table in tables:
-        # parse software-branch (e.g. "vGPU software 17 Releases" and remove " Releases" for "matrix_key")
-        software_branch = table.parent.find_previous_sibling('button', {'class': 'accordion'}).text.strip()
+    data = html.find('div', {'id': 'driver-versions'})
+    items = data.findAll('bsp-accordion', {'class': 'Accordion-items-item'})
+    for item in items:
+        software_branch = item.find('div', {'class': 'Accordion-items-item-title'}).text.strip()
         software_branch = software_branch.replace(' Releases', '')
         matrix_key = software_branch.lower()
 
         # driver version info from table-heads (ths) and table-rows (trs)
+        table = item.find('table')
         ths, trs = table.find_all('th'), table.find_all('tr')
         headers, releases = [header.text.strip() for header in ths], []
         for trs in trs:
@@ -50,7 +50,7 @@ def __driver_versions(html: 'BeautifulSoup'):
 
 def __release_branches(html: 'BeautifulSoup'):
     # find wrapper for "AllReleaseBranches" and find table
-    data = html.find('div', {'id': 'AllReleaseBranches'})
+    data = html.find('div', {'id': 'all-release-branches'})
     table = data.find('table')
 
     # branch releases info from table-heads (ths) and table-rows (trs)

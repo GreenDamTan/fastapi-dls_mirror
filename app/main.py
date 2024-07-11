@@ -54,6 +54,14 @@ CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
+# Logging
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
+logging.basicConfig(format='[{levelname:^7}] [{module:^15}] {message}', style='{')
+logger = logging.getLogger(__name__)
+logger.setLevel(LOG_LEVEL)
+logging.getLogger('util').setLevel(LOG_LEVEL)
+logging.getLogger('NV').setLevel(LOG_LEVEL)
+
 
 # FastAPI
 @asynccontextmanager
@@ -88,14 +96,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
-# Logging
-LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
-logging.basicConfig(format='[{levelname:^7}] [{module:^15}] {message}', style='{')
-logger = logging.getLogger(__name__)
-logger.setLevel(LOG_LEVEL)
-logging.getLogger('util').setLevel(LOG_LEVEL)
-logging.getLogger('NV').setLevel(LOG_LEVEL)
 
 
 # Helper

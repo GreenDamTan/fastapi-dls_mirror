@@ -1,39 +1,42 @@
 import logging
 from base64 import b64encode as b64enc
+from calendar import timegm
+from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
 from hashlib import sha256
-from uuid import uuid4
-from os.path import join, dirname
+from json import loads as json_loads
 from os import getenv as env
+from os.path import join, dirname
+from uuid import uuid4
 
+from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.requests import Request
-from json import loads as json_loads
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
-from calendar import timegm
 from jose import jws, jwk, jwt, JWTError
 from jose.constants import ALGORITHMS
-from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
 
-from util import load_key, load_file
 from orm import Origin, Lease, init as db_init, migrate
+from util import load_key, load_file
 
+# Load variables
 load_dotenv('../version.env')
 
+# Get current timezone
 TZ = datetime.now().astimezone().tzinfo
 
+# Load basic variables
 VERSION, COMMIT, DEBUG = env('VERSION', 'unknown'), env('COMMIT', 'unknown'), bool(env('DEBUG', False))
 
-config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
-app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, **config)
+# Database connection
 db = create_engine(str(env('DATABASE', 'sqlite:///db.sqlite')))
 db_init(db), migrate(db)
 
-# everything prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service
+# Load DLS variables (all prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service)
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
@@ -51,6 +54,40 @@ CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
+# Logging
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
+logging.basicConfig(format='[{levelname:^7}] [{module:^15}] {message}', style='{')
+logger = logging.getLogger(__name__)
+logger.setLevel(LOG_LEVEL)
+logging.getLogger('util').setLevel(LOG_LEVEL)
+logging.getLogger('NV').setLevel(LOG_LEVEL)
+
+
+# FastAPI
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # on startup
+    logger.info(f'''
+    
+    Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
+    
+    Your clients renew their license every {str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA))}.
+    If the renewal fails, the license is {str(LEASE_RENEWAL_DELTA)} valid.
+    
+    Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
+    ''')
+
+    logger.info(f'Debug is {"enabled" if DEBUG else "disabled"}.')
+
+    yield
+
+    # on shutdown
+    logger.info(f'Shutting down ...')
+
+
+config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
+app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, lifespan=lifespan, **config)
+
 app.debug = DEBUG
 app.add_middleware(
     CORSMiddleware,
@@ -60,16 +97,15 @@ app.add_middleware(
     allow_headers=['*'],
 )
 
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG if DEBUG else logging.INFO)
 
-
+# Helper
 def __get_token(request: Request) -> dict:
     authorization_header = request.headers.get('authorization')
     token = authorization_header.split(' ')[1]
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
+
+# Endpoints
 
 @app.get('/', summary='Index')
 async def index():
@@ -108,7 +144,7 @@ async def _config():
 @app.get('/-/readme', summary='* Readme')
 async def _readme():
     from markdown import markdown
-    content = load_file('../README.md').decode('utf-8')
+    content = load_file(join(dirname(__file__), '../README.md')).decode('utf-8')
     return HTMLr(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
 
 
@@ -538,18 +574,6 @@ async def leasing_v1_lessor_shutdown(request: Request):
     }
 
     return JSONr(response)
-
-
-@app.on_event('startup')
-async def app_on_startup():
-    logger.info(f'''
-    Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
-    
-    Your clients renew their license every {str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA))}.
-    If the renewal fails, the license is {str(LEASE_RENEWAL_DELTA)} valid.
-    
-    Your client-token file (.tok) is valid for {str(CLIENT_TOKEN_EXPIRE_DELTA)}.
-    ''')
 
 
 if __name__ == '__main__':

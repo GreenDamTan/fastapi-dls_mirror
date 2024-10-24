@@ -2,7 +2,8 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0. For Driver compatibility see [here](#setup-client).
+Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1. For Driver compatibility
+see [compatibility matrix](#vgpu-software-compatibility-matrix).
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -26,7 +27,7 @@ Only the clients need a connection to this service on configured port.
 
 ---
 
-[[_TOC_]]
+[TOC]
 
 # Setup (Service)
 
@@ -41,6 +42,9 @@ Tested with Ubuntu 22.10 (EOL!) (from Proxmox templates), actually its consuming
 **Prepare your system**
 
 - Make sure your timezone is set correct on you fastapi-dls server and your client
+
+This guide does not show how to install vGPU host drivers! Look at the official documentation packed with the driver
+releases.
 
 ## Docker
 
@@ -434,32 +438,8 @@ client has 19.2 hours in which to re-establish connectivity before its license e
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
 
-Successfully tested with this package versions:
-
-| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
-|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
-|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 | February 2025 |
-|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
-|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
-|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |     July 2026 |
-|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
-|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
-|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
-|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
-|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
-|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
-|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 |  October 2023 |
-|    `15.3`     |     R525      | `525.125.03`       | `525.125.06` | `529.11`       |     June 2023 |               |
-|    `15.2`     |     R525      | `525.105.14`       | `525.105.17` | `528.89`       |    March 2023 |               |
-|    `15.1`     |     R525      | `525.85.07`        | `525.85.05`  | `528.24`       |  January 2023 |               |
-|    `15.0`     |     R525      | `525.60.12`        | `525.60.13`  | `527.41`       | December 2022 |               |
-|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
-|    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
-
-- https://docs.nvidia.com/grid/index.html
-- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
-
-*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
+This guide does not show how to install vGPU guest drivers! Look at the official documentation packed with the driver
+releases.
 
 ## Linux
 
@@ -535,33 +515,32 @@ Done. For more information check [troubleshoot section](#troubleshoot).
 8. Set schedule to `At First Array Start Only`
 9. Click on Apply 
 
-
-# Endpoints
+# API Endpoints
 
 <details>
   <summary>show</summary>
 
-### `GET /`
+**`GET /`**
 
 Redirect to `/-/readme`.
 
-### `GET /-/health`
+**`GET /-/health`**
 
 Status endpoint, used for *healthcheck*.
 
-### `GET /-/config`
+**`GET /-/config`**
 
 Shows current runtime environment variables and their values.
 
-### `GET /-/readme`
+**`GET /-/readme`**
 
 HTML rendered README.md.
 
-### `GET /-/manage`
+**`GET /-/manage`**
 
 Shows a very basic UI to delete origins or leases.
 
-### `GET /-/origins?leases=false`
+**`GET /-/origins?leases=false`**
 
 List registered origins.
 
@@ -569,11 +548,11 @@ List registered origins.
 |-----------------|---------|--------------------------------------|
 | `leases`        | `false` | Include referenced leases per origin |
 
-### `DELETE /-/origins`
+**`DELETE /-/origins`**
 
 Deletes all origins and their leases.
 
-### `GET /-/leases?origin=false`
+**`GET /-/leases?origin=false`**
 
 List current leases.
 
@@ -581,15 +560,15 @@ List current leases.
 |-----------------|---------|-------------------------------------|
 | `origin`        | `false` | Include referenced origin per lease |
 
-### `DELETE /-/lease/{lease_ref}`
+**`DELETE /-/lease/{lease_ref}`**
 
 Deletes an lease.
 
-### `GET /-/client-token`
+**`GET /-/client-token`**
 
 Generate client token, (see [installation](#installation)).
 
-### Others
+**Others**
 
 There are many other internal api endpoints for handling authentication and lease process.
 </details>
@@ -616,9 +595,9 @@ Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Con
 
 ## Linux
 
-### `uvicorn.error:Invalid HTTP request received.`
+### Invalid HTTP request
 
-This message can be ignored.
+This error message: `uvicorn.error:Invalid HTTP request received.` can be ignored.
 
 - Ref. https://github.com/encode/uvicorn/issues/441
 
@@ -744,11 +723,40 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 </details>
 
+# vGPU Software Compatibility Matrix
+
+Successfully tested with this package versions.
+
+| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
+|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
+|    `17.4`     |     R550      | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 | February 2025 |
+|    `17.3`     |     R550      | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
+|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |
+|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
+|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
+|    `16.8`     |     R535      | `535.216.01`       | `535.216.01` | `538.95`       |  October 2024 |     July 2026 |
+|    `16.7`     |     R535      | `535.183.04`       | `535.183.06` | `538.78`       |     July 2024 |               |
+|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |               |
+|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
+|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
+|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
+|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
+|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
+|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
+|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
+|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+
+- https://docs.nvidia.com/grid/index.html
+- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
+
+*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`)
+on channel `licensing`
+
 # Credits
 
 Thanks to vGPU community and all who uses this project and report bugs.
 
-Special thanks to 
+Special thanks to:
 
 - @samicrusader who created build file for **ArchLinux**
 - @cyrus who wrote the section for **openSUSE**

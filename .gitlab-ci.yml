@@ -166,7 +166,7 @@ test:
       dotenv: version.env
       junit: ['**/report.xml']
 
-.test:linux:
+.test:apt:
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
@@ -205,15 +205,15 @@ test:
     - apt-get purge -qq -y fastapi-dls
     - apt-get autoremove -qq -y && apt-get clean -qq
 
-test:debian:
-  extends: .test:linux
+test:apt:debian:
+  extends: .test:apt
   image: debian:bookworm-slim
 
-test:ubuntu:
-  extends: .test:linux
+test:apt:ubuntu:
+  extends: .test:apt
   image: ubuntu:24.04
 
-test:archlinux:
+test:pacman:archlinux:
   image: archlinux:base
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH

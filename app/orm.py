@@ -71,6 +71,16 @@ class Origin(Base):
         session.close()
         return deletions
 
+    @staticmethod
+    def delete_expired(engine: Engine) -> int:
+        session = sessionmaker(bind=engine)()
+        origins = session.query(Origin).join(Lease, Origin.origin_ref == Lease.origin_ref, isouter=True).filter(Lease.lease_ref.is_(None)).all()
+        origin_refs = [origin.origin_ref for origin in origins]
+        deletions = session.query(Origin).filter(Origin.origin_ref.in_(origin_refs)).delete()
+        session.commit()
+        session.close()
+        return deletions
+
 
 class Lease(Base):
     __tablename__ = "lease"

@@ -10,7 +10,7 @@ RUN apk update \
  && apk add --no-cache --virtual build-deps gcc g++ python3-dev musl-dev pkgconfig \
  && apk add --no-cache curl postgresql postgresql-dev mariadb-dev sqlite-dev \
  && pip install --no-cache-dir --upgrade uvicorn \
- && pip install --no-cache-dir psycopg2==2.9.9 mysqlclient==2.2.4 pysqlite3==0.5.2 \
+ && pip install --no-cache-dir psycopg2==2.9.10 mysqlclient==2.2.6 pysqlite3==0.5.4 \
  && pip install --no-cache-dir -r /tmp/requirements.txt \
  && apk del build-deps
 

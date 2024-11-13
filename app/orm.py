@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
@@ -94,10 +94,10 @@ class Lease(Base):
             'lease_ref': self.lease_ref,
             'origin_ref': self.origin_ref,
             # 'scope_ref': self.scope_ref,
-            'lease_created': self.lease_created.isoformat(),
-            'lease_expires': self.lease_expires.isoformat(),
-            'lease_updated': self.lease_updated.isoformat(),
-            'lease_renewal': lease_renewal.isoformat(),
+            'lease_created': self.lease_created.replace(tzinfo=timezone.utc).isoformat(),
+            'lease_expires': self.lease_expires.replace(tzinfo=timezone.utc).isoformat(),
+            'lease_updated': self.lease_updated.replace(tzinfo=timezone.utc).isoformat(),
+            'lease_renewal': lease_renewal.replace(tzinfo=timezone.utc).isoformat(),
         }
 
     @staticmethod

@@ -152,8 +152,10 @@ test:
       - IMAGE: [ 'ubuntu:24.10' ]
         REQUIREMENTS: [ '.DEBIAN/requirements-ubuntu-24.10.txt' ]
   before_script:
-    - echo "$IMAGE with $REQUIREMENTS"
-    - apt-get update && apt-get install -y python3-dev python3-pip gcc
+    - apt-get update && apt-get install -y python3-dev python3-pip python3-venv gcc
+    - python -m venv venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
     - pip install -r $REQUIREMENTS
     - pip install pytest httpx
     - mkdir -p app/cert

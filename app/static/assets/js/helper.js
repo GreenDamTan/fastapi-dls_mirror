@@ -33,11 +33,12 @@ async function fetchOriginsWithLeases(element) {
             let tbody = document.createElement('thead');
             x.sort((a, b) => a.hostname.localeCompare(b.hostname)).forEach((o) => {
                 let row = document.createElement('tr');
+                const branchVersion= o.$driver ? `(<code>${o.$driver.branch_version}</code>) ` : ''
                 row.innerHTML = `
                         <td><code>${o.origin_ref}</code></td>
                         <td>${o.hostname}</td>
                         <td>${o.os_platform} (${o.os_version})</td>
-                        <td>${o.guest_driver_version}</td>
+                        <td>${branchVersion}<code>${o.guest_driver_version}</code></td>
                         <td>${o.leases.map(x => `<code title="expires: ${x.lease_expires}">${x.lease_ref}</code>`).join(', ')}</td>`
                 tbody.appendChild(row);
             })

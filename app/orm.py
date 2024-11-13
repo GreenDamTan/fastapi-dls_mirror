@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
@@ -66,7 +66,17 @@ class Origin(Base):
         if origin_refs is None:
             deletions = session.query(Origin).delete()
         else:
-            deletions = session.query(Origin).filter(Origin.origin_ref in origin_refs).delete()
+            deletions = session.query(Origin).filter(Origin.origin_ref.in_(origin_refs)).delete()
+        session.commit()
+        session.close()
+        return deletions
+
+    @staticmethod
+    def delete_expired(engine: Engine) -> int:
+        session = sessionmaker(bind=engine)()
+        origins = session.query(Origin).join(Lease, Origin.origin_ref == Lease.origin_ref, isouter=True).filter(Lease.lease_ref.is_(None)).all()
+        origin_refs = [origin.origin_ref for origin in origins]
+        deletions = session.query(Origin).filter(Origin.origin_ref.in_(origin_refs)).delete()
         session.commit()
         session.close()
         return deletions
@@ -94,10 +104,10 @@ class Lease(Base):
             'lease_ref': self.lease_ref,
             'origin_ref': self.origin_ref,
             # 'scope_ref': self.scope_ref,
-            'lease_created': self.lease_created.isoformat(),
-            'lease_expires': self.lease_expires.isoformat(),
-            'lease_updated': self.lease_updated.isoformat(),
-            'lease_renewal': lease_renewal.isoformat(),
+            'lease_created': self.lease_created.replace(tzinfo=timezone.utc).isoformat(),
+            'lease_expires': self.lease_expires.replace(tzinfo=timezone.utc).isoformat(),
+            'lease_updated': self.lease_updated.replace(tzinfo=timezone.utc).isoformat(),
+            'lease_renewal': lease_renewal.replace(tzinfo=timezone.utc).isoformat(),
         }
 
     @staticmethod

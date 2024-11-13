@@ -66,7 +66,7 @@ class Origin(Base):
         if origin_refs is None:
             deletions = session.query(Origin).delete()
         else:
-            deletions = session.query(Origin).filter(Origin.origin_ref in origin_refs).delete()
+            deletions = session.query(Origin).filter(Origin.origin_ref.in_(origin_refs)).delete()
         session.commit()
         session.close()
         return deletions

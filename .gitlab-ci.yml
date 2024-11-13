@@ -20,6 +20,7 @@ build:docker:
       changes:
         - app/**/*
         - Dockerfile
+        - requirements.txt
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   tags: [ docker ]
   before_script:

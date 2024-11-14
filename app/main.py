@@ -15,12 +15,10 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 from jose import jws, jwk, jwt, JWTError
 from jose.constants import ALGORITHMS
-from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse, Response, RedirectResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
+from starlette.responses import StreamingResponse, JSONResponse as JSONr, Response, RedirectResponse
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
@@ -91,8 +89,8 @@ async def lifespan(_: FastAPI):
 
 config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, lifespan=lifespan, **config)
-app.mount('/static', StaticFiles(directory='static', html=True), name='static'),
-templates = Jinja2Templates(directory='templates')
+app.mount('/static', StaticFiles(directory=join(dirname(__file__), 'static'), html=True), name='static'),
+templates = Jinja2Templates(directory=join(dirname(__file__), 'templates'))
 
 app.debug = DEBUG
 app.add_middleware(
@@ -132,6 +130,8 @@ def __json_config() -> dict:
         'CLIENT_TOKEN_EXPIRE_DELTA': str(CLIENT_TOKEN_EXPIRE_DELTA),
     }
 
+
+# Endpoints
 
 @app.get('/', summary='* Index')
 async def index():

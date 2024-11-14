@@ -59,8 +59,8 @@ def test_readme():
     assert response.status_code == 200
 
 
-def test_manage():
-    response = client.get('/-/manage')
+def test_dashboard():
+    response = client.get('/-/dashboard')
     assert response.status_code == 200
 
 

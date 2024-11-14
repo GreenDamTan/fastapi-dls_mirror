@@ -2,7 +2,7 @@ Package: fastapi-dls
 Version: 0.0
 Architecture: all
 Maintainer: Oscar Krause oscar.krause@collinwebdesigns.de
-Depends: python3, python3-fastapi, python3-uvicorn, python3-dotenv, python3-dateutil, python3-jose, python3-sqlalchemy, python3-pycryptodome, python3-markdown, uvicorn, openssl
+Depends: python3, python3-fastapi, python3-uvicorn, python3-dotenv, python3-dateutil, python3-jose, python3-sqlalchemy, python3-pycryptodome, python3-markdown, python3-jinja2, uvicorn, openssl
 Recommends: curl
 Installed-Size: 10240
 Homepage: https://git.collinwebdesigns.de/oscar.krause/fastapi-dls

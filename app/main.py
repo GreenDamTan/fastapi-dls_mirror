@@ -18,7 +18,9 @@ from jose.constants import ALGORITHMS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
+from starlette.responses import StreamingResponse, JSONResponse as JSONr, Response, RedirectResponse
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 from orm import Origin, Lease, init as db_init, migrate
 from util import load_key, load_file
@@ -87,6 +89,8 @@ async def lifespan(_: FastAPI):
 
 config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, lifespan=lifespan, **config)
+app.mount('/static', StaticFiles(directory=join(dirname(__file__), 'static'), html=True), name='static'),
+templates = Jinja2Templates(directory=join(dirname(__file__), 'templates'))
 
 app.debug = DEBUG
 app.add_middleware(
@@ -105,26 +109,8 @@ def __get_token(request: Request) -> dict:
     return jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
 
 
-# Endpoints
-
-@app.get('/', summary='Index')
-async def index():
-    return RedirectResponse('/-/readme')
-
-
-@app.get('/-/', summary='* Index')
-async def _index():
-    return RedirectResponse('/-/readme')
-
-
-@app.get('/-/health', summary='* Health')
-async def _health():
-    return JSONr({'status': 'up'})
-
-
-@app.get('/-/config', summary='* Config', description='returns environment variables.')
-async def _config():
-    return JSONr({
+def __json_config() -> dict:
+    return {
         'VERSION': str(VERSION),
         'COMMIT': str(COMMIT),
         'DEBUG': str(DEBUG),
@@ -138,52 +124,66 @@ async def _config():
         'LEASE_RENEWAL_PERIOD': str(LEASE_RENEWAL_PERIOD),
         'CORS_ORIGINS': str(CORS_ORIGINS),
         'TZ': str(TZ),
-    })
+        # static / calculated
+        'LEASE_RENEWAL_DELTA': str(LEASE_RENEWAL_DELTA),
+        'LEASE_CALCULATED_RENEWAL': str(Lease.calculate_renewal(LEASE_RENEWAL_PERIOD, LEASE_RENEWAL_DELTA)),
+        'CLIENT_TOKEN_EXPIRE_DELTA': str(CLIENT_TOKEN_EXPIRE_DELTA),
+    }
+
+
+# Endpoints
+
+@app.get('/', summary='* Index')
+async def index():
+    return RedirectResponse('/-/')
+
+
+@app.get('/-/', summary='* Index')
+async def _index(request: Request):
+    return templates.TemplateResponse(name='views/index.html', context={'request': request, 'VERSION': VERSION})
+
+
+@app.get('/-/health', summary='* Health')
+async def _health():
+    return JSONr({'status': 'up'})
+
+
+@app.get('/-/config', summary='* Config', description='returns environment variables.')
+async def _config():
+    return JSONr(__json_config())
 
 
 @app.get('/-/readme', summary='* Readme')
-async def _readme():
+async def _readme(request: Request):
     from markdown import markdown
     content = load_file(join(dirname(__file__), '../README.md')).decode('utf-8')
-    return HTMLr(markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc']))
+    markdown = markdown(text=content, extensions=['tables', 'fenced_code', 'md_in_html', 'nl2br', 'toc'])
+    context = {'request': request, 'VERSION': VERSION, 'markdown': markdown }
+    return templates.TemplateResponse(name='views/dashboard_readme.html', context=context)
 
 
 @app.get('/-/manage', summary='* Management UI')
 async def _manage(request: Request):
-    response = '''
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <title>FastAPI-DLS Management</title>
-        </head>
-        <body>
-            <button onclick="deleteOrigins()">delete ALL origins and their leases</button>
-            <button onclick="deleteLease()">delete specific lease</button>
-            
-            <script>
-                function deleteOrigins() {
-                    const response = confirm('Are you sure you want to delete all origins and their leases?');
+    context = {'request': request, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/manage.html', context=context)
 
-                    if (response) {
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("DELETE", '/-/origins', true);
-                        xhr.send();
-                    }
-                }
-                function deleteLease(lease_ref) {
-                    if(lease_ref === undefined)
-                        lease_ref = window.prompt("Please enter 'lease_ref' which should be deleted");
-                    if(lease_ref === null || lease_ref === "")
-                        return
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("DELETE", `/-/lease/${lease_ref}`, true);
-                    xhr.send();
-                }
-            </script>
-        </body>
-    </html>
-    '''
-    return HTMLr(response)
+
+@app.get('/-/dashboard', summary='* Dashboard')
+async def _dashboard(request: Request):
+    context = {'request': request, 'VERSION': VERSION, 'CONFIG': __json_config()}
+    return templates.TemplateResponse(name='views/dashboard.html', context=context)
+
+
+@app.get('/-/dashboard/origins', summary='* Dashboard - Origins')
+async def _dashboard_origins(request: Request):
+    context = {'request': request, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/dashboard_origins.html', context=context)
+
+
+@app.get('/-/dashboard/leases', summary='* Dashboard - Leases')
+async def _dashboard_origins(request: Request):
+    context = {'request': request, 'VERSION': VERSION}
+    return templates.TemplateResponse(name='views/dashboard_leases.html', context=context)
 
 
 @app.get('/-/origins', summary='* Origins')
@@ -206,6 +206,19 @@ async def _origins_delete(request: Request):
     return Response(status_code=201)
 
 
+@app.delete('/-/origins/expired', summary='* Delete all Origins without active Lease')
+async def _origins_delete_expired(request: Request):
+    Origin.delete_expired(db)
+    return Response(status_code=201)
+
+
+@app.delete('/-/origins/{origin_ref}', summary='* Delete specific Origin')
+async def _origins_delete_origin_ref(request: Request, origin_ref: str):
+    if Origin.delete(db, [origin_ref]) == 1:
+        return Response(status_code=201)
+    return JSONr(status_code=404, content={'status': 404, 'detail': 'lease not found'})
+
+
 @app.get('/-/leases', summary='* Leases')
 async def _leases(request: Request, origin: bool = False):
     session = sessionmaker(bind=db)()
@@ -222,13 +235,13 @@ async def _leases(request: Request, origin: bool = False):
     return JSONr(response)
 
 
-@app.delete('/-/leases/expired', summary='* Leases')
+@app.delete('/-/leases/expired', summary='* Delete all expired Leases')
 async def _lease_delete_expired(request: Request):
     Lease.delete_expired(db)
     return Response(status_code=201)
 
 
-@app.delete('/-/lease/{lease_ref}', summary='* Lease')
+@app.delete('/-/lease/{lease_ref}', summary='* Delete specific Lease')
 async def _lease_delete(request: Request, lease_ref: str):
     if Lease.delete(db, lease_ref) == 1:
         return Response(status_code=201)

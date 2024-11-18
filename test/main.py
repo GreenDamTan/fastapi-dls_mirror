@@ -110,7 +110,7 @@ def test_auth_v1_origin_malformed_json():
     import re
     
     # see oscar.krause/fastapi-dls#1
-    json = """{
+    payload = """{
         "registration_pending": "false",
         "environment": {
             "guest_driver_version": "guest_driver_version",
@@ -132,7 +132,7 @@ def test_auth_v1_origin_malformed_json():
     replaced = re.sub(regex, r'\1"\2', json_test)
     assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
     
-    json = re.sub(regex, r'\1"\2', json)
+    payload = re.sub(regex, r'\1"\2', payload)
     # 
 
     response = client.post('/auth/v1/origin', json=payload)

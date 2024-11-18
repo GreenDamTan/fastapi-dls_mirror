@@ -111,7 +111,7 @@ def test_auth_v1_origin_malformed_json():
     import json
     
     # see oscar.krause/fastapi-dls#1
-    payload = """{
+    payload = f"""{
         "registration_pending": "false",
         "environment": {
             "guest_driver_version": "guest_driver_version",
@@ -123,7 +123,7 @@ def test_auth_v1_origin_malformed_json():
             "host_driver_version": "host_driver_version"
         },
         "update_pending": "false",
-        "candidate_origin_ref": {ORIGIN_REF},
+        "candidate_origin_ref": "{ORIGIN_REF}"
     }"""
     
     # test regex (temporary, until this section is merged into main.py

@@ -108,6 +108,7 @@ def test_auth_v1_origin():
 
 def test_auth_v1_origin_malformed_json():
     import re
+    import json
     
     # see oscar.krause/fastapi-dls#1
     payload = """{
@@ -133,6 +134,7 @@ def test_auth_v1_origin_malformed_json():
     assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
     
     payload = re.sub(regex, r'\1"\2', payload)
+    payload = json.loads(payload)
     # 
 
     response = client.post('/auth/v1/origin', json=payload)

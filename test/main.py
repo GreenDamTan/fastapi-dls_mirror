@@ -106,6 +106,40 @@ def test_auth_v1_origin():
     assert response.json().get('origin_ref') == ORIGIN_REF
 
 
+def test_auth_v1_origin_malformed_json():
+    import re
+    
+    # see oscar.krause/fastapi-dls#1
+    json = """{
+        "registration_pending": "false",
+        "environment": {
+            "guest_driver_version": "guest_driver_version",
+            "hostname": "myhost",
+            "ip_address_list": ["192.168.1.123"],
+            "os_version": "os_version",
+            "os_platform": "os_platform",
+            "fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]},
+            "host_driver_version": "host_driver_version"
+        },
+        "update_pending": "false",
+        "candidate_origin_ref": {ORIGIN_REF},
+    }"""
+    
+    # test regex (temporary, until this section is merged into main.py
+    
+    json_test = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
+    regex = r'(\"mac_address_list\"\:\s?\[)([\w\d])'
+    replaced = re.sub(regex, r'\1"\2', json_test)
+    assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
+    
+    json = re.sub(regex, r'\1"\2', json)
+    # 
+
+    response = client.post('/auth/v1/origin', json=payload)
+    assert response.status_code == 200
+    assert response.json().get('origin_ref') == ORIGIN_REF
+ 
+
 def auth_v1_origin_update():
     payload = {
         "registration_pending": False,

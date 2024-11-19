@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
     # see oscar.krause/fastapi-dls#1
 
+    REGEX = '(\"mac_address_list\"\:\s?\[)([\w\d])'
+
     def __init__(self, app, enabled: bool):
         super().__init__(app)
         self.enabled = enabled
@@ -28,8 +30,7 @@ class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
                 body = body.replace('\t', '')
                 body = body.replace('\n', '')
 
-                regex = '(\"mac_address_list\"\:\s?\[)([\w\d])'
-                s = re.sub(regex, r'\1"\2', body)
+                s = re.sub(PatchMalformedJsonMiddleware.REGEX, r'\1"\2', body)
                 logger.debug(f'Fixed JSON: "{s}"')
                 s = json.loads(s)  # ensure json is now valid
 

@@ -111,11 +111,11 @@ def test_auth_v1_origin():
 
 def test_auth_v1_origin_malformed_json():  # see oscar.krause/fastapi-dls#1
     import re
+    from middleware import PatchMalformedJsonMiddleware
 
     # test regex (temporary, until this section is merged into main.py
-    json_test = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
-    regex = '(\"mac_address_list\"\:\s?\[)([\w\d])'
-    replaced = re.sub(regex, r'\1"\2', json_test)
+    body = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
+    replaced = re.sub(PatchMalformedJsonMiddleware.REGEX, r'\1"\2', body)
     assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
  
 

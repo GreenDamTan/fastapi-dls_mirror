@@ -140,6 +140,7 @@ test:
         - test/**/*
   variables:
     DATABASE: sqlite:///../app/db.sqlite
+    SUPPORT_MALFORMED_JSON: true
   parallel:
     matrix:
       - IMAGE: [ 'python:3.12-slim-bookworm' ]

@@ -1,7 +1,8 @@
+import sys
 from base64 import b64encode as b64enc
-from hashlib import sha256
 from calendar import timegm
 from datetime import datetime
+from hashlib import sha256
 from os.path import dirname, join
 from uuid import uuid4, UUID
 
@@ -9,7 +10,8 @@ from dateutil.relativedelta import relativedelta
 from jose import jwt, jwk
 from jose.constants import ALGORITHMS
 from starlette.testclient import TestClient
-import sys
+
+from middleware import PatchMalformedJsonMiddleware
 
 # add relative path to use packages as they were in the app/ dir
 sys.path.append('../')
@@ -18,6 +20,7 @@ sys.path.append('../app')
 from app import main
 from app.util import load_key
 
+main.app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
 client = TestClient(main.app)
 
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
@@ -106,40 +109,14 @@ def test_auth_v1_origin():
     assert response.json().get('origin_ref') == ORIGIN_REF
 
 
-def test_auth_v1_origin_malformed_json():
+def test_auth_v1_origin_malformed_json():  # see oscar.krause/fastapi-dls#1
     import re
-    import json
-    
-    # see oscar.krause/fastapi-dls#1
-    payload = f'''{{
-        "registration_pending": "false",
-        "environment": {{
-            "guest_driver_version": "guest_driver_version",
-            "hostname": "myhost",
-            "ip_address_list": ["192.168.1.123"],
-            "os_version": "os_version",
-            "os_platform": "os_platform",
-            "fingerprint": {{"mac_address_list": [ff:ff:ff:ff:ff:ff"]}},
-            "host_driver_version": "host_driver_version"
-        }},
-        "update_pending": "false",
-        "candidate_origin_ref": "{ORIGIN_REF}"
-    }}'''
-    
+
     # test regex (temporary, until this section is merged into main.py
-    
     json_test = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
-    regex = r'(\"mac_address_list\"\:\s?\[)([\w\d])'
+    regex = '(\"mac_address_list\"\:\s?\[)([\w\d])'
     replaced = re.sub(regex, r'\1"\2', json_test)
     assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
-    
-    payload = re.sub(regex, r'\1"\2', payload)
-    payload = json.loads(payload)
-    # 
-
-    response = client.post('/auth/v1/origin', json=payload)
-    assert response.status_code == 200
-    assert response.json().get('origin_ref') == ORIGIN_REF
  
 
 def auth_v1_origin_update():

@@ -11,14 +11,13 @@ from jose import jwt, jwk
 from jose.constants import ALGORITHMS
 from starlette.testclient import TestClient
 
-from middleware import PatchMalformedJsonMiddleware
-
 # add relative path to use packages as they were in the app/ dir
 sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
 from app.util import load_key
+from middleware import PatchMalformedJsonMiddleware
 
 main.app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
 client = TestClient(main.app)

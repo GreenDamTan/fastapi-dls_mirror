@@ -17,9 +17,8 @@ sys.path.append('../app')
 
 from app import main
 from app.util import load_key
-from middleware import PatchMalformedJsonMiddleware
 
-main.app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
+# main.app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
 client = TestClient(main.app)
 
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
@@ -109,12 +108,11 @@ def test_auth_v1_origin():
 
 
 def test_auth_v1_origin_malformed_json():  # see oscar.krause/fastapi-dls#1
-    import re
     from middleware import PatchMalformedJsonMiddleware
 
     # test regex (temporary, until this section is merged into main.py
-    body = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
-    replaced = re.sub(PatchMalformedJsonMiddleware.REGEX, r'\1"\2', body)
+    s = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
+    replaced = PatchMalformedJsonMiddleware.fix_json(s)
     assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
  
 

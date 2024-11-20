@@ -27,15 +27,17 @@ class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
                 json.loads(body)
             except json.decoder.JSONDecodeError:
                 logger.warning(f'Malformed json received! Try to fix it, "PatchMalformedJsonMiddleware" is enabled.')
-                body = body.replace('\t', '')
-                body = body.replace('\n', '')
-
-                s = re.sub(PatchMalformedJsonMiddleware.REGEX, r'\1"\2', body)
+                s = PatchMalformedJsonMiddleware.fix_json(body)
                 logger.debug(f'Fixed JSON: "{s}"')
                 s = json.loads(s)  # ensure json is now valid
-
                 # set new body
                 request._body = json.dumps(s).encode('utf-8')
 
         response = await call_next(request)
         return response
+
+    @staticmethod
+    def fix_json(s: str) -> str:
+        s = s.replace('\t', '')
+        s = s.replace('\n', '')
+        return re.sub(PatchMalformedJsonMiddleware.REGEX, r'\1"\2', s)

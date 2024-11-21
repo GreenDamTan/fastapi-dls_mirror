@@ -144,11 +144,9 @@ test:
     matrix:
       - IMAGE: [ 'python:3.12-slim-bookworm' ]
         REQUIREMENTS: [ 'requirements.txt' ]
-      - IMAGE: [ 'debian:bookworm' ]
+      - IMAGE: [ 'debian:bookworm' ]  # EOL: June 06, 2026
         REQUIREMENTS: [ '.DEBIAN/requirements-bookworm-12.txt' ]
-      - IMAGE: [ 'ubuntu:23.10' ]
-        REQUIREMENTS: [ '.DEBIAN/requirements-ubuntu-23.10.txt' ]
-      - IMAGE: [ 'ubuntu:24.04' ]
+      - IMAGE: [ 'ubuntu:24.04' ]  # EOL: April 2036
         REQUIREMENTS: [ '.DEBIAN/requirements-ubuntu-24.04.txt' ]
       - IMAGE: [ 'ubuntu:24.10' ]
         REQUIREMENTS: [ '.DEBIAN/requirements-ubuntu-24.10.txt' ]

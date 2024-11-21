@@ -330,11 +330,11 @@ Packages are available here:
 
 Successful tested with:
 
-- Debian 12 (Bookworm) (EOL: tba.)
-- Ubuntu 22.10 (Kinetic Kudu) (EOL: July 20, 2023)
-- Ubuntu 23.04 (Lunar Lobster) (EOL: January 2024)
-- Ubuntu 23.10 (Mantic Minotaur) (EOL: July 2024)
-- Ubuntu 24.04 (Noble Numbat) (EOL: April 2036)
+- **Debian 12 (Bookworm)** (EOL: June 06, 2026)
+- *Ubuntu 22.10 (Kinetic Kudu)* (EOL: July 20, 2023)
+- *Ubuntu 23.04 (Lunar Lobster)* (EOL: January 2024)
+- *Ubuntu 23.10 (Mantic Minotaur)* (EOL: July 2024)
+- **Ubuntu 24.04 (Noble Numbat)** (EOL: April 2036)
 
 Not working with:
 

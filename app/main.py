@@ -96,6 +96,11 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
+if bool(env('SUPPORT_MALFORMED_JSON', False)):
+    from middleware import PatchMalformedJsonMiddleware
+
+    logger.info(f'Enabled "PatchMalformedJsonMiddleware"!')
+    app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
 
 
 # Helper

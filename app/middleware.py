@@ -28,23 +28,21 @@ class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
             # try to fix json
             try:
                 j = json.loads(body)
-                self.fix_mac_address_list_length(j=j, size=1)
+                self.__fix_mac_address_list_length(j=j, size=1)
             except json.decoder.JSONDecodeError:
                 logger.warning(f'Malformed json received! Try to fix it.')
                 body = PatchMalformedJsonMiddleware.fix_json(body)
                 logger.debug(f'Fixed JSON: "{body}"')
                 j = json.loads(body)  # ensure json is now valid
-                j = self.fix_mac_address_list_length(j=j, size=1)
+                j = self.__fix_mac_address_list_length(j=j, size=1)
                 # set new body
                 request._body = json.dumps(j).encode('utf-8')
 
         response = await call_next(request)
         return response
 
-    def fix_mac_address_list_length(self, j: dict, size: int = 1) -> dict:
-        if not self.enabled:
-            return j
-
+    @staticmethod
+    def __fix_mac_address_list_length(j: dict, size: int = 1) -> dict:
         # reduce "mac_address_list" to
         environment = j.get('environment', {})
         fingerprint = environment.get('fingerprint', {})

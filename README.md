@@ -393,6 +393,10 @@ Now you have to edit `/etc/default/fastapi-dls` as needed.
 
 Continue [here](#unraid-guest) for docker guest setup.
 
+## NixOS
+
+Tanks to [@mrzenc](https://github.com/mrzenc) for [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos).
+
 ## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
@@ -767,5 +771,6 @@ Special thanks to:
 - @DualCoder who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
 - Krutav Shah who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
 - Wim van 't Hoog for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
+- @mrzenc who wrote [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos)
 
 And thanks to all people who contributed to all these libraries!

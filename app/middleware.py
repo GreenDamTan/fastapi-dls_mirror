@@ -28,13 +28,15 @@ class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
             # try to fix json
             try:
                 j = json.loads(body)
-                self.__fix_mac_address_list_length(j=j, size=1)
+                PatchMalformedJsonMiddleware.fix_mac_address_list_length(j=j, size=1)
+                PatchMalformedJsonMiddleware.fix_ip_address_list_length(j=j, size=1)
             except json.decoder.JSONDecodeError:
                 logger.warning(f'Malformed json received! Try to fix it.')
                 body = PatchMalformedJsonMiddleware.fix_json(body)
                 logger.debug(f'Fixed JSON: "{body}"')
                 j = json.loads(body)  # ensure json is now valid
-                j = self.__fix_mac_address_list_length(j=j, size=1)
+                PatchMalformedJsonMiddleware.fix_mac_address_list_length(j=j, size=1)
+                PatchMalformedJsonMiddleware.fix_ip_address_list_length(j=j, size=1)
                 # set new body
                 request._body = json.dumps(j).encode('utf-8')
 
@@ -42,7 +44,7 @@ class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
         return response
 
     @staticmethod
-    def __fix_mac_address_list_length(j: dict, size: int = 1) -> dict:
+    def fix_mac_address_list_length(j: dict, size: int = 1) -> dict:
         # reduce "mac_address_list" to
         environment = j.get('environment', {})
         fingerprint = environment.get('fingerprint', {})
@@ -51,6 +53,18 @@ class PatchMalformedJsonMiddleware(BaseHTTPMiddleware):
         if len(mac_address) > 0:
             logger.info(f'Transforming "mac_address_list" to length of {size}.')
             j['environment']['fingerprint']['mac_address_list'] = mac_address[:size]
+
+        return j
+
+    @staticmethod
+    def fix_ip_address_list_length(j: dict, size: int = 1) -> dict:
+        # reduce "ip_address_list" to
+        environment = j.get('environment', {})
+        ip_addresses = environment.get('ip_address_list', [])
+
+        if len(ip_addresses) > 0:
+            logger.info(f'Transforming "ip_address_list" to length of {size}.')
+            j['environment']['ip_address_list'] = ip_addresses[:size]
 
         return j
 

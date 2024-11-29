@@ -114,7 +114,21 @@ def test_auth_v1_origin_malformed_json():  # see oscar.krause/fastapi-dls#1
     s = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
     replaced = PatchMalformedJsonMiddleware.fix_json(s)
     assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
- 
+
+
+def test_auth_v1_origin_middleware():  # see oscar.krause/fastapi-dls#1
+    import json
+    from middleware import PatchMalformedJsonMiddleware
+
+    # test regex (temporary, until this section is merged into main.py
+    s = '{"environment": {"fingerprint": {"mac_address_list": ["aa:aa:aa:aa:aa:aa", "bb:bb:bb:bb:bb:bb"]}, "ip_address_list": ["127.0.0.1", "127.0.0.2"]}}'
+    j = json.loads(s)
+    PatchMalformedJsonMiddleware.fix_mac_address_list_length(j=j, size=1)
+    PatchMalformedJsonMiddleware.fix_ip_address_list_length(j=j, size=1)
+    s = json.dumps(j)
+    assert s == '{"environment": {"fingerprint": {"mac_address_list": ["aa:aa:aa:aa:aa:aa"]}, "ip_address_list": ["127.0.0.1"]}}'
+
+
 
 def auth_v1_origin_update():
     payload = {

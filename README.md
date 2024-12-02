@@ -430,7 +430,6 @@ After first success you have to replace `--issue` with `--renew`.
 | `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       |
 | `INSTANCE_KEY_RSA`       | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                                                      |
 | `INSTANCE_KEY_PUB`       | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                                                            |
-| `SUPPORT_MALFORMED_JSON` | `false`                                | Support parsing for mal formatted "mac_address_list" ([Issue](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/issues/1)) |
 
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the

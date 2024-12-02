@@ -188,6 +188,8 @@ def test_leasing_v1_lessor():
     assert len(lease_result_list[0]['lease']['ref']) == 36
     assert str(UUID(lease_result_list[0]['lease']['ref'])) == lease_result_list[0]['lease']['ref']
 
+    return lease_result_list[0]['lease']['ref']
+
 
 def test_leasing_v1_lessor_lease():
     response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})

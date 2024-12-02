@@ -1,7 +1,7 @@
 import sys
 from base64 import b64encode as b64enc
 from calendar import timegm
-from datetime import datetime
+from datetime import datetime, UTC
 from hashlib import sha256
 from os.path import dirname, join
 from uuid import uuid4, UUID
@@ -142,7 +142,7 @@ def test_auth_v1_code():
 
 
 def test_auth_v1_token():
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
     access_expires_on = cur_time + relativedelta(hours=1)
 
     payload = {

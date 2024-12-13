@@ -376,7 +376,7 @@ async def auth_v1_token(request: Request):
     j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     try:
-        payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key)
+        payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key, algorithms=ALGORITHMS.RS256)
     except JWTError as e:
         return JSONr(status_code=400, content={'status': 400, 'title': 'invalid token', 'detail': str(e)})
 

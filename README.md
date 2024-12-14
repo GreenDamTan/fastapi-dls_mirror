@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1. For Driver compatibility
+Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 see [compatibility matrix](#vgpu-software-compatibility-matrix).
 
 This service can be used without internet connection.

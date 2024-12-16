@@ -2,7 +2,7 @@ import logging
 from base64 import b64encode as b64enc
 from calendar import timegm
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from hashlib import sha256
 from json import loads as json_loads
 from os import getenv as env
@@ -96,11 +96,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-if bool(env('SUPPORT_MALFORMED_JSON', False)):
-    from middleware import PatchMalformedJsonMiddleware
-
-    logger.info(f'Enabled "PatchMalformedJsonMiddleware"!')
-    app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
 
 
 # Helper
@@ -243,7 +238,7 @@ async def _lease_delete(request: Request, lease_ref: str):
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
 @app.get('/-/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
 async def _client_token():
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
     exp_time = cur_time + CLIENT_TOKEN_EXPIRE_DELTA
 
     payload = {
@@ -289,7 +284,7 @@ async def _client_token():
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 @app.post('/auth/v1/origin', description='find or create an origin')
 async def auth_v1_origin(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('candidate_origin_ref')
     logging.info(f'> [  origin  ]: {origin_ref}: {j}')
@@ -319,7 +314,7 @@ async def auth_v1_origin(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 @app.post('/auth/v1/origin/update', description='update an origin evidence')
 async def auth_v1_origin_update(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('origin_ref')
     logging.info(f'> [  update  ]: {origin_ref}: {j}')
@@ -346,7 +341,7 @@ async def auth_v1_origin_update(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 @app.post('/auth/v1/code', description='get an authorization code')
 async def auth_v1_code(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('origin_ref')
     logging.info(f'> [   code   ]: {origin_ref}: {j}')
@@ -378,10 +373,10 @@ async def auth_v1_code(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 @app.post('/auth/v1/token', description='exchange auth code and verifier for token')
 async def auth_v1_token(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     try:
-        payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key)
+        payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key, algorithms=ALGORITHMS.RS256)
     except JWTError as e:
         return JSONr(status_code=400, content={'status': 400, 'title': 'invalid token', 'detail': str(e)})
 
@@ -420,7 +415,7 @@ async def auth_v1_token(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
-    j, token, cur_time = json_loads((await request.body()).decode('utf-8')), __get_token(request), datetime.utcnow()
+    j, token, cur_time = json_loads((await request.body()).decode('utf-8')), __get_token(request), datetime.now(UTC)
 
     try:
         token = __get_token(request)
@@ -468,7 +463,7 @@ async def leasing_v1_lessor(request: Request):
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
 @app.get('/leasing/v1/lessor/leases', description='get active leases for current origin')
 async def leasing_v1_lessor_lease(request: Request):
-    token, cur_time = __get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
 
@@ -488,7 +483,7 @@ async def leasing_v1_lessor_lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
-    token, cur_time = __get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
     logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
@@ -515,7 +510,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py
 @app.delete('/leasing/v1/lease/{lease_ref}', description='release (return) a lease')
 async def leasing_v1_lease_delete(request: Request, lease_ref: str):
-    token, cur_time = __get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
     logging.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
@@ -541,7 +536,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.delete('/leasing/v1/lessor/leases', description='release all leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
-    token, cur_time = __get_token(request), datetime.utcnow()
+    token, cur_time = __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
 
@@ -561,7 +556,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
 @app.post('/leasing/v1/lessor/shutdown', description='shutdown all leases')
 async def leasing_v1_lessor_shutdown(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     token = j.get('token')
     token = jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})

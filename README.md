@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1. For Driver compatibility
+Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 see [compatibility matrix](#vgpu-software-compatibility-matrix).
 
 This service can be used without internet connection.
@@ -393,6 +393,10 @@ Now you have to edit `/etc/default/fastapi-dls` as needed.
 
 Continue [here](#unraid-guest) for docker guest setup.
 
+## NixOS
+
+Tanks to [@mrzenc](https://github.com/mrzenc) for [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos).
+
 ## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
@@ -426,7 +430,6 @@ After first success you have to replace `--issue` with `--renew`.
 | `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       |
 | `INSTANCE_KEY_RSA`       | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                                                      |
 | `INSTANCE_KEY_PUB`       | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                                                            |
-| `SUPPORT_MALFORMED_JSON` | `false`                                | Support parsing for mal formatted "mac_address_list" ([Issue](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/issues/1)) |
 
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
@@ -767,5 +770,6 @@ Special thanks to:
 - @DualCoder who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
 - Krutav Shah who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
 - Wim van 't Hoog for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
+- @mrzenc who wrote [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos)
 
 And thanks to all people who contributed to all these libraries!

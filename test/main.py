@@ -1,7 +1,7 @@
 import sys
 from base64 import b64encode as b64enc
 from calendar import timegm
-from datetime import datetime
+from datetime import datetime, UTC
 from hashlib import sha256
 from os.path import dirname, join
 from uuid import uuid4, UUID
@@ -18,7 +18,6 @@ sys.path.append('../app')
 from app import main
 from app.util import load_key
 
-# main.app.add_middleware(PatchMalformedJsonMiddleware, enabled=True)
 client = TestClient(main.app)
 
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
@@ -107,14 +106,6 @@ def test_auth_v1_origin():
     assert response.json().get('origin_ref') == ORIGIN_REF
 
 
-def test_auth_v1_origin_malformed_json():  # see oscar.krause/fastapi-dls#1
-    from middleware import PatchMalformedJsonMiddleware
-
-    # test regex (temporary, until this section is merged into main.py
-    s = '{"environment": {"fingerprint": {"mac_address_list": [ff:ff:ff:ff:ff:ff"]}}'
-    replaced = PatchMalformedJsonMiddleware.fix_json(s)
-    assert replaced == '{"environment": {"fingerprint": {"mac_address_list": ["ff:ff:ff:ff:ff:ff"]}}'
- 
 
 def auth_v1_origin_update():
     payload = {
@@ -151,7 +142,7 @@ def test_auth_v1_code():
 
 
 def test_auth_v1_token():
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
     access_expires_on = cur_time + relativedelta(hours=1)
 
     payload = {
@@ -163,8 +154,7 @@ def test_auth_v1_token():
         "kid": "00000000-0000-0000-0000-000000000000"
     }
     payload = {
-        "auth_code": jwt.encode(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')},
-                                algorithm=ALGORITHMS.RS256),
+        "auth_code": jwt.encode(payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256),
         "code_verifier": SECRET,
     }
 

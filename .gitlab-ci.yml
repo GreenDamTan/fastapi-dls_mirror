@@ -127,7 +127,7 @@ build:pacman:
       - "*.pkg.tar.zst"
 
 test:
-  image: $IMAGE
+  image: python:3.12-slim-bookworm
   stage: test
   interruptible: true
   rules:
@@ -142,14 +142,11 @@ test:
     DATABASE: sqlite:///../app/db.sqlite
   parallel:
     matrix:
-      - IMAGE: [ 'python:3.12-slim-bookworm' ]
-        REQUIREMENTS: [ 'requirements.txt' ]
-      - IMAGE: [ 'debian:bookworm' ]  # EOL: June 06, 2026
-        REQUIREMENTS: [ '.DEBIAN/requirements-bookworm-12.txt' ]
-      - IMAGE: [ 'ubuntu:24.04' ]  # EOL: April 2036
-        REQUIREMENTS: [ '.DEBIAN/requirements-ubuntu-24.04.txt' ]
-      - IMAGE: [ 'ubuntu:24.10' ]
-        REQUIREMENTS: [ '.DEBIAN/requirements-ubuntu-24.10.txt' ]
+      - REQUIREMENTS:
+          - 'requirements.txt'
+#          - '.DEBIAN/requirements-bookworm-12.txt'
+#          - '.DEBIAN/requirements-ubuntu-24.04.txt'
+#          - '.DEBIAN/requirements-ubuntu-24.10.txt'
   before_script:
     - apt-get update && apt-get install -y python3-dev python3-pip python3-venv gcc
     - python3 -m venv venv
@@ -207,13 +204,15 @@ test:
     - apt-get purge -qq -y fastapi-dls
     - apt-get autoremove -qq -y && apt-get clean -qq
 
-test:apt:debian:
+test:apt:
   extends: .test:apt
-  image: debian:bookworm-slim
-
-test:apt:ubuntu:
-  extends: .test:apt
-  image: ubuntu:24.04
+  image: $IMAGE
+  parallel:
+    matrix:
+      - IMAGE:
+          - debian:bookworm-slim # EOL: June 06, 2026
+          - ubuntu:24.04 # EOL: April 2036
+          - ubuntu:24.10
 
 test:pacman:archlinux:
   image: archlinux:base

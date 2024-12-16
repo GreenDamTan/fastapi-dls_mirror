@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, UTC
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy import Column, VARCHAR, CHAR, ForeignKey, DATETIME, update, and_, inspect, text
@@ -178,7 +178,7 @@ class Lease(Base):
     @staticmethod
     def delete_expired(engine: Engine) -> int:
         session = sessionmaker(bind=engine)()
-        deletions = session.query(Lease).filter(Lease.lease_expires <= datetime.utcnow()).delete()
+        deletions = session.query(Lease).filter(Lease.lease_expires <= datetime.now(UTC)).delete()
         session.commit()
         session.close()
         return deletions

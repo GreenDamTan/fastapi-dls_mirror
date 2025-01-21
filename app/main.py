@@ -89,7 +89,7 @@ async def lifespan(_: FastAPI):
 
 config = dict(openapi_url=None, docs_url=None, redoc_url=None)  # dict(openapi_url='/-/openapi.json', docs_url='/-/docs', redoc_url='/-/redoc')
 app = FastAPI(title='FastAPI-DLS', description='Minimal Delegated License Service (DLS).', version=VERSION, lifespan=lifespan, **config)
-app.mount('/static', StaticFiles(directory=join(dirname(__file__), 'static'), html=True), name='static'),
+app.mount('/static', StaticFiles(directory=join(dirname(__file__), 'static'), html=True), name='static')
 templates = Jinja2Templates(directory=join(dirname(__file__), 'templates'))
 
 app.debug = DEBUG

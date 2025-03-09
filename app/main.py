@@ -415,9 +415,16 @@ async def auth_v1_token(request: Request):
 # NLS 3.4.0 - venv/lib/python3.12/site-packages/nls_services_lease/test/test_lease_single_controller.py
 @app.post('/leasing/v1/config-token', description='request to get config token for lease operations')
 async def leasing_v1_config_token(request: Request):
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
+
+    logging.debug('CALLED /leasing/v1/config-token')
+    logging.debug(j)
+
     response = {
         "service_instance_ref": INSTANCE_REF,
     }
+
+    logging.debug(response)
 
     return JSONr(response)
 

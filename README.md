@@ -2,8 +2,9 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
+> Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 see [compatibility matrix](#vgpu-software-compatibility-matrix).
+Drivers are only supported until **17.x releases**.
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -730,6 +731,8 @@ The error message can safely be ignored (since we have no license limitation :P)
 </details>
 
 # vGPU Software Compatibility Matrix
+
+**18.x Drivers are not supported on FastAPI-DLS Versions < 1.6.0**
 
 Successfully tested with this package versions.
 

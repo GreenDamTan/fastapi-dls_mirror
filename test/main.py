@@ -166,6 +166,8 @@ def test_auth_v1_token():
     assert payload.get('origin_ref') == ORIGIN_REF
 
 
+# todo: /leasing/v1/config-token
+
 def test_leasing_v1_lessor():
     payload = {
         'fulfillment_context': {

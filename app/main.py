@@ -412,6 +412,16 @@ async def auth_v1_token(request: Request):
     return JSONr(response)
 
 
+# NLS 3.4.0 - venv/lib/python3.12/site-packages/nls_services_lease/test/test_lease_single_controller.py
+@app.post('/leasing/v1/config-token', description='request to get config token for lease operations')
+async def leasing_v1_config_token(request: Request):
+    response = {
+        "service_instance_ref": INSTANCE_REF,
+    }
+
+    return JSONr(response)
+
+
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):

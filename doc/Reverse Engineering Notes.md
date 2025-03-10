@@ -96,6 +96,12 @@ openssl rsautl -decrypt -inkey /tmp/private-key.pem -in dls_db_password.bin.raw
 - It's enough to manipulate database licenses. There must not be changed any line of code to bypass licensing
   validations.
 
+Valid users are `dls_writer` and `postgres`.
+
+```shell
+docker exec -it <dls:pgsql> psql -h localhost -U postgres
+```
+
 # Logging / Stack Trace
 
 - https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html#troubleshooting-dls-instance

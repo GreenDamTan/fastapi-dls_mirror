@@ -80,13 +80,13 @@ base64-content...
 ## DB Password - `/etc/dls/config/dls_db_password.bin`
 
 ```
+# docker cp -a <container-id>:/etc/dls/config/dls_db_password.bin /tmp/dls_db_password.bin
 base64-content...
 ```
 
 **Decrypt database password**
 
 ```
-cd /var/lib/docker/volumes/configurations/_data
 cat dls_db_password.bin | base64 -d > dls_db_password.bin.raw
 openssl rsautl -decrypt -inkey /tmp/private-key.pem -in dls_db_password.bin.raw
 ```

@@ -417,16 +417,63 @@ async def auth_v1_token(request: Request):
 async def leasing_v1_config_token(request: Request):
     j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
-    logging.debug('CALLED /leasing/v1/config-token')
-    logging.debug(j)
+    logger.debug(f'CALLED /leasing/v1/config-token')
+    logger.debug(f'Headers: {request.headers}')
+    logger.debug(f'Request: {j}')
+
+    cur_time = datetime.now(UTC)
+    exp_time = cur_time + CLIENT_TOKEN_EXPIRE_DELTA
+
+    payload = {
+        "iss": "NLS Service Instance",
+        "aud": "NLS Licensed Client",
+        "iat": timegm(cur_time.timetuple()),
+        "nbf": timegm(cur_time.timetuple()),
+        "exp": timegm(exp_time.timetuple()),
+        "protocol_version": "2.0",
+        "d_name": "DLS",
+        "service_instance_ref": j.get('service_instance_ref'),
+        "service_instance_public_key_configuration": {
+            "service_instance_public_key_me": {
+                "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
+                "exp": int(INSTANCE_KEY_PUB.public_key().e),
+            },
+            "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
+            "key_retention_mode": "LATEST_ONLY"
+        },
+    }
+
+    config_token = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
+
+    root_crt = load_file(join(dirname(__file__), 'cert\\root-ca.crt.pem')).decode('utf-8').replace('\n', '\r\n')[:-2]
+    intermediate_crt = load_file(join(dirname(__file__), 'cert\\intermediate.crt.pem')).decode('utf-8').replace('\n', '\r\n')[:-2]
+    public_crt = load_file(join(dirname(__file__), 'cert\\webserver.crt.pem')).decode('utf-8').replace('\n', '\r\n')[:-2]
+    #public_key = load_key(join(dirname(__file__), 'cert\\webserver.pub.pem'))
 
     response = {
-        "service_instance_ref": INSTANCE_REF,
+        "certificateConfiguration": {
+            #"caChain": [public_crt],
+            "caChain": [intermediate_crt],
+            #"caChain": ["-----BEGIN CERTIFICATE-----\r\n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\r\n56OFWPHcA7gxkpU8wftrVMLFeDvLIGc=\r\n-----END CERTIFICATE-----"],
+            "publicCert": public_crt,
+            #"publicCert": "-----BEGIN CERTIFICATE-----\r\nMIIE2zCCAsOgAwIBAgIUCX7sjz8B3HSAxRSPHAdNP/NCByEwDQYJKoZIhvcNAQELBQAwejELMAkG\r\nA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExDzANBgNVBAoTBk52aWRpYTEnMCUGA1UECxMe\r\nTnZpZGlhIExpY2Vuc2luZyBTZXJ2aWNlIChOTFMpMRwwGgYDVQQDExNOTFMgSW50ZXJtZWRpYXRl\r\nIENBMB4XDTI1MDMxMDA3NDA1NloXDTI4MDMwOTA3NDEyNlowLzEtMCsGA1UEAxMkYTE3ZTA3OWUt\r\nNmE3My00ZWJmLThkM2ItOGM4OTYxMWI5YTI3MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC\r\nAQEAuNfIEDxAbgpeeac1dDacwHBMEWNyr6bdWLcRRWrbXA1TUcsNpvmRN6ZgznDSG3JsGxaO5hhr\r\nI1UHwzTKwu/sAusYPPc354zW7i9aPS0izGoFKHDD2QgRQ/ECHzgoQirHWW6GecXlwoTDWBGtObWb\r\nVcPVcuxMMFIZ4Rt9Ru6S1qwdual7rdWG+Z7fWmBGMy9Xpn/+hmL1hRmqJRec7LVP7ejCQ5OtQp72\r\nKq8pm61WddEpw1Z148gXiflUlakjHbWmvAh5QTahkY2PBy7/1J+7Y6Ukj3aq7z/rrg4NaCJUvL7Q\r\nEr6qafujOLXsEMFFJxN5WIPm23Lvj8NQLJZO4zUtXwIDAQABo4GjMIGgMA4GA1UdDwEB/wQEAwID\r\nqDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYEFPfOsX87tbYT3irva9Tl\r\nWtLhYGccMB8GA1UdIwQYMBaAFEo1JPxQ95lhCAtksQowEaSVoAMeMC8GA1UdEQQoMCaCJGExN2Uw\r\nNzllLTZhNzMtNGViZi04ZDNiLThjODk2MTFiOWEyNzANBgkqhkiG9w0BAQsFAAOCAgEAa0Z0E0NW\r\n0KgpAgLLJ+6nGXfMVfG8sauXz9AQmobvuRsOvQi2DpTbfjrP4uT7q33Qw1vyQl2jlxoI0G1Ul1TO\r\nBVM/XYhs/Qp8TXSFFngCNQspAmDPCjSqnoeH3h6yW1EEfQY3R1hKac/krzuJs+Y4G2y1WLNmQiqF\r\now9FG2+APimLtPBDHCydn0tkAKRbDa9i5izty0qtAr+tlrSV6AOnn0fagJ5JjrVkGgAaO1GXwpWB\r\nEAteRDfsCIIMtPujZU0BAIYuXvxaX5zYiCN3KadBzheDh5IVZcTyOkHIRDvFl10exhMjcDjvAAfV\r\nHUUBliGAaIFBrgXz0y3CVcRNP7xp3PW1F/HZVBcQgi+cnqQfIF6us8+u8xLG51VtFHAUxP3NzSgU\r\nI54sIJmmNP30o8RRevD3wclk26A9PB+9MFBm6KFZb4Ue55cFqeI85ICKPoCfsBzP4CYNoNX3fscA\r\nhrJgXxbAVB9NC6rpEmpniyo7FGEPyQV41nuwqf8Y7SwAzPspGo0orynjrbJyr+N/l5oA0OblsqLw\r\nb963k2ssDS/YIQ79KaP1TWXl1e9WI46mgyPWha3Zm9P5FS1MedORwANafh+4PVo3JfaruUvSqQK/\r\nEwIjAdhNNrs2xMgQkGffl8cQF3TDbXAAstRQySKvt1cj3lTbhD+vNiidbQaZSxLGzPI=\r\n-----END CERTIFICATE-----",
+            "publicKey": {
+                "exp": int(INSTANCE_KEY_PUB.public_key().e),
+                "mod": [hex(INSTANCE_KEY_PUB.public_key().n)[2:]],
+            },
+            #"publicKey": {
+            #    "exp": 65537,
+            #    "mod": [
+            #        "b8d7c8103c406e0a5e79a73574369cc0704c116372afa6dd58b711456adb5c0d5351cb0da6f99137a660ce70d21b726c1b168ee6186b235507c334cac2efec02eb183cf737e78cd6ee2f5a3d2d22cc6a052870c3d9081143f1021f3828422ac7596e8679c5e5c284c35811ad39b59b55c3d572ec4c305219e11b7d46ee92d6ac1db9a97badd586f99edf5a6046332f57a67ffe8662f58519aa25179cecb54fede8c24393ad429ef62aaf299bad5675d129c35675e3c81789f95495a9231db5a6bc08794136a1918d8f072effd49fbb63a5248f76aaef3febae0e0d682254bcbed012beaa69fba338b5ec10c1452713795883e6db72ef8fc3502c964ee3352d5f"
+            #    ],
+            #},
+        },
+        "configToken": config_token,
     }
 
     logging.debug(response)
 
-    return JSONr(response)
+    return JSONr(response, status_code=200)
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py

@@ -104,6 +104,8 @@ Valid users are `dls_writer` and `postgres`.
 docker exec -it <dls:pgsql> psql -h localhost -U postgres
 ```
 
+Or you can modify `docker-compose.yaml` to forward Postgres port.
+
 # Logging / Stack Trace
 
 - https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html#troubleshooting-dls-instance

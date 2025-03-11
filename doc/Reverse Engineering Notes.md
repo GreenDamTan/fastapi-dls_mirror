@@ -40,6 +40,8 @@ Most variables and configs are stored in `/var/lib/docker/volumes/configurations
 Files can be modified with `docker cp <container-id>:/venv/... /opt/localfile/...` and back.
 (May you need to fix permissions with `docker exec -u 0 <container-id> chown nonroot:nonroot /venv/...`)
 
+Config-Variables are in `etc/dls/config/service_env.conf`.
+
 ## Dive / Docker image inspector
 
 - `dive dls:appliance`

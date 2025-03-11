@@ -287,7 +287,7 @@ async def auth_v1_origin(request: Request):
     j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('candidate_origin_ref')
-    logging.info(f'> [  origin  ]: {origin_ref}: {j}')
+    logger.info(f'> [  origin  ]: {origin_ref}: {j}')
 
     data = Origin(
         origin_ref=origin_ref,
@@ -317,7 +317,7 @@ async def auth_v1_origin_update(request: Request):
     j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('origin_ref')
-    logging.info(f'> [  update  ]: {origin_ref}: {j}')
+    logger.info(f'> [  update  ]: {origin_ref}: {j}')
 
     data = Origin(
         origin_ref=origin_ref,
@@ -344,7 +344,7 @@ async def auth_v1_code(request: Request):
     j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('origin_ref')
-    logging.info(f'> [   code   ]: {origin_ref}: {j}')
+    logger.info(f'> [   code   ]: {origin_ref}: {j}')
 
     delta = relativedelta(minutes=15)
     expires = cur_time + delta
@@ -381,7 +381,7 @@ async def auth_v1_token(request: Request):
         return JSONr(status_code=400, content={'status': 400, 'title': 'invalid token', 'detail': str(e)})
 
     origin_ref = payload.get('origin_ref')
-    logging.info(f'> [   auth   ]: {origin_ref}: {j}')
+    logger.info(f'> [   auth   ]: {origin_ref}: {j}')
 
     # validate the code challenge
     challenge = b64enc(sha256(j.get('code_verifier').encode('utf-8')).digest()).rstrip(b'=').decode('utf-8')
@@ -424,7 +424,7 @@ async def leasing_v1_lessor(request: Request):
 
     origin_ref = token.get('origin_ref')
     scope_ref_list = j.get('scope_ref_list')
-    logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
+    logger.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
     lease_result_list = []
     for scope_ref in scope_ref_list:
@@ -468,7 +468,7 @@ async def leasing_v1_lessor_lease(request: Request):
     origin_ref = token.get('origin_ref')
 
     active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
-    logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
+    logger.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
 
     response = {
         "active_lease_list": active_lease_list,
@@ -486,7 +486,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     token, cur_time = __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
-    logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
+    logger.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
 
     entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
     if entity is None:
@@ -513,7 +513,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
     token, cur_time = __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
-    logging.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
+    logger.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
 
     entity = Lease.find_by_lease_ref(db, lease_ref)
     if entity.origin_ref != origin_ref:
@@ -542,7 +542,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.cleanup(db, origin_ref)
-    logging.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
+    logger.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
 
     response = {
         "released_lease_list": released_lease_list,
@@ -564,7 +564,7 @@ async def leasing_v1_lessor_shutdown(request: Request):
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.cleanup(db, origin_ref)
-    logging.info(f'> [ shutdown ]: {origin_ref}: removed {deletions} leases')
+    logger.info(f'> [ shutdown ]: {origin_ref}: removed {deletions} leases')
 
     response = {
         "released_lease_list": released_lease_list,
@@ -587,7 +587,7 @@ if __name__ == '__main__':
     #
     ###
 
-    logging.info(f'> Starting dev-server ...')
+    logger.info(f'> Starting dev-server ...')
 
     ssl_keyfile = join(dirname(__file__), 'cert/webserver.key')
     ssl_certfile = join(dirname(__file__), 'cert/webserver.crt')

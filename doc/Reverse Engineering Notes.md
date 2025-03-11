@@ -59,19 +59,6 @@ Command:
 #(nop) ADD file:c1900d3e3a29c29a743a8da86c437006ec5d2aa873fb24e48033b6bf492bb37b in /
 ```
 
-## Private Key (Site-Key)
-
-- `/etc/dls/config/decryptor/decryptor`
-
-```shell
- docker exec -it <container-id> /etc/dls/config/decryptor/decryptor > /tmp/private-key.pem
-```
-
-```
------BEGIN RSA PRIVATE KEY-----
-...
------END RSA PRIVATE KEY-----
-``` 
 
 ## Site Key Uri - `/etc/dls/config/site_key_uri.bin`
 

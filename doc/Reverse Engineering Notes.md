@@ -29,7 +29,7 @@ nvidia-gridd[2986]: Acquiring license. (Info: license.nvidia.space; NVIDIA RTX V
 nvidia-gridd[2986]: License acquired successfully. (Info: license.nvidia.space, NVIDIA RTX Virtual Workstation; Expiry: 2023-1-29 22:3:0 GMT)
 ```
 
-# DLS-Container File-System (Docker)
+# Docker DLS-Container File-System
 
 - More about Docker Images https://git.collinwebdesigns.de/nvidia/nls
 
@@ -41,23 +41,6 @@ Files can be modified with `docker cp <container-id>:/venv/... /opt/localfile/..
 (May you need to fix permissions with `docker exec -u 0 <container-id> chown nonroot:nonroot /venv/...`)
 
 Config-Variables are in `etc/dls/config/service_env.conf`.
-
-## Dive / Docker image inspector
-
-- `dive dls:appliance`
-
-The source code is stored in `/venv/lib/python3.9/site-packages/nls_*`.
-
-Image-Reference:
-
-```
-Tags:   (unavailable)
-Id:     d1c7976a5d2b3681ff6c5a30f8187e4015187a83f3f285ba4a37a45458bd6b98
-Digest: sha256:311223c5af7a298ec1104f5dc8c3019bfb0e1f77256dc3d995244ffb295a97
-1f
-Command:
-#(nop) ADD file:c1900d3e3a29c29a743a8da86c437006ec5d2aa873fb24e48033b6bf492bb37b in /
-```
 
 
 ## Site Key Uri - `/etc/dls/config/site_key_uri.bin`
@@ -80,10 +63,12 @@ cat dls_db_password.bin | base64 -d > dls_db_password.bin.raw
 openssl rsautl -decrypt -inkey /tmp/private-key.pem -in dls_db_password.bin.raw
 ```
 
-# Database
+# Docker Postgres-Container
 
 - It's enough to manipulate database licenses. There must not be changed any line of code to bypass licensing
   validations.
+
+## Inspect
 
 Valid users are `dls_writer` and `postgres`.
 
@@ -91,7 +76,30 @@ Valid users are `dls_writer` and `postgres`.
 docker exec -it <dls:pgsql> psql -h localhost -U postgres
 ```
 
-Or you can modify `docker-compose.yaml` to forward Postgres port.
+## External Access
+
+Or you can modify `docker-compose.yaml` to forward Postgres port. To create a superuser for external access, use `docker exec` from above and rund the following:
+
+```sql
+CREATE USER admin WITH LOGIN SUPERUSER PASSWORD 'admin';
+```
+
+# Dive / Docker image inspector
+
+- `dive dls:appliance`
+
+The source code is stored in `/venv/lib/python3.9/site-packages/nls_*`.
+
+Image-Reference:
+
+```
+Tags:   (unavailable)
+Id:     d1c7976a5d2b3681ff6c5a30f8187e4015187a83f3f285ba4a37a45458bd6b98
+Digest: sha256:311223c5af7a298ec1104f5dc8c3019bfb0e1f77256dc3d995244ffb295a97
+1f
+Command:
+#(nop) ADD file:c1900d3e3a29c29a743a8da86c437006ec5d2aa873fb24e48033b6bf492bb37b in /
+```
 
 # Logging / Stack Trace
 

@@ -734,6 +734,9 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 **18.x Drivers are not supported on FastAPI-DLS Versions < 1.6.0**
 
+<details>
+  <summary>Show Table</summary>
+
 Successfully tested with this package versions.
 
 | vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
@@ -756,6 +759,8 @@ Successfully tested with this package versions.
 |    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
 |    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
 |    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+
+</details>
 
 - https://docs.nvidia.com/grid/index.html
 - https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html

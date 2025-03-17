@@ -11,31 +11,51 @@ def load_file(filename: str) -> bytes:
     return content
 
 
-def load_key(filename: str) -> "RsaKey":
-    try:
-        # Crypto | Cryptodome on Debian
-        from Crypto.PublicKey import RSA
-        from Crypto.PublicKey.RSA import RsaKey
-    except ModuleNotFoundError:
-        from Cryptodome.PublicKey import RSA
-        from Cryptodome.PublicKey.RSA import RsaKey
+def load_private_key(filename: str) -> "RSAPrivateKey":
+    from cryptography.hazmat.primitives.serialization import load_pem_private_key
 
     log = logging.getLogger(__name__)
     log.debug(f'Importing RSA-Key from "{filename}"')
-    return RSA.import_key(extern_key=load_file(filename), passphrase=None)
+
+    with open(filename, 'rb') as f:
+        data = f.read()
+    return load_pem_private_key(data.strip(), password=None)
 
 
-def generate_key() -> "RsaKey":
-    try:
-        # Crypto | Cryptodome on Debian
-        from Crypto.PublicKey import RSA
-        from Crypto.PublicKey.RSA import RsaKey
-    except ModuleNotFoundError:
-        from Cryptodome.PublicKey import RSA
-        from Cryptodome.PublicKey.RSA import RsaKey
+def load_public_key(filename: str) -> "RSAPublicKey":
+    from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
+    log = logging.getLogger(__name__)
+    log.debug(f'Importing RSA-Key from "{filename}"')
+
+    with open(filename, 'rb') as f:
+        data = f.read()
+    return load_pem_public_key(data.strip())
+
+
+def get_pem(key) -> bytes | None:
+    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
+    from cryptography.hazmat.primitives import serialization
+
+    if isinstance(key, RSAPrivateKey):
+        return key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+    if isinstance(key, RSAPublicKey):
+        return key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+
+
+def generate_private_key() -> "RSAPrivateKey":
+    from cryptography.hazmat.primitives.asymmetric import rsa
+
     log = logging.getLogger(__name__)
     log.debug(f'Generating RSA-Key')
-    return RSA.generate(bits=2048)
+    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
 
 class NV:

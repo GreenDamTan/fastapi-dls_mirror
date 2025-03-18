@@ -9,48 +9,69 @@ logging.basicConfig()
 
 class PrivateKey:
 
-    def __init__(self, filename: str):
+    def __init__(self, data: bytes):
+        self.__key = load_pem_private_key(data, password=None)
+
+    @staticmethod
+    def from_file(filename: str) -> "PrivateKey":
         log = logging.getLogger(__name__)
-        log.debug(f'Importing RSA-Key from "{filename}"')
+        log.debug(f'Importing RSA-Private-Key from "{filename}"')
 
         with open(filename, 'rb') as f:
             data = f.read()
 
-        self.key = load_pem_private_key(data.strip(), password=None)
+        return PrivateKey(data=data.strip())
 
     def raw(self) -> RSAPrivateKey:
-        return self.key
+        return self.__key
 
     def pem(self) -> bytes:
-        return self.key.private_bytes(
+        return self.__key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.TraditionalOpenSSL,
             encryption_algorithm=serialization.NoEncryption()
         )
 
+    def public_key(self) -> "PublicKey":
+        data = self.__key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return PublicKey(data=data)
+
     @staticmethod
-    def generate(public_exponent: int = 65537, key_size: int = 2048) -> RSAPrivateKey:
+    def generate(public_exponent: int = 65537, key_size: int = 2048) -> "PrivateKey":
         log = logging.getLogger(__name__)
         log.debug(f'Generating RSA-Key')
-        return generate_private_key(public_exponent=public_exponent, key_size=key_size)
+        key = generate_private_key(public_exponent=public_exponent, key_size=key_size)
+        data = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        return PrivateKey(data=data)
 
 
 class PublicKey:
 
-    def __init__(self, filename: str):
+    def __init__(self, data: bytes):
+        self.__key = load_pem_public_key(data)
+
+    @staticmethod
+    def from_file(filename: str) -> "PublicKey":
         log = logging.getLogger(__name__)
-        log.debug(f'Importing RSA-Key from "{filename}"')
+        log.debug(f'Importing RSA-Public-Key from "{filename}"')
 
         with open(filename, 'rb') as f:
             data = f.read()
 
-        self.key = load_pem_public_key(data.strip())
+        return PublicKey(data=data.strip())
 
     def raw(self) -> RSAPublicKey:
-        return self.key
+        return self.__key
 
     def pem(self) -> bytes:
-        return self.key.public_bytes(
+        return self.__key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )

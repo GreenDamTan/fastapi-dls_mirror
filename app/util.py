@@ -1,7 +1,59 @@
 import logging
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+
 logging.basicConfig()
 
+
+class PrivateKey:
+
+    def __init__(self, filename: str):
+        log = logging.getLogger(__name__)
+        log.debug(f'Importing RSA-Key from "{filename}"')
+
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        self.key = load_pem_private_key(data.strip(), password=None)
+
+    def raw(self) -> RSAPrivateKey:
+        return self.key
+
+    def pem(self) -> bytes:
+        return self.key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+
+    @staticmethod
+    def generate(public_exponent: int = 65537, key_size: int = 2048) -> RSAPrivateKey:
+        log = logging.getLogger(__name__)
+        log.debug(f'Generating RSA-Key')
+        return generate_private_key(public_exponent=public_exponent, key_size=key_size)
+
+
+class PublicKey:
+
+    def __init__(self, filename: str):
+        log = logging.getLogger(__name__)
+        log.debug(f'Importing RSA-Key from "{filename}"')
+
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        self.key = load_pem_public_key(data.strip())
+
+    def raw(self) -> RSAPublicKey:
+        return self.key
+
+    def pem(self) -> bytes:
+        return self.key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
 
 def load_file(filename: str) -> bytes:
     log = logging.getLogger(f'{__name__}')
@@ -9,53 +61,6 @@ def load_file(filename: str) -> bytes:
     with open(filename, 'rb') as file:
         content = file.read()
     return content
-
-
-def load_private_key(filename: str) -> "RSAPrivateKey":
-    from cryptography.hazmat.primitives.serialization import load_pem_private_key
-
-    log = logging.getLogger(__name__)
-    log.debug(f'Importing RSA-Key from "{filename}"')
-
-    with open(filename, 'rb') as f:
-        data = f.read()
-    return load_pem_private_key(data.strip(), password=None)
-
-
-def load_public_key(filename: str) -> "RSAPublicKey":
-    from cryptography.hazmat.primitives.serialization import load_pem_public_key
-
-    log = logging.getLogger(__name__)
-    log.debug(f'Importing RSA-Key from "{filename}"')
-
-    with open(filename, 'rb') as f:
-        data = f.read()
-    return load_pem_public_key(data.strip())
-
-
-def get_pem(key) -> bytes | None:
-    from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
-    from cryptography.hazmat.primitives import serialization
-
-    if isinstance(key, RSAPrivateKey):
-        return key.private_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PrivateFormat.TraditionalOpenSSL,
-            encryption_algorithm=serialization.NoEncryption()
-        )
-    if isinstance(key, RSAPublicKey):
-        return key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        )
-
-
-def generate_private_key() -> "RSAPrivateKey":
-    from cryptography.hazmat.primitives.asymmetric import rsa
-
-    log = logging.getLogger(__name__)
-    log.debug(f'Generating RSA-Key')
-    return rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
 
 class NV:

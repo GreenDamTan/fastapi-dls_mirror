@@ -16,7 +16,7 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from util import load_private_key, load_public_key, get_pem
+from util import PrivateKey, PublicKey
 
 client = TestClient(main.app)
 
@@ -25,11 +25,11 @@ ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-00000
 # INSTANCE_KEY_RSA = generate_key()
 # INSTANCE_KEY_PUB = INSTANCE_KEY_RSA.public_key()
 
-INSTANCE_KEY_RSA = load_private_key(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
-INSTANCE_KEY_PUB = load_public_key(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
+INSTANCE_KEY_RSA = PrivateKey(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
+INSTANCE_KEY_PUB = PublicKey(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
 
-jwt_encode_key = jwk.construct(get_pem(INSTANCE_KEY_RSA), algorithm=ALGORITHMS.RS256)
-jwt_decode_key = jwk.construct(get_pem(INSTANCE_KEY_PUB), algorithm=ALGORITHMS.RS256)
+jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.pem(), algorithm=ALGORITHMS.RS256)
+jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.pem(), algorithm=ALGORITHMS.RS256)
 
 
 def __bearer_token(origin_ref: str) -> str:

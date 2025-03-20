@@ -39,7 +39,7 @@ check() {
 package() {
     install -d "$pkgdir/usr/share/doc/$pkgname"
     install -d "$pkgdir/var/lib/$pkgname/cert"
-    cp -r "$srcdir/$pkgname/doc"/* "$pkgdir/usr/share/doc/$pkgname/"
+    #cp -r "$srcdir/$pkgname/doc"/* "$pkgdir/usr/share/doc/$pkgname/"
     install -Dm644 "$srcdir/$pkgname/README.md" "$pkgdir/usr/share/doc/$pkgname/README.md"
     install -Dm644 "$srcdir/$pkgname/version.env" "$pkgdir/usr/share/doc/$pkgname/version.env"
 

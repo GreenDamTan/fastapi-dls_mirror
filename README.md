@@ -333,14 +333,14 @@ Packages are available here:
 
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
 
-Successful tested with:
+Successful tested with (**LTS Version**):
 
 - **Debian 12 (Bookworm)** (EOL: June 06, 2026)
 - *Ubuntu 22.10 (Kinetic Kudu)* (EOL: July 20, 2023)
 - *Ubuntu 23.04 (Lunar Lobster)* (EOL: January 2024)
 - *Ubuntu 23.10 (Mantic Minotaur)* (EOL: July 2024)
-- **Ubuntu 24.04 (Noble Numbat)** (EOL: April 2036)
-- *Ubuntu 24.10 (Oracular Oriole)* (EOL: tba.)
+- **Ubuntu 24.04 (Noble Numbat)** (EOL: Apr 2029)
+- *Ubuntu 24.10 (Oracular Oriole)* (EOL: Jul 2025)
 
 Not working with:
 

@@ -6,7 +6,7 @@ Minimal Delegated License Service (DLS).
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 > see [compatibility matrix](#vgpu-software-compatibility-matrix).
 
-> [!warning] **18.x Drivers are not yet supported!**
+> [!warning] 18.x Drivers are not yet supported!
 > Drivers are only supported until **17.x releases**.
 
 This service can be used without internet connection.

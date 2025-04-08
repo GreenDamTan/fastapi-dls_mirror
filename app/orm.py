@@ -23,8 +23,8 @@ Base = declarative_base()
 class Site(Base):
     __tablename__ = "site"
 
-    INITIAL_SITE_KEY_XID = '00000000-0000-0000-0000-000000000000'
-    INITIAL_SITE_NAME = 'default'
+    INITIAL_SITE_KEY_XID = '10000000-0000-0000-0000-000000000000'
+    INITIAL_SITE_NAME = 'default-site'
 
     site_key = Column(CHAR(length=36), primary_key=True, unique=True, index=True)  # uuid4, SITE_KEY_XID
     name = Column(VARCHAR(length=256), nullable=False)

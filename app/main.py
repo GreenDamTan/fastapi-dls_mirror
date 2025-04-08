@@ -19,12 +19,7 @@ from jose.constants import ALGORITHMS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, \
-    RedirectResponse
-
-# add relative path to use packages as they were in the app/ dir
-sys.path.append('../')
-sys.path.append('../app')
+from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
 
 from orm import Origin, Lease, init as db_init, migrate, Instance, Site
 
@@ -403,7 +398,7 @@ async def auth_v1_token(request: Request):
     jwt_encode_key, jwt_decode_key = default_instance.get_jwt_encode_key(), default_instance.get_jwt_decode_key()
 
     try:
-        payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key, algorithms=[ALGORITHMS.RS256])
+        payload = jwt.decode(token=j.get('auth_code'), key=jwt_decode_key, algorithms=ALGORITHMS.RS256)
     except JWTError as e:
         return JSONr(status_code=400, content={'status': 400, 'title': 'invalid token', 'detail': str(e)})
 

@@ -285,10 +285,10 @@ async def _client_token():
         },
         "service_instance_public_key_configuration": {
             "service_instance_public_key_me": {
-                "mod": hex(public_key.public_key().n)[2:],
-                "exp": int(public_key.public_key().e),
+                "mod": hex(public_key.raw().public_numbers().n)[2:],
+                "exp": int(public_key.raw().public_numbers().e),
             },
-            "service_instance_public_key_pem": public_key.export_key().decode('utf-8'),
+            "service_instance_public_key_pem": public_key.pem().decode('utf-8'),
             "key_retention_mode": "LATEST_ONLY"
         },
     }

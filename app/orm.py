@@ -122,7 +122,6 @@ class Instance(Base):
         return PublicKey(self.public_key)
 
     def get_jwt_encode_key(self) -> "jose.jkw":
-
         return jwk.construct(self.__get_private_key().pem().decode('utf-8'), algorithm=ALGORITHMS.RS256)
 
     def get_jwt_decode_key(self) -> "jose.jwt":

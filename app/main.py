@@ -1,8 +1,9 @@
 import logging
+import sys
 from base64 import b64encode as b64enc
 from calendar import timegm
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, UTC
 from hashlib import sha256
 from json import loads as json_loads
 from os import getenv as env
@@ -21,8 +22,11 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, \
     RedirectResponse
 
-from orm import Origin, Lease, init as db_init, migrate
-from util import PrivateKey, PublicKey, load_file
+# add relative path to use packages as they were in the app/ dir
+sys.path.append('../')
+sys.path.append('../app')
+
+from orm import Origin, Lease, init as db_init, migrate, Instance, Site
 
 # Load variables
 load_dotenv('../version.env')
@@ -249,7 +253,7 @@ async def _lease_delete(request: Request, lease_ref: str):
 # venv/lib/python3.9/site-packages/nls_core_service_instance/service_instance_token_manager.py
 @app.get('/-/client-token', summary='* Client-Token', description='creates a new messenger token for this service instance')
 async def _client_token():
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
 
     default_instance = Instance.get_default_instance(db)
     public_key = default_instance.get_public_key()
@@ -438,7 +442,7 @@ async def auth_v1_token(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.post('/leasing/v1/lessor', description='request multiple leases (borrow) for current origin')
 async def leasing_v1_lessor(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     default_instance = Instance.get_default_instance(db)
     jwt_decode_key = default_instance.get_jwt_decode_key()
@@ -489,7 +493,7 @@ async def leasing_v1_lessor(request: Request):
 # venv/lib/python3.9/site-packages/nls_dal_service_instance_dls/schema/service_instance/V1_0_21__product_mapping.sql
 @app.get('/leasing/v1/lessor/leases', description='get active leases for current origin')
 async def leasing_v1_lessor_lease(request: Request):
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
 
     jwt_decode_key = Instance.get_default_instance(db).get_jwt_decode_key()
 
@@ -516,7 +520,7 @@ async def leasing_v1_lessor_lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
 
     default_instance = Instance.get_default_instance(db)
     jwt_decode_key = default_instance.get_jwt_decode_key()
@@ -551,7 +555,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py
 @app.delete('/leasing/v1/lease/{lease_ref}', description='release (return) a lease')
 async def leasing_v1_lease_delete(request: Request, lease_ref: str):
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
 
     jwt_decode_key = Instance.get_default_instance(db).get_jwt_decode_key()
 
@@ -584,7 +588,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
 @app.delete('/leasing/v1/lessor/leases', description='release all leases')
 async def leasing_v1_lessor_lease_remove(request: Request):
-    cur_time = datetime.utcnow()
+    cur_time = datetime.now(UTC)
 
     jwt_decode_key = Instance.get_default_instance(db).get_jwt_decode_key()
 

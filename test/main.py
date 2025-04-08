@@ -2,7 +2,7 @@ from os import getenv as env
 from base64 import b64encode as b64enc
 from hashlib import sha256
 from calendar import timegm
-from datetime import datetime
+from datetime import datetime, UTC
 from uuid import UUID, uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -17,7 +17,7 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from app.orm import init as db_init, migrate, Site, Instance
+from orm import init as db_init, migrate, Site, Instance
 
 
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'

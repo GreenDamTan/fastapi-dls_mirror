@@ -2,7 +2,12 @@
 
 Minimal Delegated License Service (DLS).
 
-Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0. For Driver compatibility see [here](#setup-client).
+> [!note]
+> Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
+> see [compatibility matrix](#vgpu-software-compatibility-matrix).
+
+> [!warning] 18.x Drivers are not yet supported!
+> Drivers are only supported until **17.x releases**.
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -22,6 +27,7 @@ Only the clients need a connection to this service on configured port.
 * [NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox) - This document serves as a guide to install NVIDIA vGPU host drivers on the latest Proxmox VE version
 * [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock) - Unlock vGPU functionality for consumer-grade Nvidia GPUs.
 * [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q) - Guide for `vgpu_unlock`
+* [Proxmox 8 vGPU in VMs and LXC Containers](https://medium.com/@dionisievldulrincz/proxmox-8-vgpu-in-vms-and-lxc-containers-4146400207a3) - Install *Merged Drivers* for using in Proxmox VMs and LXCs
 * [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/) - Also known as `proxmox-installer.sh`
 
 ---
@@ -41,6 +47,9 @@ Tested with Ubuntu 22.10 (EOL!) (from Proxmox templates), actually its consuming
 **Prepare your system**
 
 - Make sure your timezone is set correct on you fastapi-dls server and your client
+
+This guide does not show how to install vGPU host drivers! Look at the official documentation packed with the driver
+releases.
 
 ## Docker
 
@@ -77,7 +86,7 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 See [`examples`](examples) directory for more advanced examples (with reverse proxy usage).
 
-> Adjust *REQUIRED* variables as needed
+> Adjust `REQUIRED` variables as needed
 
 ```yaml
 version: '3.9'
@@ -324,13 +333,14 @@ Packages are available here:
 
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
 
-Successful tested with:
+Successful tested with (**LTS Version**):
 
-- Debian 12 (Bookworm) (EOL: tba.)
-- Ubuntu 22.10 (Kinetic Kudu) (EOL: July 20, 2023)
-- Ubuntu 23.04 (Lunar Lobster) (EOL: January 2024)
-- Ubuntu 23.10 (Mantic Minotaur) (EOL: July 2024)
-- Ubuntu 24.04 (Noble Numbat) (EOL: April 2036)
+- **Debian 12 (Bookworm)** (EOL: June 06, 2026)
+- *Ubuntu 22.10 (Kinetic Kudu)* (EOL: July 20, 2023)
+- *Ubuntu 23.04 (Lunar Lobster)* (EOL: January 2024)
+- *Ubuntu 23.10 (Mantic Minotaur)* (EOL: July 2024)
+- **Ubuntu 24.04 (Noble Numbat)** (EOL: Apr 2029)
+- *Ubuntu 24.10 (Oracular Oriole)* (EOL: Jul 2025)
 
 Not working with:
 
@@ -388,6 +398,10 @@ Now you have to edit `/etc/default/fastapi-dls` as needed.
 
 Continue [here](#unraid-guest) for docker guest setup.
 
+## NixOS
+
+Tanks to [@mrzenc](https://github.com/mrzenc) for [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos).
+
 ## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
@@ -406,21 +420,21 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable               | Default                                | Usage                                                                                                |
-|------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------|
-| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
-| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
-| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
-| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)          |
-| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
-| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
-| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |
-| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                               |
-| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
-| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                         |
-| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                        |
-| `INSTANCE_KEY_RSA`     | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                       |
-| `INSTANCE_KEY_PUB`     | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                             |
+| Variable                 | Default                                | Usage                                                                                                                               |
+|--------------------------|----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| `DEBUG`                  | `false`                                | Toggles `fastapi` debug mode                                                                                                        |
+| `DLS_URL`                | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                                                           |
+| `DLS_PORT`               | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                                                           |
+| `TOKEN_EXPIRE_DAYS`      | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)                                         |
+| `LEASE_EXPIRE_DAYS`      | `90`                                   | Lease time in days                                                                                                                  |
+| `LEASE_RENEWAL_PERIOD`   | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1                                |
+| `DATABASE`               | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                                                 |
+| `CORS_ORIGINS`           | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                                                              |
+| `SITE_KEY_XID`           | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                                                            |
+| `INSTANCE_REF`           | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                                                        |
+| `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       |
+| `INSTANCE_KEY_RSA`       | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                                                      |
+| `INSTANCE_KEY_PUB`       | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                                                            |
 
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
@@ -434,32 +448,8 @@ client has 19.2 hours in which to re-establish connectivity before its license e
 
 **The token file has to be copied! It's not enough to C&P file contents, because there can be special characters.**
 
-Successfully tested with this package versions:
-
-| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
-|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
-|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 | February 2025 |
-|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
-|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
-|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |     July 2026 |
-|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
-|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
-|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
-|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
-|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
-|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
-|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 |  October 2023 |
-|    `15.3`     |     R525      | `525.125.03`       | `525.125.06` | `529.11`       |     June 2023 |               |
-|    `15.2`     |     R525      | `525.105.14`       | `525.105.17` | `528.89`       |    March 2023 |               |
-|    `15.1`     |     R525      | `525.85.07`        | `525.85.05`  | `528.24`       |  January 2023 |               |
-|    `15.0`     |     R525      | `525.60.12`        | `525.60.13`  | `527.41`       | December 2022 |               |
-|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
-|    `14.3`     |     R510      | `510.108.03`       | `510.108.03` | `513.91`       | November 2022 |               |
-
-- https://docs.nvidia.com/grid/index.html
-- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
-
-*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`) on channel `licensing` `biggerthanshit`
+This guide does not show how to install vGPU guest drivers! Look at the official documentation packed with the driver
+releases.
 
 ## Linux
 
@@ -535,33 +525,32 @@ Done. For more information check [troubleshoot section](#troubleshoot).
 8. Set schedule to `At First Array Start Only`
 9. Click on Apply 
 
-
-# Endpoints
+# API Endpoints
 
 <details>
   <summary>show</summary>
 
-### `GET /`
+**`GET /`**
 
 Redirect to `/-/readme`.
 
-### `GET /-/health`
+**`GET /-/health`**
 
 Status endpoint, used for *healthcheck*.
 
-### `GET /-/config`
+**`GET /-/config`**
 
 Shows current runtime environment variables and their values.
 
-### `GET /-/readme`
+**`GET /-/readme`**
 
 HTML rendered README.md.
 
-### `GET /-/manage`
+**`GET /-/manage`**
 
 Shows a very basic UI to delete origins or leases.
 
-### `GET /-/origins?leases=false`
+**`GET /-/origins?leases=false`**
 
 List registered origins.
 
@@ -569,11 +558,11 @@ List registered origins.
 |-----------------|---------|--------------------------------------|
 | `leases`        | `false` | Include referenced leases per origin |
 
-### `DELETE /-/origins`
+**`DELETE /-/origins`**
 
 Deletes all origins and their leases.
 
-### `GET /-/leases?origin=false`
+**`GET /-/leases?origin=false`**
 
 List current leases.
 
@@ -581,15 +570,15 @@ List current leases.
 |-----------------|---------|-------------------------------------|
 | `origin`        | `false` | Include referenced origin per lease |
 
-### `DELETE /-/lease/{lease_ref}`
+**`DELETE /-/lease/{lease_ref}`**
 
 Deletes an lease.
 
-### `GET /-/client-token`
+**`GET /-/client-token`**
 
 Generate client token, (see [installation](#installation)).
 
-### Others
+**Others**
 
 There are many other internal api endpoints for handling authentication and lease process.
 </details>
@@ -614,11 +603,26 @@ Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Con
 
 # Known Issues
 
+## Generic
+
+### `Failed to acquire license from <ip> (Info: <license> - Error: The allowed time to process response has expired)`
+
+- Did your timezone settings are correct on fastapi-dls **and your guest**?
+- Did you download the client-token more than an hour ago?
+
+Please download a new client-token. The guest have to register within an hour after client-token was created.
+
+### `jose.exceptions.JWTError: Signature verification failed.`
+
+- Did you recreate `instance.public.pem` / `instance.private.pem`?
+
+Then you have to download a **new** client-token on each of your guests.
+
 ## Linux
 
-### `uvicorn.error:Invalid HTTP request received.`
+### Invalid HTTP request
 
-This message can be ignored.
+This error message: `uvicorn.error:Invalid HTTP request received.` can be ignored.
 
 - Ref. https://github.com/encode/uvicorn/issues/441
 
@@ -744,11 +748,49 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 </details>
 
+# vGPU Software Compatibility Matrix
+
+**18.x Drivers are not supported on FastAPI-DLS Versions < 1.6.0**
+
+<details>
+  <summary>Show Table</summary>
+
+Successfully tested with this package versions.
+
+| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
+|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
+|    `17.5`     |     R550      | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |     June 2025 |
+|    `17.4`     |     R550      | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 |               |
+|    `17.3`     |     R550      | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
+|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |
+|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
+|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
+|    `16.9`     |     R535      | `535.230.02`       | `535.216.01` | `539.19`       |  October 2024 |     July 2026 |
+|    `16.8`     |     R535      | `535.216.01`       | `535.216.01` | `538.95`       |  October 2024 |               |
+|    `16.7`     |     R535      | `535.183.04`       | `535.183.06` | `538.78`       |     July 2024 |               |
+|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |               |
+|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
+|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
+|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
+|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
+|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
+|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
+|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
+|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+
+</details>
+
+- https://docs.nvidia.com/grid/index.html
+- https://docs.nvidia.com/grid/gpus-supported-by-vgpu.html
+
+*To get the latest drivers, visit Nvidia or search in Discord-Channel `GPU Unlocking` (Server-ID: `829786927829745685`)
+on channel `licensing`
+
 # Credits
 
 Thanks to vGPU community and all who uses this project and report bugs.
 
-Special thanks to 
+Special thanks to:
 
 - @samicrusader who created build file for **ArchLinux**
 - @cyrus who wrote the section for **openSUSE**
@@ -757,5 +799,6 @@ Special thanks to
 - @DualCoder who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
 - Krutav Shah who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
 - Wim van 't Hoog for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
+- @mrzenc who wrote [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos)
 
 And thanks to all people who contributed to all these libraries!

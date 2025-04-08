@@ -2,7 +2,7 @@ import logging
 from base64 import b64encode as b64enc
 from calendar import timegm
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta, UTC
 from hashlib import sha256
 from json import loads as json_loads
 from os import getenv as env
@@ -21,7 +21,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, \
     RedirectResponse
 
-from orm import init as db_init, migrate, Site, Instance, Origin, Lease
+from orm import Origin, Lease, init as db_init, migrate
+from util import PrivateKey, PublicKey, load_file
 
 # Load variables
 load_dotenv('../version.env')
@@ -43,6 +44,14 @@ CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) 
 
 ALLOTMENT_REF = str(env('ALLOTMENT_REF', '20000000-0000-0000-0000-000000000001'))  # todo
 
+# Logging
+LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
+logging.basicConfig(format='[{levelname:^7}] [{module:^15}] {message}', style='{')
+logger = logging.getLogger(__name__)
+logger.setLevel(LOG_LEVEL)
+logging.getLogger('util').setLevel(LOG_LEVEL)
+logging.getLogger('NV').setLevel(LOG_LEVEL)
+
 
 # FastAPI
 @asynccontextmanager
@@ -55,6 +64,7 @@ async def lifespan(_: FastAPI):
     client_token_expire_delta = default_instance.get_client_token_expire_delta()
 
     logger.info(f'''
+    
     Using timezone: {str(TZ)}. Make sure this is correct and match your clients!
     
     Your clients will renew their license every {str(Lease.calculate_renewal(lease_renewal_period, lease_renewal_delta))}.
@@ -84,14 +94,6 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*'],
 )
-
-# Logging
-LOG_LEVEL = logging.DEBUG if DEBUG else logging.INFO
-logging.basicConfig(format='[{levelname:^7}] [{module:^15}] {message}', style='{')
-logger = logging.getLogger(__name__)
-logger.setLevel(LOG_LEVEL)
-logging.getLogger('util').setLevel(LOG_LEVEL)
-logging.getLogger('NV').setLevel(LOG_LEVEL)
 
 
 # Helper
@@ -299,10 +301,10 @@ async def _client_token():
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 @app.post('/auth/v1/origin', description='find or create an origin')
 async def auth_v1_origin(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('candidate_origin_ref')
-    logging.info(f'> [  origin  ]: {origin_ref}: {j}')
+    logger.info(f'> [  origin  ]: {origin_ref}: {j}')
 
     data = Origin(
         origin_ref=origin_ref,
@@ -329,10 +331,10 @@ async def auth_v1_origin(request: Request):
 # venv/lib/python3.9/site-packages/nls_services_auth/test/test_origins_controller.py
 @app.post('/auth/v1/origin/update', description='update an origin evidence')
 async def auth_v1_origin_update(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('origin_ref')
-    logging.info(f'> [  update  ]: {origin_ref}: {j}')
+    logger.info(f'> [  update  ]: {origin_ref}: {j}')
 
     data = Origin(
         origin_ref=origin_ref,
@@ -356,10 +358,10 @@ async def auth_v1_origin_update(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - CodeResponse
 @app.post('/auth/v1/code', description='get an authorization code')
 async def auth_v1_code(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     origin_ref = j.get('origin_ref')
-    logging.info(f'> [   code   ]: {origin_ref}: {j}')
+    logger.info(f'> [   code   ]: {origin_ref}: {j}')
 
     delta = relativedelta(minutes=15)
     expires = cur_time + delta
@@ -391,7 +393,7 @@ async def auth_v1_code(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_auth/auth.py - TokenResponse
 @app.post('/auth/v1/token', description='exchange auth code and verifier for token')
 async def auth_v1_token(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     default_site, default_instance = Site.get_default_site(db), Instance.get_default_instance(db)
     jwt_encode_key, jwt_decode_key = default_instance.get_jwt_encode_key(), default_instance.get_jwt_decode_key()
@@ -402,7 +404,7 @@ async def auth_v1_token(request: Request):
         return JSONr(status_code=400, content={'status': 400, 'title': 'invalid token', 'detail': str(e)})
 
     origin_ref = payload.get('origin_ref')
-    logging.info(f'> [   auth   ]: {origin_ref}: {j}')
+    logger.info(f'> [   auth   ]: {origin_ref}: {j}')
 
     # validate the code challenge
     challenge = b64enc(sha256(j.get('code_verifier').encode('utf-8')).digest()).rstrip(b'=').decode('utf-8')
@@ -448,7 +450,7 @@ async def leasing_v1_lessor(request: Request):
 
     origin_ref = token.get('origin_ref')
     scope_ref_list = j.get('scope_ref_list')
-    logging.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
+    logger.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
     lease_result_list = []
     for scope_ref in scope_ref_list:
@@ -499,7 +501,7 @@ async def leasing_v1_lessor_lease(request: Request):
     origin_ref = token.get('origin_ref')
 
     active_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
-    logging.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
+    logger.info(f'> [  leases  ]: {origin_ref}: found {len(active_lease_list)} active leases')
 
     response = {
         "active_lease_list": active_lease_list,
@@ -525,7 +527,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
         return JSONr(status_code=401, content={'status': 401, 'detail': 'token is not valid'})
 
     origin_ref = token.get('origin_ref')
-    logging.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
+    logger.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
 
     entity = Lease.find_by_origin_ref_and_lease_ref(db, origin_ref, lease_ref)
     if entity is None:
@@ -559,7 +561,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
         return JSONr(status_code=401, content={'status': 401, 'detail': 'token is not valid'})
 
     origin_ref = token.get('origin_ref')
-    logging.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
+    logger.info(f'> [  return  ]: {origin_ref}: return {lease_ref}')
 
     entity = Lease.find_by_lease_ref(db, lease_ref)
     if entity.origin_ref != origin_ref:
@@ -595,7 +597,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.cleanup(db, origin_ref)
-    logging.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
+    logger.info(f'> [  remove  ]: {origin_ref}: removed {deletions} leases')
 
     response = {
         "released_lease_list": released_lease_list,
@@ -609,7 +611,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
 
 @app.post('/leasing/v1/lessor/shutdown', description='shutdown all leases')
 async def leasing_v1_lessor_shutdown(request: Request):
-    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.utcnow()
+    j, cur_time = json_loads((await request.body()).decode('utf-8')), datetime.now(UTC)
 
     jwt_decode_key = Instance.get_default_instance(db).get_jwt_decode_key()
 
@@ -619,7 +621,7 @@ async def leasing_v1_lessor_shutdown(request: Request):
 
     released_lease_list = list(map(lambda x: x.lease_ref, Lease.find_by_origin_ref(db, origin_ref)))
     deletions = Lease.cleanup(db, origin_ref)
-    logging.info(f'> [ shutdown ]: {origin_ref}: removed {deletions} leases')
+    logger.info(f'> [ shutdown ]: {origin_ref}: removed {deletions} leases')
 
     response = {
         "released_lease_list": released_lease_list,
@@ -642,7 +644,7 @@ if __name__ == '__main__':
     #
     ###
 
-    logging.info(f'> Starting dev-server ...')
+    logger.info(f'> Starting dev-server ...')
 
     ssl_keyfile = join(dirname(__file__), 'cert/webserver.key')
     ssl_certfile = join(dirname(__file__), 'cert/webserver.crt')

@@ -20,6 +20,7 @@ build:docker:
       changes:
         - app/**/*
         - Dockerfile
+        - requirements.txt
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
   tags: [ docker ]
   before_script:
@@ -126,7 +127,7 @@ build:pacman:
       - "*.pkg.tar.zst"
 
 test:
-  image: $IMAGE
+  image: python:3.12-slim-bookworm
   stage: test
   interruptible: true
   rules:
@@ -141,16 +142,18 @@ test:
     DATABASE: sqlite:///../app/db.sqlite
   parallel:
     matrix:
-      - IMAGE: [ 'python:3.11-slim-bookworm', 'python:3.12-slim-bullseye' ]
-        REQUIREMENTS:
-          - requirements.txt
-          - .DEBIAN/requirements-bookworm-12.txt
-          - .DEBIAN/requirements-ubuntu-23.10.txt
-          - .DEBIAN/requirements-ubuntu-24.04.txt
+      - REQUIREMENTS:
+          - 'requirements.txt'
+#          - '.DEBIAN/requirements-bookworm-12.txt'
+#          - '.DEBIAN/requirements-ubuntu-24.04.txt'
+#          - '.DEBIAN/requirements-ubuntu-24.10.txt'
   before_script:
-    - apt-get update && apt-get install -y python3-dev gcc
+    - apt-get update && apt-get install -y python3-dev python3-pip python3-venv gcc
+    - python3 -m venv venv
+    - source venv/bin/activate
+    - pip install --upgrade pip
     - pip install -r $REQUIREMENTS
-    - pip install pytest httpx
+    - pip install pytest pytest-cov pytest-custom_exit_code httpx
     - mkdir -p app/cert
     - openssl genrsa -out app/cert/instance.private.pem 2048
     - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
@@ -162,7 +165,7 @@ test:
       dotenv: version.env
       junit: ['**/report.xml']
 
-.test:linux:
+.test:apt:
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
@@ -201,15 +204,17 @@ test:
     - apt-get purge -qq -y fastapi-dls
     - apt-get autoremove -qq -y && apt-get clean -qq
 
-test:debian:
-  extends: .test:linux
-  image: debian:bookworm-slim
+test:apt:
+  extends: .test:apt
+  image: $IMAGE
+  parallel:
+    matrix:
+      - IMAGE:
+          - debian:bookworm-slim # EOL: June 06, 2026
+          - ubuntu:24.04 # EOL: April 2036
+          - ubuntu:24.10
 
-test:ubuntu:
-  extends: .test:linux
-  image: ubuntu:24.04
-
-test:archlinux:
+test:pacman:archlinux:
   image: archlinux:base
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
@@ -250,7 +255,7 @@ semgrep-sast:
 
 test_coverage:
 #  extends: test
-  image: python:3.11-slim-bookworm
+  image: python:3.12-slim-bookworm
   allow_failure: true
   stage: test
   rules:
@@ -260,19 +265,19 @@ test_coverage:
   before_script:
     - apt-get update && apt-get install -y python3-dev gcc
     - pip install -r requirements.txt
-    - pip install pytest httpx
+    - pip install pytest pytest-cov pytest-custom_exit_code httpx
     - mkdir -p app/cert
     - openssl genrsa -out app/cert/instance.private.pem 2048
     - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
     - cd test
   script:
-    - pip install pytest pytest-cov
-    - coverage run -m pytest main.py
+    - coverage run -m pytest main.py --junitxml=report.xml --suppress-no-test-exit-code
     - coverage report
     - coverage xml
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     reports:
+      junit: [ '**/report.xml' ]
       coverage_report:
         coverage_format: cobertura
         path: '**/coverage.xml'
@@ -297,13 +302,17 @@ gemnasium-python-dependency_scanning:
 
 deploy:docker:
   extends: .deploy
+  image: docker:dind
   stage: deploy
+  tags: [ docker ]
   before_script:
     - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_COMMIT_REF_NAME"
+    - docker buildx inspect
+    - docker buildx create --use
   script:
     - echo "========== GitLab-Registry =========="
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH/$CI_COMMIT_REF_NAME
+    - IMAGE=$CI_REGISTRY/$CI_PROJECT_PATH
     - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:$CI_COMMIT_REF_NAME --push .
     - docker buildx build --progress=plain --platform $DOCKER_BUILDX_PLATFORM --build-arg VERSION=$CI_COMMIT_REF_NAME --build-arg COMMIT=$CI_COMMIT_SHA --tag $IMAGE:latest --push .
     - echo "========== Docker-Hub =========="

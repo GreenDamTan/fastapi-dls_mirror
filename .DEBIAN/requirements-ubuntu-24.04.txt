@@ -1,8 +1,8 @@
 # https://packages.ubuntu.com
 fastapi==0.101.0
 uvicorn[standard]==0.27.1
-python-jose[pycryptodome]==3.3.0
-pycryptodome==3.20.0
+python-jose[cryptography]==3.3.0
+cryptography==41.0.7
 python-dateutil==2.8.2
 sqlalchemy==1.4.50
 markdown==3.5.2

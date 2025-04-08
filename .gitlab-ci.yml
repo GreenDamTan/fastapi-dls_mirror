@@ -153,7 +153,7 @@ test:
     - source venv/bin/activate
     - pip install --upgrade pip
     - pip install -r $REQUIREMENTS
-    - pip install pytest httpx
+    - pip install pytest pytest-cov pytest-custom_exit_code httpx
     - mkdir -p app/cert
     - openssl genrsa -out app/cert/instance.private.pem 2048
     - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
@@ -265,13 +265,12 @@ test_coverage:
   before_script:
     - apt-get update && apt-get install -y python3-dev gcc
     - pip install -r requirements.txt
-    - pip install pytest httpx
+    - pip install pytest pytest-cov pytest-custom_exit_code httpx
     - mkdir -p app/cert
     - openssl genrsa -out app/cert/instance.private.pem 2048
     - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
     - cd test
   script:
-    - pip install pytest pytest-cov
     - coverage run -m pytest main.py --junitxml=report.xml --suppress-no-test-exit-code
     - coverage report
     - coverage xml

@@ -1,6 +1,6 @@
 .DS_Store
 venv/
 .idea/
-app/*.sqlite*
+*.sqlite
 app/cert/*.*
 .pytest_cache

@@ -16,7 +16,7 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from app.util import load_key
+from util import PrivateKey, PublicKey
 
 client = TestClient(main.app)
 
@@ -25,11 +25,11 @@ ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-00000
 # INSTANCE_KEY_RSA = generate_key()
 # INSTANCE_KEY_PUB = INSTANCE_KEY_RSA.public_key()
 
-INSTANCE_KEY_RSA = load_key(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
-INSTANCE_KEY_PUB = load_key(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
+INSTANCE_KEY_RSA = PrivateKey.from_file(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
+INSTANCE_KEY_PUB = PublicKey.from_file(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
 
-jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
-jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.export_key().decode('utf-8'), algorithm=ALGORITHMS.RS256)
+jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.pem(), algorithm=ALGORITHMS.RS256)
+jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.pem(), algorithm=ALGORITHMS.RS256)
 
 
 def __bearer_token(origin_ref: str) -> str:
@@ -187,8 +187,6 @@ def test_leasing_v1_lessor():
     assert len(lease_result_list[0]['lease']['ref']) == 36
     assert str(UUID(lease_result_list[0]['lease']['ref'])) == lease_result_list[0]['lease']['ref']
 
-    return lease_result_list[0]['lease']['ref']
-
 
 def test_leasing_v1_lessor_lease():
     response = client.get('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
@@ -231,7 +229,23 @@ def test_leasing_v1_lease_delete():
 
 
 def test_leasing_v1_lessor_lease_remove():
-    lease_ref = test_leasing_v1_lessor()
+    # see "test_leasing_v1_lessor()"
+    payload = {
+        'fulfillment_context': {
+            'fulfillment_class_ref_list': []
+        },
+        'lease_proposal_list': [{
+            'license_type_qualifiers': {'count': 1},
+            'product': {'name': 'NVIDIA RTX Virtual Workstation'}
+        }],
+        'proposal_evaluation_mode': 'ALL_OF',
+        'scope_ref_list': [ALLOTMENT_REF]
+    }
+
+    response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
+    lease_result_list = response.json().get('lease_result_list')
+    lease_ref = lease_result_list[0]['lease']['ref']
+    #
 
     response = client.delete('/leasing/v1/lessor/leases', headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200

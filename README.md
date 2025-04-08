@@ -2,9 +2,12 @@
 
 Minimal Delegated License Service (DLS).
 
+> [!note]
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
-see [compatibility matrix](#vgpu-software-compatibility-matrix).
-Drivers are only supported until **17.x releases**.
+> see [compatibility matrix](#vgpu-software-compatibility-matrix).
+
+> [!warning] 18.x Drivers are not yet supported!
+> Drivers are only supported until **17.x releases**.
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -83,7 +86,7 @@ docker run -e DLS_URL=`hostname -i` -e DLS_PORT=443 -p 443:443 -v $WORKING_DIR:/
 
 See [`examples`](examples) directory for more advanced examples (with reverse proxy usage).
 
-> Adjust *REQUIRED* variables as needed
+> Adjust `REQUIRED` variables as needed
 
 ```yaml
 version: '3.9'
@@ -330,14 +333,14 @@ Packages are available here:
 
 - [GitLab-Registry](https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages)
 
-Successful tested with:
+Successful tested with (**LTS Version**):
 
 - **Debian 12 (Bookworm)** (EOL: June 06, 2026)
 - *Ubuntu 22.10 (Kinetic Kudu)* (EOL: July 20, 2023)
 - *Ubuntu 23.04 (Lunar Lobster)* (EOL: January 2024)
 - *Ubuntu 23.10 (Mantic Minotaur)* (EOL: July 2024)
-- **Ubuntu 24.04 (Noble Numbat)** (EOL: April 2036)
-- *Ubuntu 24.10 (Oracular Oriole)* (EOL: tba.)
+- **Ubuntu 24.04 (Noble Numbat)** (EOL: Apr 2029)
+- *Ubuntu 24.10 (Oracular Oriole)* (EOL: Jul 2025)
 
 Not working with:
 
@@ -599,6 +602,21 @@ Logs are available with `journalctl -u nvidia-gridd -f`.
 Logs are available in `C:\Users\Public\Documents\Nvidia\LoggingLog.NVDisplay.Container.exe.log`.
 
 # Known Issues
+
+## Generic
+
+### `Failed to acquire license from <ip> (Info: <license> - Error: The allowed time to process response has expired)`
+
+- Did your timezone settings are correct on fastapi-dls **and your guest**?
+- Did you download the client-token more than an hour ago?
+
+Please download a new client-token. The guest have to register within an hour after client-token was created.
+
+### `jose.exceptions.JWTError: Signature verification failed.`
+
+- Did you recreate `instance.public.pem` / `instance.private.pem`?
+
+Then you have to download a **new** client-token on each of your guests.
 
 ## Linux
 

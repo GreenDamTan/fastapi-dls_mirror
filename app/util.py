@@ -1,7 +1,80 @@
 import logging
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
+from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+
 logging.basicConfig()
 
+
+class PrivateKey:
+
+    def __init__(self, data: bytes):
+        self.__key = load_pem_private_key(data, password=None)
+
+    @staticmethod
+    def from_file(filename: str) -> "PrivateKey":
+        log = logging.getLogger(__name__)
+        log.debug(f'Importing RSA-Private-Key from "{filename}"')
+
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        return PrivateKey(data=data.strip())
+
+    def raw(self) -> RSAPrivateKey:
+        return self.__key
+
+    def pem(self) -> bytes:
+        return self.__key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+
+    def public_key(self) -> "PublicKey":
+        data = self.__key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return PublicKey(data=data)
+
+    @staticmethod
+    def generate(public_exponent: int = 65537, key_size: int = 2048) -> "PrivateKey":
+        log = logging.getLogger(__name__)
+        log.debug(f'Generating RSA-Key')
+        key = generate_private_key(public_exponent=public_exponent, key_size=key_size)
+        data = key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+        return PrivateKey(data=data)
+
+
+class PublicKey:
+
+    def __init__(self, data: bytes):
+        self.__key = load_pem_public_key(data)
+
+    @staticmethod
+    def from_file(filename: str) -> "PublicKey":
+        log = logging.getLogger(__name__)
+        log.debug(f'Importing RSA-Public-Key from "{filename}"')
+
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        return PublicKey(data=data.strip())
+
+    def raw(self) -> RSAPublicKey:
+        return self.__key
+
+    def pem(self) -> bytes:
+        return self.__key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
 
 def load_file(filename: str) -> bytes:
     log = logging.getLogger(f'{__name__}')
@@ -9,33 +82,6 @@ def load_file(filename: str) -> bytes:
     with open(filename, 'rb') as file:
         content = file.read()
     return content
-
-
-def load_key(filename: str) -> "RsaKey":
-    try:
-        # Crypto | Cryptodome on Debian
-        from Crypto.PublicKey import RSA
-        from Crypto.PublicKey.RSA import RsaKey
-    except ModuleNotFoundError:
-        from Cryptodome.PublicKey import RSA
-        from Cryptodome.PublicKey.RSA import RsaKey
-
-    log = logging.getLogger(__name__)
-    log.debug(f'Importing RSA-Key from "{filename}"')
-    return RSA.import_key(extern_key=load_file(filename), passphrase=None)
-
-
-def generate_key() -> "RsaKey":
-    try:
-        # Crypto | Cryptodome on Debian
-        from Crypto.PublicKey import RSA
-        from Crypto.PublicKey.RSA import RsaKey
-    except ModuleNotFoundError:
-        from Cryptodome.PublicKey import RSA
-        from Cryptodome.PublicKey.RSA import RsaKey
-    log = logging.getLogger(__name__)
-    log.debug(f'Generating RSA-Key')
-    return RSA.generate(bits=2048)
 
 
 class NV:

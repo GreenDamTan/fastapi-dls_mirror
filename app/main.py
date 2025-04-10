@@ -421,6 +421,149 @@ async def leasing_v1_config_token(request: Request):
     logger.debug(f'Headers: {request.headers}')
     logger.debug(f'Request: {j}')
 
+    # todo: THIS IS A DEMO ONLY - THIS ENDPOINT GENERATES A NEW ROOT-CA EVERY TIME IT IS CALLED !!!
+
+    ###
+    #
+    # https://git.collinwebdesigns.de/nvidia/nls/-/blob/main/src/test/test_config_token.py
+    #
+    ###
+
+    from cryptography import x509
+    from cryptography.hazmat._oid import NameOID
+    from cryptography.hazmat.primitives import serialization, hashes
+    from cryptography.hazmat.primitives.asymmetric.rsa import generate_private_key
+    from cryptography.hazmat.primitives.serialization import Encoding
+
+    """ Create Root Key and Certificate """
+
+    # create root keypair
+    my_root_private_key = generate_private_key(public_exponent=65537, key_size=4096)
+    my_root_public_key = my_root_private_key.public_key()
+
+    # create root-certificate subject
+    my_root_subject = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, u'US'),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u'California'),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Nvidia'),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'Nvidia Licensing Service (NLS)'),
+        x509.NameAttribute(NameOID.COMMON_NAME, u'NLS Root CA'),
+    ])
+
+    # create self-signed root-certificate
+    my_root_certificate = (
+        x509.CertificateBuilder()
+        .subject_name(my_root_subject)
+        .issuer_name(my_root_subject)
+        .public_key(my_root_public_key)
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
+        .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
+        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_root_public_key), critical=False)
+        .sign(my_root_private_key, hashes.SHA256()))
+
+    """ Create CA (Intermediate) Key and Certificate """
+
+    # create ca keypair
+    my_ca_private_key = generate_private_key(public_exponent=65537, key_size=4096)
+    my_ca_public_key = my_ca_private_key.public_key()
+
+    # create ca-certificate subject
+    my_ca_subject = x509.Name([
+        x509.NameAttribute(NameOID.COUNTRY_NAME, u'US'),
+        x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u'California'),
+        x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Nvidia'),
+        x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'Nvidia Licensing Service (NLS)'),
+        x509.NameAttribute(NameOID.COMMON_NAME, u'NLS Intermediate CA'),
+    ])
+
+    # create self-signed ca-certificate
+    my_ca_certificate = (
+        x509.CertificateBuilder()
+        .subject_name(my_ca_subject)
+        .issuer_name(my_root_subject)
+        .public_key(my_ca_public_key)
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
+        .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
+        .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+        .add_extension(x509.KeyUsage(digital_signature=False, key_encipherment=False, key_cert_sign=True,
+                                     key_agreement=False, content_commitment=False, data_encipherment=False,
+                                     crl_sign=True, encipher_only=False, decipher_only=False), critical=True)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_ca_public_key), critical=False)
+        # .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(my_root_public_key), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
+            my_root_certificate.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value
+        ), critical=False)
+        .sign(my_root_private_key, hashes.SHA256()))
+
+    # with open('caChain_my.pem', 'wb') as f:
+    #    f.write(my_ca_certificate.public_bytes(encoding=Encoding.PEM))
+
+    """ Create Service-Instance Key and Certificate """
+
+    # create si keypair
+    my_si_private_key = generate_private_key(public_exponent=65537, key_size=2048)
+    my_si_public_key = my_si_private_key.public_key()
+
+    my_si_private_key_as_pem = my_si_private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.TraditionalOpenSSL,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    my_si_public_key_as_pem = my_si_public_key.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
+
+    # with open('instance.private.pem', 'wb') as f:
+    #    f.write(my_si_private_key_as_pem)
+
+    # with open('instance.public.pem', 'wb') as f:
+    #    f.write(my_si_public_key_as_pem)
+
+    # create si-certificate subject
+    my_si_subject = x509.Name([
+        #x509.NameAttribute(NameOID.COMMON_NAME, INSTANCE_REF),
+        x509.NameAttribute(NameOID.COMMON_NAME, j.get('service_instance_ref')),
+    ])
+
+    # create self-signed si-certificate
+    my_si_certificate = (
+        x509.CertificateBuilder()
+        .subject_name(my_si_subject)
+        .issuer_name(my_ca_subject)
+        .public_key(my_si_public_key)
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
+        .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
+        .add_extension(x509.KeyUsage(digital_signature=True, key_encipherment=True, key_cert_sign=False,
+                                     key_agreement=True, content_commitment=False, data_encipherment=False,
+                                     crl_sign=False, encipher_only=False, decipher_only=False), critical=True)
+        .add_extension(x509.ExtendedKeyUsage([
+            x509.oid.ExtendedKeyUsageOID.SERVER_AUTH,
+            x509.oid.ExtendedKeyUsageOID.CLIENT_AUTH]
+        ), critical=False)
+        .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_si_public_key), critical=False)
+        # .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(my_ca_public_key), critical=False)
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
+            my_ca_certificate.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value
+        ), critical=False)
+        .add_extension(x509.SubjectAlternativeName([
+            #x509.DNSName(INSTANCE_REF)
+            x509.DNSName(j.get('service_instance_ref'))
+        ]), critical=False)
+        .sign(my_ca_private_key, hashes.SHA256()))
+
+    my_si_public_key_exp = my_si_certificate.public_key().public_numbers().e
+    my_si_public_key_mod = f'{my_si_certificate.public_key().public_numbers().n:x}'  # hex value without "0x" prefix
+
+    # with open('cert_my.pem', 'wb') as f:
+    #    f.write(my_si_certificate.public_bytes(encoding=Encoding.PEM))
+
+    """ build out payload """
+
     cur_time = datetime.now(UTC)
     exp_time = cur_time + CLIENT_TOKEN_EXPIRE_DELTA
 
@@ -435,38 +578,31 @@ async def leasing_v1_config_token(request: Request):
         "service_instance_ref": j.get('service_instance_ref'),
         "service_instance_public_key_configuration": {
             "service_instance_public_key_me": {
-                "mod": hex(INSTANCE_KEY_PUB.public_key().n)[2:],
-                "exp": int(INSTANCE_KEY_PUB.public_key().e),
+                "mod": hex(my_si_public_key.public_numbers().n)[2:],
+                "exp": int(my_si_public_key.public_numbers().e),
             },
-            "service_instance_public_key_pem": INSTANCE_KEY_PUB.export_key().decode('utf-8'),
+            # 64 chars per line (pem default)
+            "service_instance_public_key_pem": my_si_public_key_as_pem.decode('utf-8').strip(),
             "key_retention_mode": "LATEST_ONLY"
         },
     }
 
-    config_token = jws.sign(payload, key=jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
+    my_jwt_encode_key = jwk.construct(my_si_private_key_as_pem.decode('utf-8'), algorithm=ALGORITHMS.RS256)
+    config_token = jws.sign(payload, key=my_jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
-    root_crt = load_file(join(dirname(__file__), 'cert\\root-ca.crt.pem')).decode('utf-8').replace('\n', '\r\n')[:-2]
-    intermediate_crt = load_file(join(dirname(__file__), 'cert\\intermediate.crt.pem')).decode('utf-8').replace('\n', '\r\n')[:-2]
-    public_crt = load_file(join(dirname(__file__), 'cert\\webserver.crt.pem')).decode('utf-8').replace('\n', '\r\n')[:-2]
-    #public_key = load_key(join(dirname(__file__), 'cert\\webserver.pub.pem'))
+    response_ca_chain = my_ca_certificate.public_bytes(encoding=Encoding.PEM).decode('utf-8')
+    response_si_certificate = my_si_certificate.public_bytes(encoding=Encoding.PEM).decode('utf-8')
 
     response = {
         "certificateConfiguration": {
-            #"caChain": [public_crt],
-            "caChain": [intermediate_crt],
-            #"caChain": ["-----BEGIN CERTIFICATE-----\r\n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\r\n56OFWPHcA7gxkpU8wftrVMLFeDvLIGc=\r\n-----END CERTIFICATE-----"],
-            "publicCert": public_crt,
-            #"publicCert": "-----BEGIN CERTIFICATE-----\r\nMIIE2zCCAsOgAwIBAgIUCX7sjz8B3HSAxRSPHAdNP/NCByEwDQYJKoZIhvcNAQELBQAwejELMAkG\r\nA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExDzANBgNVBAoTBk52aWRpYTEnMCUGA1UECxMe\r\nTnZpZGlhIExpY2Vuc2luZyBTZXJ2aWNlIChOTFMpMRwwGgYDVQQDExNOTFMgSW50ZXJtZWRpYXRl\r\nIENBMB4XDTI1MDMxMDA3NDA1NloXDTI4MDMwOTA3NDEyNlowLzEtMCsGA1UEAxMkYTE3ZTA3OWUt\r\nNmE3My00ZWJmLThkM2ItOGM4OTYxMWI5YTI3MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC\r\nAQEAuNfIEDxAbgpeeac1dDacwHBMEWNyr6bdWLcRRWrbXA1TUcsNpvmRN6ZgznDSG3JsGxaO5hhr\r\nI1UHwzTKwu/sAusYPPc354zW7i9aPS0izGoFKHDD2QgRQ/ECHzgoQirHWW6GecXlwoTDWBGtObWb\r\nVcPVcuxMMFIZ4Rt9Ru6S1qwdual7rdWG+Z7fWmBGMy9Xpn/+hmL1hRmqJRec7LVP7ejCQ5OtQp72\r\nKq8pm61WddEpw1Z148gXiflUlakjHbWmvAh5QTahkY2PBy7/1J+7Y6Ukj3aq7z/rrg4NaCJUvL7Q\r\nEr6qafujOLXsEMFFJxN5WIPm23Lvj8NQLJZO4zUtXwIDAQABo4GjMIGgMA4GA1UdDwEB/wQEAwID\r\nqDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYEFPfOsX87tbYT3irva9Tl\r\nWtLhYGccMB8GA1UdIwQYMBaAFEo1JPxQ95lhCAtksQowEaSVoAMeMC8GA1UdEQQoMCaCJGExN2Uw\r\nNzllLTZhNzMtNGViZi04ZDNiLThjODk2MTFiOWEyNzANBgkqhkiG9w0BAQsFAAOCAgEAa0Z0E0NW\r\n0KgpAgLLJ+6nGXfMVfG8sauXz9AQmobvuRsOvQi2DpTbfjrP4uT7q33Qw1vyQl2jlxoI0G1Ul1TO\r\nBVM/XYhs/Qp8TXSFFngCNQspAmDPCjSqnoeH3h6yW1EEfQY3R1hKac/krzuJs+Y4G2y1WLNmQiqF\r\now9FG2+APimLtPBDHCydn0tkAKRbDa9i5izty0qtAr+tlrSV6AOnn0fagJ5JjrVkGgAaO1GXwpWB\r\nEAteRDfsCIIMtPujZU0BAIYuXvxaX5zYiCN3KadBzheDh5IVZcTyOkHIRDvFl10exhMjcDjvAAfV\r\nHUUBliGAaIFBrgXz0y3CVcRNP7xp3PW1F/HZVBcQgi+cnqQfIF6us8+u8xLG51VtFHAUxP3NzSgU\r\nI54sIJmmNP30o8RRevD3wclk26A9PB+9MFBm6KFZb4Ue55cFqeI85ICKPoCfsBzP4CYNoNX3fscA\r\nhrJgXxbAVB9NC6rpEmpniyo7FGEPyQV41nuwqf8Y7SwAzPspGo0orynjrbJyr+N/l5oA0OblsqLw\r\nb963k2ssDS/YIQ79KaP1TWXl1e9WI46mgyPWha3Zm9P5FS1MedORwANafh+4PVo3JfaruUvSqQK/\r\nEwIjAdhNNrs2xMgQkGffl8cQF3TDbXAAstRQySKvt1cj3lTbhD+vNiidbQaZSxLGzPI=\r\n-----END CERTIFICATE-----",
+            # 76 chars per line
+            "caChain": [response_ca_chain],
+            # 76 chars per line
+            "publicCert": response_si_certificate,
             "publicKey": {
-                "exp": int(INSTANCE_KEY_PUB.public_key().e),
-                "mod": [hex(INSTANCE_KEY_PUB.public_key().n)[2:]],
+                "exp": int(my_si_certificate.public_key().public_numbers().e),
+                "mod": [hex(my_si_certificate.public_key().public_numbers().n)[2:]],
             },
-            #"publicKey": {
-            #    "exp": 65537,
-            #    "mod": [
-            #        "b8d7c8103c406e0a5e79a73574369cc0704c116372afa6dd58b711456adb5c0d5351cb0da6f99137a660ce70d21b726c1b168ee6186b235507c334cac2efec02eb183cf737e78cd6ee2f5a3d2d22cc6a052870c3d9081143f1021f3828422ac7596e8679c5e5c284c35811ad39b59b55c3d572ec4c305219e11b7d46ee92d6ac1db9a97badd586f99edf5a6046332f57a67ffe8662f58519aa25179cecb54fede8c24393ad429ef62aaf299bad5675d129c35675e3c81789f95495a9231db5a6bc08794136a1918d8f072effd49fbb63a5248f76aaef3febae0e0d682254bcbed012beaa69fba338b5ec10c1452713795883e6db72ef8fc3502c964ee3352d5f"
-            #    ],
-            #},
         },
         "configToken": config_token,
     }

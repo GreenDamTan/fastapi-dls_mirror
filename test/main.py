@@ -1,3 +1,4 @@
+import json
 import sys
 from base64 import b64encode as b64enc
 from calendar import timegm
@@ -7,7 +8,7 @@ from os.path import dirname, join
 from uuid import uuid4, UUID
 
 from dateutil.relativedelta import relativedelta
-from jose import jwt, jwk
+from jose import jwt, jwk, jws
 from jose.constants import ALGORITHMS
 from starlette.testclient import TestClient
 
@@ -20,6 +21,7 @@ from util import PrivateKey, PublicKey
 
 client = TestClient(main.app)
 
+INSTANCE_REF = '10000000-0000-0000-0000-000000000001'
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
 
 # INSTANCE_KEY_RSA = generate_key()
@@ -67,6 +69,31 @@ def test_manage():
 def test_client_token():
     response = client.get('/-/client-token')
     assert response.status_code == 200
+
+
+def test_config_token():  # todo: /leasing/v1/config-token
+    # https://git.collinwebdesigns.de/nvidia/nls/-/blob/main/src/test/test_config_token.py
+
+    response = client.post('/leasing/v1/config-token', json={"service_instance_ref": INSTANCE_REF})
+    assert response.status_code == 200
+
+    nv_response_certificate_configuration = response.json().get('certificateConfiguration')
+    nv_response_public_cert = nv_response_certificate_configuration.get('publicCert').encode('utf-8')
+    nv_jwt_decode_key = jwk.construct(nv_response_public_cert, algorithm=ALGORITHMS.RS256)
+
+    nv_response_config_token = response.json().get('configToken')
+
+    payload = jws.verify(nv_response_config_token, key=nv_jwt_decode_key, algorithms=ALGORITHMS.RS256)
+    payload = json.loads(payload)
+    assert payload.get('iss') == 'NLS Service Instance'
+    assert payload.get('aud') == 'NLS Licensed Client'
+    assert payload.get('service_instance_ref') == INSTANCE_REF
+
+    nv_si_public_key_configuration = payload.get('service_instance_public_key_configuration')
+    nv_si_public_key_me = nv_si_public_key_configuration.get('service_instance_public_key_me')
+    # assert nv_si_public_key_me.get('mod') == 1  #nv_si_public_key_mod
+    assert len(nv_si_public_key_me.get('mod')) == 512
+    assert nv_si_public_key_me.get('exp') == 65537  # nv_si_public_key_exp
 
 
 def test_origins():
@@ -165,8 +192,6 @@ def test_auth_v1_token():
     payload = jwt.decode(token=token, key=jwt_decode_key, algorithms=ALGORITHMS.RS256, options={'verify_aud': False})
     assert payload.get('origin_ref') == ORIGIN_REF
 
-
-# todo: /leasing/v1/config-token
 
 def test_leasing_v1_lessor():
     payload = {

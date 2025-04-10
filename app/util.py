@@ -3,6 +3,7 @@ import logging
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+from cryptography.x509 import load_pem_x509_certificate, Certificate
 
 logging.basicConfig()
 
@@ -75,6 +76,29 @@ class PublicKey:
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
+
+
+class Cert:
+
+    def __init__(self, data: bytes):
+        self.__cert = load_pem_x509_certificate(data)
+
+    @staticmethod
+    def from_file(filename: str) -> "Cert":
+        log = logging.getLogger(__name__)
+        log.debug(f'Importing Certificate from "{filename}"')
+
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        return Cert(data=data.strip())
+
+    def raw(self) -> Certificate:
+        return self.__cert
+
+    def pem(self) -> bytes:
+        return self.__cert.public_bytes(encoding=serialization.Encoding.PEM)
+
 
 def load_file(filename: str) -> bytes:
     log = logging.getLogger(f'{__name__}')

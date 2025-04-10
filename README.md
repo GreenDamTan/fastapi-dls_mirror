@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-> [!note]
+> [!note] Compatibility
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 > see [compatibility matrix](#vgpu-software-compatibility-matrix).
 
@@ -402,7 +402,7 @@ Continue [here](#unraid-guest) for docker guest setup.
 
 Tanks to [@mrzenc](https://github.com/mrzenc) for [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos).
 
-> [!WARNING]
+> [!note] Native NixOS-Package
 > There is a [pull request](https://github.com/NixOS/nixpkgs/pull/358647) which adds fastapi-dls into nixpkgs.
 
 ## Let's Encrypt Certificate (optional)

@@ -716,6 +716,8 @@ async def leasing_v1_lessor(request: Request):
         "prompts": None
     }
 
+    logger.debug(response)
+
     return JSONr(response)
 
 

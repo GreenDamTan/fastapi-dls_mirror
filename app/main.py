@@ -695,7 +695,6 @@ async def leasing_v1_lessor(request: Request):
                 "expires": expires.isoformat(),
                 "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
                 "offline_lease": "true",
-                "license_type": "CONCURRENT_COUNTED_SINGLE"
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
                 "lease_intent_id": None,
                 "metadata": None,

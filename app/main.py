@@ -299,9 +299,14 @@ async def auth_v1_origin(request: Request):
 
     Origin.create_or_update(db, data)
 
+    environment = {
+        'raw_env': j.get('environment')
+    }
+    environment.update(j.get('environment'))
+
     response = {
         "origin_ref": origin_ref,
-        "environment": j.get('environment'),
+        "environment": environment,
         "svc_port_set_list": None,
         "node_url_list": None,
         "node_query_order": None,
@@ -408,6 +413,7 @@ async def auth_v1_token(request: Request):
         "expires": access_expires_on.isoformat(),
         "auth_token": auth_token,
         "sync_timestamp": cur_time.isoformat(),
+        "prompts": None
     }
 
     return JSONr(response)
@@ -679,6 +685,7 @@ async def leasing_v1_lessor(request: Request):
         expires = cur_time + LEASE_EXPIRE_DELTA
         lease_result_list.append({
             "ordinal": 0,
+            "error": 0,
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
                 "ref": lease_ref,
@@ -687,6 +694,9 @@ async def leasing_v1_lessor(request: Request):
                 "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
                 "offline_lease": "true",
                 "license_type": "CONCURRENT_COUNTED_SINGLE"
+                "license_type": "CONCURRENT_COUNTED_SINGLE",
+                "lease_intent_id": None,
+                "metadata": None,
             }
         })
 
@@ -694,6 +704,7 @@ async def leasing_v1_lessor(request: Request):
         Lease.create_or_update(db, data)
 
     response = {
+        "client_challenge": None,
         "lease_result_list": lease_result_list,
         "result_code": "SUCCESS",
         "sync_timestamp": cur_time.isoformat(),

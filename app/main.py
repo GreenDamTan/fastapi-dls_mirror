@@ -679,6 +679,7 @@ async def leasing_v1_lessor(request: Request):
     logger.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
     lease_result_list = []
+    # todo: for lease_proposal in lease_proposal_list
     for scope_ref in scope_ref_list:
         # if scope_ref not in [ALLOTMENT_REF]:
         #     return JSONr(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
@@ -698,6 +699,8 @@ async def leasing_v1_lessor(request: Request):
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
                 "lease_intent_id": None,
                 "metadata": None,
+                "feature_name": "GRID-Virtual-WS",  # todo
+                "product_name": "NVIDIA RTX Virtual Workstation",  # todo
             }
         })
 

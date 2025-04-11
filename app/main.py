@@ -250,6 +250,7 @@ async def _client_token():
         "iat": timegm(cur_time.timetuple()),
         "nbf": timegm(cur_time.timetuple()),
         "exp": timegm(exp_time.timetuple()),
+        "protocol_version": "2.0",
         "update_mode": "ABSOLUTE",
         "scope_ref_list": [ALLOTMENT_REF],
         "fulfillment_class_ref_list": [],

@@ -688,8 +688,8 @@ async def leasing_v1_lessor(request: Request):
         lease_ref = str(uuid4())
         expires = cur_time + LEASE_EXPIRE_DELTA
         lease_result_list.append({
-            "ordinal": 0,
-            "error": 0,
+            "ordinal": None,
+            "error": None,
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
                 "ref": lease_ref,

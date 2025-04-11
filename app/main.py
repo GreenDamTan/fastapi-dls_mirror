@@ -719,7 +719,7 @@ async def leasing_v1_lessor(request: Request):
 
     logger.debug(response)
 
-    return JSONr(response)
+    return JSONr(response, headers={'X-NLS-Signature': '?'})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py

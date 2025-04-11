@@ -697,7 +697,7 @@ async def leasing_v1_lessor(request: Request):
                 "created": cur_time.strftime(DT_FORMAT),
                 "expires": expires.strftime(DT_FORMAT),
                 "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
-                "offline_lease": "true",
+                "offline_lease": "false",  # todo
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
                 "lease_intent_id": None,
                 "metadata": None,

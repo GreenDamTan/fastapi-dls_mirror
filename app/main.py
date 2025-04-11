@@ -51,6 +51,7 @@ LEASE_RENEWAL_PERIOD = float(env('LEASE_RENEWAL_PERIOD', 0.15))
 LEASE_RENEWAL_DELTA = timedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)), hours=int(env('LEASE_EXPIRE_HOURS', 0)))
 CLIENT_TOKEN_EXPIRE_DELTA = relativedelta(years=12)
 CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) else [f'https://{DLS_URL}']
+DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.pem(), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.pem(), algorithm=ALGORITHMS.RS256)
@@ -311,7 +312,7 @@ async def auth_v1_origin(request: Request):
         "node_url_list": None,
         "node_query_order": None,
         "prompts": None,
-        "sync_timestamp": cur_time.isoformat()
+        "sync_timestamp": cur_time.strftime(DT_FORMAT)
     }
 
     return JSONr(response)
@@ -337,7 +338,7 @@ async def auth_v1_origin_update(request: Request):
     response = {
         "environment": j.get('environment'),
         "prompts": None,
-        "sync_timestamp": cur_time.isoformat()
+        "sync_timestamp": cur_time.strftime(DT_FORMAT)
     }
 
     return JSONr(response)
@@ -368,7 +369,7 @@ async def auth_v1_code(request: Request):
 
     response = {
         "auth_code": auth_code,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
         "prompts": None
     }
 
@@ -410,9 +411,9 @@ async def auth_v1_token(request: Request):
     auth_token = jwt.encode(new_payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
     response = {
-        "expires": access_expires_on.isoformat(),
+        "expires": access_expires_on.strftime(DT_FORMAT),
         "auth_token": auth_token,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
         "prompts": None
     }
 
@@ -692,8 +693,8 @@ async def leasing_v1_lessor(request: Request):
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
                 "ref": lease_ref,
-                "created": cur_time.isoformat(),
-                "expires": expires.isoformat(),
+                "created": cur_time.strftime(DT_FORMAT),
+                "expires": expires.strftime(DT_FORMAT),
                 "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
                 "offline_lease": "true",
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
@@ -710,8 +711,8 @@ async def leasing_v1_lessor(request: Request):
     response = {
         "client_challenge": None,
         "lease_result_list": lease_result_list,
-        "result_code": "SUCCESS",
-        "sync_timestamp": cur_time.isoformat(),
+        "result_code": None,
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
         "prompts": None
     }
 
@@ -731,7 +732,7 @@ async def leasing_v1_lessor_lease(request: Request):
 
     response = {
         "active_lease_list": active_lease_list,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
         "prompts": None
     }
 
@@ -754,11 +755,11 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     expires = cur_time + LEASE_EXPIRE_DELTA
     response = {
         "lease_ref": lease_ref,
-        "expires": expires.isoformat(),
+        "expires": expires.strftime(DT_FORMAT),
         "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
         "offline_lease": True,
         "prompts": None,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
     }
 
     Lease.renew(db, entity, expires, cur_time)
@@ -786,7 +787,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
     response = {
         "lease_ref": lease_ref,
         "prompts": None,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
     }
 
     return JSONr(response)
@@ -806,7 +807,7 @@ async def leasing_v1_lessor_lease_remove(request: Request):
     response = {
         "released_lease_list": released_lease_list,
         "release_failure_list": None,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
         "prompts": None
     }
 
@@ -828,7 +829,7 @@ async def leasing_v1_lessor_shutdown(request: Request):
     response = {
         "released_lease_list": released_lease_list,
         "release_failure_list": None,
-        "sync_timestamp": cur_time.isoformat(),
+        "sync_timestamp": cur_time.strftime(DT_FORMAT),
         "prompts": None
     }
 

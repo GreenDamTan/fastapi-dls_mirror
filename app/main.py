@@ -667,6 +667,8 @@ async def leasing_v1_config_token(request: Request):
 async def leasing_v1_lessor(request: Request):
     j, token, cur_time = json_loads((await request.body()).decode('utf-8')), __get_token(request), datetime.now(UTC)
 
+    logger.debug(j)
+
     try:
         token = __get_token(request)
     except JWTError:

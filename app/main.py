@@ -719,7 +719,12 @@ async def leasing_v1_lessor(request: Request):
 
     logger.debug(response)
 
-    return JSONr(response, headers={'X-NLS-Signature': '?'})
+    si_certificate_filename = join(dirname(__file__), 'cert/my_demo_si_certificate.pem')
+    my_si_certificate = Cert.from_file(si_certificate_filename)
+    signature = my_si_certificate.signature().hex()
+    signature = f'b\'{signature}\''
+
+    return JSONr(response, headers={'X-NLS-Signature': signature})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py

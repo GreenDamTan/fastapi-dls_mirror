@@ -370,8 +370,8 @@ async def auth_v1_code(request: Request):
 
     response = {
         "auth_code": auth_code,
+        "prompts": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
-        "prompts": None
     }
 
     return JSONr(response)
@@ -404,18 +404,18 @@ async def auth_v1_token(request: Request):
         'iss': 'https://cls.nvidia.org',
         'aud': 'https://cls.nvidia.org',
         'exp': timegm(access_expires_on.timetuple()),
-        'origin_ref': origin_ref,
         'key_ref': SITE_KEY_XID,
         'kid': SITE_KEY_XID,
+        'origin_ref': origin_ref,
     }
 
     auth_token = jwt.encode(new_payload, key=jwt_encode_key, headers={'kid': payload.get('kid')}, algorithm=ALGORITHMS.RS256)
 
     response = {
-        "expires": access_expires_on.strftime(DT_FORMAT),
         "auth_token": auth_token,
+        "expires": access_expires_on.strftime(DT_FORMAT),
+        "prompts": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
-        "prompts": None
     }
 
     return JSONr(response)
@@ -694,17 +694,18 @@ async def leasing_v1_lessor(request: Request):
             "error": None,
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
-                "ref": lease_ref,
                 "created": cur_time.strftime(DT_FORMAT),
                 "expires": expires.strftime(DT_FORMAT),
-                "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
-                "offline_lease": "false",  # todo
-                "license_type": "CONCURRENT_COUNTED_SINGLE",
-                "lease_intent_id": None,
-                "metadata": None,
                 "feature_name": "GRID-Virtual-WS",  # todo
+                "lease_intent_id": None,
+                "license_type": "CONCURRENT_COUNTED_SINGLE",
+                "metadata": None,
+                "offline_lease": False,  # todo
                 "product_name": "NVIDIA RTX Virtual Workstation",  # todo
-            }
+                "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
+                "ref": lease_ref,
+            },
+            "ordinal": None,
         })
 
         data = Lease(origin_ref=origin_ref, lease_ref=lease_ref, lease_created=cur_time, lease_expires=expires)
@@ -713,9 +714,9 @@ async def leasing_v1_lessor(request: Request):
     response = {
         "client_challenge": j.get('client_challenge'),
         "lease_result_list": lease_result_list,
+        "prompts": None,
         "result_code": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
-        "prompts": None
     }
 
     logger.debug(response)
@@ -737,8 +738,8 @@ async def leasing_v1_lessor_lease(request: Request):
 
     response = {
         "active_lease_list": active_lease_list,
+        "prompts": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
-        "prompts": None
     }
 
     return JSONr(response)
@@ -760,11 +761,13 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     expires = cur_time + LEASE_EXPIRE_DELTA
     response = {
         "client_challenge": j.get('client_challenge'),
-        "lease_ref": lease_ref,
         "expires": expires.strftime(DT_FORMAT),
-        "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
+        "feature_expired": False,
+        "lease_ref": lease_ref,
+        "metadata": None,
         "offline_lease": True,
         "prompts": None,
+        "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
     }
 
@@ -815,8 +818,8 @@ async def leasing_v1_lessor_lease_remove(request: Request):
     response = {
         "released_lease_list": released_lease_list,
         "release_failure_list": None,
+        "prompts": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
-        "prompts": None
     }
 
     return JSONr(response)
@@ -837,8 +840,8 @@ async def leasing_v1_lessor_shutdown(request: Request):
     response = {
         "released_lease_list": released_lease_list,
         "release_failure_list": None,
+        "prompts": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
-        "prompts": None
     }
 
     return JSONr(response)

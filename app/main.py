@@ -7,6 +7,7 @@ from hashlib import sha256
 from json import loads as json_loads
 from os import getenv as env
 from os.path import join, dirname, isfile
+from random import randbytes
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -719,12 +720,10 @@ async def leasing_v1_lessor(request: Request):
 
     logger.debug(response)
 
-    si_certificate_filename = join(dirname(__file__), 'cert/my_demo_si_certificate.pem')
-    my_si_certificate = Cert.from_file(si_certificate_filename)
-    signature = my_si_certificate.signature().hex()
+    signature = randbytes(256).hex()
     signature = f'b\'{signature}\''
 
-    return JSONr(response, headers={'X-NLS-Signature': signature})
+    return JSONr(response, headers={'access-control-expose-headers': 'x-nls-signature', 'x-nls-signature': signature})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py

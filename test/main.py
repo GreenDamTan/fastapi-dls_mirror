@@ -212,6 +212,8 @@ def test_leasing_v1_lessor():
 
     client_challenge = response.json().get('client_challenge')
     assert client_challenge == payload.get('client_challenge')
+    signature = eval(response.headers.get('x-nls-signature'))
+    assert len(signature) == 512
 
     lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1

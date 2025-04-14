@@ -13,12 +13,12 @@ from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.requests import Request
+from fastapi.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
 from jose import jws, jwk, jwt, JWTError
 from jose.constants import ALGORITHMS
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
 
 from orm import Origin, Lease, init as db_init, migrate
 from util import PrivateKey, PublicKey, load_file, Cert, ProductMapping
@@ -670,9 +670,6 @@ async def leasing_v1_config_token(request: Request):
 async def leasing_v1_lessor(request: Request):
     j, token, cur_time = json_loads((await request.body()).decode('utf-8')), __get_token(request), datetime.now(UTC)
 
-    logger.debug(j)
-    logger.debug(request.headers)
-
     try:
         token = __get_token(request)
     except JWTError:
@@ -698,7 +695,6 @@ async def leasing_v1_lessor(request: Request):
 
         lease_result_list.append({
             "error": None,
-            # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
                 "created": cur_time.strftime(DT_FORMAT),
                 "expires": expires.strftime(DT_FORMAT),  # todo: lease_proposal.get('duration') => "P0Y0M0DT12H0M0S
@@ -727,8 +723,8 @@ async def leasing_v1_lessor(request: Request):
 
     logger.debug(response)
 
-    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response).encode('utf-8'))
-    signature = f'b\'{signature.hex()}\''
+    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":")).encode('utf-8'))
+    signature = f'{signature.hex().encode()}'
     return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
 
 
@@ -780,8 +776,8 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     Lease.renew(db, entity, expires, cur_time)
 
-    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response).encode('utf-8'))
-    signature = f'b\'{signature.hex()}\''
+    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":")).encode('utf-8'))
+    signature = f'{signature.hex().encode()}'
     return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
 
 

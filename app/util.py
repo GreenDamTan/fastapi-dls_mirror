@@ -99,6 +99,9 @@ class Cert:
     def pem(self) -> bytes:
         return self.__cert.public_bytes(encoding=serialization.Encoding.PEM)
 
+    def signature(self) -> bytes:
+        return self.__cert.signature
+
 
 def load_file(filename: str) -> bytes:
     log = logging.getLogger(f'{__name__}')

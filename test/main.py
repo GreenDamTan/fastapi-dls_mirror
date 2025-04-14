@@ -195,6 +195,7 @@ def test_auth_v1_token():
 
 def test_leasing_v1_lessor():
     payload = {
+        'client_challenge': 'my_unique_string',
         'fulfillment_context': {
             'fulfillment_class_ref_list': []
         },
@@ -208,6 +209,9 @@ def test_leasing_v1_lessor():
 
     response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
+
+    client_challenge = response.json().get('client_challenge')
+    assert client_challenge == payload.get('client_challenge')
 
     lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1
@@ -232,8 +236,12 @@ def test_leasing_v1_lease_renew():
 
     ###
 
-    response = client.put(f'/leasing/v1/lease/{active_lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    payload = {'client_challenge': 'my_unique_string'}
+    response = client.put(f'/leasing/v1/lease/{active_lease_ref}', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
+
+    client_challenge = response.json().get('client_challenge')
+    assert client_challenge == payload.get('client_challenge')
 
     lease_ref = response.json().get('lease_ref')
     assert len(lease_ref) == 36

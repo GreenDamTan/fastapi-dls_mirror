@@ -710,7 +710,7 @@ async def leasing_v1_lessor(request: Request):
         Lease.create_or_update(db, data)
 
     response = {
-        "client_challenge": None,
+        "client_challenge": j.get('client_challenge'),
         "lease_result_list": lease_result_list,
         "result_code": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
@@ -746,7 +746,7 @@ async def leasing_v1_lessor_lease(request: Request):
 # venv/lib/python3.9/site-packages/nls_core_lease/lease_single.py
 @app.put('/leasing/v1/lease/{lease_ref}', description='renew a lease')
 async def leasing_v1_lease_renew(request: Request, lease_ref: str):
-    token, cur_time = __get_token(request), datetime.now(UTC)
+    j, token, cur_time = json_loads((await request.body()).decode('utf-8')), __get_token(request), datetime.now(UTC)
 
     origin_ref = token.get('origin_ref')
     logger.info(f'> [  renew   ]: {origin_ref}: renew {lease_ref}')
@@ -757,6 +757,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     expires = cur_time + LEASE_EXPIRE_DELTA
     response = {
+        "client_challenge": j.get('client_challenge'),
         "lease_ref": lease_ref,
         "expires": expires.strftime(DT_FORMAT),
         "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
@@ -788,6 +789,7 @@ async def leasing_v1_lease_delete(request: Request, lease_ref: str):
         return JSONr(status_code=404, content={'status': 404, 'detail': 'lease not found'})
 
     response = {
+        "client_challenge": None,
         "lease_ref": lease_ref,
         "prompts": None,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),

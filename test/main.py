@@ -40,6 +40,23 @@ def __bearer_token(origin_ref: str) -> str:
     return token
 
 
+def test_signing():
+    signature_set_header = INSTANCE_KEY_RSA.generate_signature(b'Hello')
+
+    # test plain
+    INSTANCE_KEY_PUB.verify_signature(signature_set_header, b'Hello')
+
+    # test "X-NLS-Signature: b'....'
+    x_nls_signature_header_value = f'{signature_set_header.hex().encode()}'
+    assert f'{x_nls_signature_header_value}'.startswith('b\'')
+    assert f'{x_nls_signature_header_value}'.endswith('\'')
+
+    # test eval
+    signature_get_header = eval(x_nls_signature_header_value)
+    signature_get_header = bytes.fromhex(signature_get_header.decode('ascii'))
+    INSTANCE_KEY_PUB.verify_signature(signature_get_header, b'Hello')
+
+
 def test_index():
     response = client.get('/')
     assert response.status_code == 200
@@ -214,6 +231,9 @@ def test_leasing_v1_lessor():
     assert client_challenge == payload.get('client_challenge')
     signature = eval(response.headers.get('X-NLS-Signature'))
     assert len(signature) == 512
+    signature = bytes.fromhex(signature.decode('ascii'))
+    assert len(signature) == 256
+    INSTANCE_KEY_PUB.verify_signature(signature, response.content)
 
     lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1
@@ -249,6 +269,9 @@ def test_leasing_v1_lease_renew():
     assert client_challenge == payload.get('client_challenge')
     signature = eval(response.headers.get('X-NLS-Signature'))
     assert len(signature) == 512
+    signature = bytes.fromhex(signature.decode('ascii'))
+    assert len(signature) == 256
+    INSTANCE_KEY_PUB.verify_signature(signature, response.content)
 
     lease_ref = response.json().get('lease_ref')
     assert len(lease_ref) == 36

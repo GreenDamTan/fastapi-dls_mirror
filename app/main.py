@@ -695,7 +695,7 @@ async def leasing_v1_lessor(request: Request):
             "lease": {
                 "created": cur_time.strftime(DT_FORMAT),
                 "expires": expires.strftime(DT_FORMAT),
-                "feature_name": "Quadro-Virtual-DWS",  # todo
+                "feature_name": "GRID-Virtual-WS",  # todo
                 "lease_intent_id": None,
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
                 "metadata": None,
@@ -721,7 +721,7 @@ async def leasing_v1_lessor(request: Request):
     logger.debug(response)
 
     signature = f'b\'{randbytes(256).hex()}\''
-    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'x-nls-signature': signature})
+    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
@@ -773,7 +773,7 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     Lease.renew(db, entity, expires, cur_time)
 
     signature = f'b\'{randbytes(256).hex()}\''
-    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'x-nls-signature': signature})
+    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py

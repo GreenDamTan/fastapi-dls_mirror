@@ -41,6 +41,7 @@ build:apt:
   interruptible: true
   stage: build
   rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
     - if: $CI_COMMIT_TAG
       variables:
         VERSION: $CI_COMMIT_REF_NAME
@@ -162,11 +163,12 @@ test:
 .test:apt:
   stage: test
   rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - app/**/*
         - .DEBIAN/**/*
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+        - .gitlab-ci.yml
   needs:
     - job: build:apt
       artifacts: true
@@ -211,11 +213,12 @@ test:apt:
 test:pacman:archlinux:
   image: archlinux:base
   rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
       changes:
         - app/**/*
         - .PKGBUILD/**/*
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+        - .gitlab-ci.yml
   needs:
     - job: build:pacman
       artifacts: true

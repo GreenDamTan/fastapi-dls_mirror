@@ -690,13 +690,12 @@ async def leasing_v1_lessor(request: Request):
         lease_ref = str(uuid4())
         expires = cur_time + LEASE_EXPIRE_DELTA
         lease_result_list.append({
-            "ordinal": None,
             "error": None,
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
                 "created": cur_time.strftime(DT_FORMAT),
                 "expires": expires.strftime(DT_FORMAT),
-                "feature_name": "GRID-Virtual-WS",  # todo
+                "feature_name": "Quadro-Virtual-DWS",  # todo
                 "lease_intent_id": None,
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
                 "metadata": None,

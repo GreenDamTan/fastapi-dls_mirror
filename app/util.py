@@ -1,7 +1,9 @@
 import logging
-
+from json import loads as json_loads
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
+from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 from cryptography.x509 import load_pem_x509_certificate, Certificate
 
@@ -39,6 +41,9 @@ class PrivateKey:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
         return PublicKey(data=data)
+
+    def generate_signature(self, data: bytes) -> bytes:
+        return self.__key.sign(data, PKCS1v15(), SHA256())
 
     @staticmethod
     def generate(public_exponent: int = 65537, key_size: int = 2048) -> "PrivateKey":

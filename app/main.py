@@ -4,10 +4,9 @@ from calendar import timegm
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, UTC
 from hashlib import sha256
-from json import loads as json_loads
+from json import loads as json_loads, dumps as json_dumps
 from os import getenv as env
 from os.path import join, dirname, isfile
-from random import randbytes
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -728,7 +727,8 @@ async def leasing_v1_lessor(request: Request):
 
     logger.debug(response)
 
-    signature = f'b\'{randbytes(256).hex()}\''
+    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response).encode('utf-8'))
+    signature = f'b\'{signature.hex()}\''
     return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
 
 
@@ -780,7 +780,8 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     Lease.renew(db, entity, expires, cur_time)
 
-    signature = f'b\'{randbytes(256).hex()}\''
+    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response).encode('utf-8'))
+    signature = f'b\'{signature.hex()}\''
     return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
 
 

@@ -153,3 +153,34 @@ class NV:
                         'is_latest': is_latest,
                     }
         return None
+
+
+class ProductMapping:
+
+    def __init__(self, filename: str):
+        with open(filename, 'r') as file:
+            self.data = json_loads(file.read())
+
+
+    def get_feature_name(self, product_name: str) -> (str, str):
+        product = self.__get_product(product_name)
+        product_fulfillment = self.__get_product_fulfillment(product.get('xid'))
+        feature = self.__get_product_fulfillment_feature(product_fulfillment.get('xid'))
+
+        return feature.get('feature_identifier')
+
+
+    def __get_product(self, product_name: str):
+        product_list = self.data.get('product')
+        return next(filter(lambda _: _.get('identifier') == product_name, product_list))
+
+
+    def __get_product_fulfillment(self, product_xid: str):
+        product_fulfillment_list = self.data.get('product_fulfillment')
+        return next(filter(lambda _: _.get('product_xid') == product_xid, product_fulfillment_list))
+
+    def __get_product_fulfillment_feature(self, product_fulfillment_xid: str):
+        feature_list = self.data.get('product_fulfillment_feature')
+        features = list(filter(lambda _: _.get('product_fulfillment_xid') == product_fulfillment_xid, feature_list))
+        features.sort(key=lambda _: _.get('evaluation_order_index'))
+        return features[0]

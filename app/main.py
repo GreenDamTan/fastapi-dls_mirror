@@ -22,7 +22,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse as JSONr, HTMLResponse as HTMLr, Response, RedirectResponse
 
 from orm import Origin, Lease, init as db_init, migrate
-from util import PrivateKey, PublicKey, load_file, Cert
+from util import PrivateKey, PublicKey, load_file, Cert, ProductMapping
 
 # Load variables
 load_dotenv('../version.env')
@@ -52,6 +52,8 @@ LEASE_RENEWAL_DELTA = timedelta(days=int(env('LEASE_EXPIRE_DAYS', 90)), hours=in
 CLIENT_TOKEN_EXPIRE_DELTA = relativedelta(years=12)
 CORS_ORIGINS = str(env('CORS_ORIGINS', '')).split(',') if (env('CORS_ORIGINS')) else [f'https://{DLS_URL}']
 DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
+PRODUCT_MAPPING = ProductMapping(filename=join(dirname(__file__), 'static/product_mapping.json'))
+
 
 jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.pem(), algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.pem(), algorithm=ALGORITHMS.RS256)
@@ -679,28 +681,34 @@ async def leasing_v1_lessor(request: Request):
 
     origin_ref = token.get('origin_ref')
     scope_ref_list = j.get('scope_ref_list')
+    lease_proposal_list = j.get('lease_proposal_list')
     logger.info(f'> [  create  ]: {origin_ref}: create leases for scope_ref_list {scope_ref_list}')
 
-    lease_result_list = []
-    # todo: for lease_proposal in lease_proposal_list
     for scope_ref in scope_ref_list:
         # if scope_ref not in [ALLOTMENT_REF]:
         #     return JSONr(status_code=500, detail=f'no service instances found for scopes: ["{scope_ref}"]')
+        pass
 
+    lease_result_list = []
+    for lease_proposal in lease_proposal_list:
         lease_ref = str(uuid4())
         expires = cur_time + LEASE_EXPIRE_DELTA
+
+        product_name = lease_proposal.get('product').get('name')
+        feature_name = PRODUCT_MAPPING.get_feature_name(product_name=product_name)
+
         lease_result_list.append({
             "error": None,
             # https://docs.nvidia.com/license-system/latest/nvidia-license-system-user-guide/index.html
             "lease": {
                 "created": cur_time.strftime(DT_FORMAT),
-                "expires": expires.strftime(DT_FORMAT),
-                "feature_name": "GRID-Virtual-WS",  # todo
+                "expires": expires.strftime(DT_FORMAT),  # todo: lease_proposal.get('duration') => "P0Y0M0DT12H0M0S
+                "feature_name": feature_name,
                 "lease_intent_id": None,
                 "license_type": "CONCURRENT_COUNTED_SINGLE",
                 "metadata": None,
                 "offline_lease": False,  # todo
-                "product_name": "NVIDIA RTX Virtual Workstation",  # todo
+                "product_name": product_name,
                 "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
                 "ref": lease_ref,
             },

@@ -201,7 +201,7 @@ def test_leasing_v1_lessor():
         },
         'lease_proposal_list': [{
             'license_type_qualifiers': {'count': 1},
-            'product': {'name': 'NVIDIA RTX Virtual Workstation'}
+            'product': {'name': 'NVIDIA Virtual Applications'}
         }],
         'proposal_evaluation_mode': 'ALL_OF',
         'scope_ref_list': [ALLOTMENT_REF]
@@ -219,6 +219,9 @@ def test_leasing_v1_lessor():
     assert len(lease_result_list) == 1
     assert len(lease_result_list[0]['lease']['ref']) == 36
     assert str(UUID(lease_result_list[0]['lease']['ref'])) == lease_result_list[0]['lease']['ref']
+    assert lease_result_list[0]['lease']['product_name'] == 'NVIDIA Virtual Applications'
+    assert lease_result_list[0]['lease']['feature_name'] == 'GRID-Virtual-Apps'
+
 
 
 def test_leasing_v1_lessor_lease():
@@ -275,7 +278,7 @@ def test_leasing_v1_lessor_lease_remove():
         },
         'lease_proposal_list': [{
             'license_type_qualifiers': {'count': 1},
-            'product': {'name': 'NVIDIA RTX Virtual Workstation'}
+            'product': {'name': 'NVIDIA Virtual Applications'}
         }],
         'proposal_evaluation_mode': 'ALL_OF',
         'scope_ref_list': [ALLOTMENT_REF]

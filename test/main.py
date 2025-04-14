@@ -244,6 +244,8 @@ def test_leasing_v1_lease_renew():
 
     client_challenge = response.json().get('client_challenge')
     assert client_challenge == payload.get('client_challenge')
+    signature = eval(response.headers.get('x-nls-signature'))
+    assert len(signature) == 512
 
     lease_ref = response.json().get('lease_ref')
     assert len(lease_ref) == 36

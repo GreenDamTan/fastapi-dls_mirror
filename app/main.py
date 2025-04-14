@@ -720,10 +720,8 @@ async def leasing_v1_lessor(request: Request):
 
     logger.debug(response)
 
-    signature = randbytes(256).hex()
-    signature = f'b\'{signature}\''
-
-    return JSONr(response, headers={'access-control-expose-headers': 'x-nls-signature', 'x-nls-signature': signature})
+    signature = f'b\'{randbytes(256).hex()}\''
+    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'x-nls-signature': signature})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
@@ -772,7 +770,8 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     Lease.renew(db, entity, expires, cur_time)
 
-    return JSONr(response)
+    signature = f'b\'{randbytes(256).hex()}\''
+    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'x-nls-signature': signature})
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py

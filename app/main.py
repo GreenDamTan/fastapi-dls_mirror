@@ -721,11 +721,17 @@ async def leasing_v1_lessor(request: Request):
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
     }
 
-    logger.debug(response)
+    content = json_dumps(response).encode('utf-8')
+    signature = INSTANCE_KEY_RSA.generate_signature(content)
 
-    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":")).encode('utf-8'))
-    signature = f'{signature.hex().encode()}'
-    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
+    headers = {
+        'Content-Type': 'application/json',
+        'access-control-expose-headers': 'X-NLS-Signature',
+        'X-NLS-Signature': f'{signature.hex().encode()}'
+    }
+    x = Response(content=content, media_type='text/plain')
+    x.raw_headers = [(k.encode("latin-1"), v.encode("latin-1")) for k, v in headers.items()]
+    return x
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_multi_controller.py
@@ -776,9 +782,17 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     Lease.renew(db, entity, expires, cur_time)
 
-    signature = INSTANCE_KEY_RSA.generate_signature(json_dumps(response, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":")).encode('utf-8'))
-    signature = f'{signature.hex().encode()}'
-    return JSONr(response, headers={'access-control-expose-headers': 'X-NLS-Signature', 'X-NLS-Signature': signature})
+    content = json_dumps(response).encode('utf-8')
+    signature = INSTANCE_KEY_RSA.generate_signature(content)
+
+    headers = {
+        'Content-Type': 'application/json',
+        'access-control-expose-headers': 'X-NLS-Signature',
+        'X-NLS-Signature': f'{signature.hex().encode()}'
+    }
+    x = Response(content=content, media_type='text/plain')
+    x.raw_headers = [(k.encode("latin-1"), v.encode("latin-1")) for k, v in headers.items()]
+    return x
 
 
 # venv/lib/python3.9/site-packages/nls_services_lease/test/test_lease_single_controller.py

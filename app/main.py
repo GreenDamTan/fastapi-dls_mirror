@@ -721,7 +721,8 @@ async def leasing_v1_lessor(request: Request):
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
     }
 
-    content = json_dumps(response).encode('utf-8')
+    content = json_dumps(response, separators=(',', ':'))
+    content = f'{content}\n'.encode('utf-8')
     signature = INSTANCE_KEY_RSA.generate_signature(content)
 
     headers = {
@@ -770,11 +771,11 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
     expires = cur_time + LEASE_EXPIRE_DELTA
     response = {
         "client_challenge": j.get('client_challenge'),
-        "expires": expires.strftime(DT_FORMAT),
+        "expires": expires.strftime('%Y-%m-%dT%H:%M:%S.%f'),  # DT_FORMAT => "trailing 'Z' missing in this response
         "feature_expired": False,
         "lease_ref": lease_ref,
         "metadata": None,
-        "offline_lease": True,
+        "offline_lease": False,  # todo
         "prompts": None,
         "recommended_lease_renewal": LEASE_RENEWAL_PERIOD,
         "sync_timestamp": cur_time.strftime(DT_FORMAT),
@@ -782,7 +783,8 @@ async def leasing_v1_lease_renew(request: Request, lease_ref: str):
 
     Lease.renew(db, entity, expires, cur_time)
 
-    content = json_dumps(response).encode('utf-8')
+    content = json_dumps(response, separators=(',', ':'))
+    content = f'{content}\n'.encode('utf-8')
     signature = INSTANCE_KEY_RSA.generate_signature(content)
 
     headers = {

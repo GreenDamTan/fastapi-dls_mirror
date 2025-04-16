@@ -276,6 +276,7 @@ async def _client_token():
                 {
                     "idx": 0,
                     "d_name": "DLS",
+                    # todo: {"service": "quick_release", "port": 80} - see "shutdown for windows"
                     "svc_port_map": [{"service": "auth", "port": DLS_PORT}, {"service": "lease", "port": DLS_PORT}]
                 }
             ],

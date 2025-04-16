@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-> [!note]
+> [!note] Compatibility
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 > see [compatibility matrix](#vgpu-software-compatibility-matrix).
 
@@ -402,6 +402,9 @@ Continue [here](#unraid-guest) for docker guest setup.
 
 Tanks to [@mrzenc](https://github.com/mrzenc) for [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos).
 
+> [!note] Native NixOS-Package
+> There is a [pull request](https://github.com/NixOS/nixpkgs/pull/358647) which adds fastapi-dls into nixpkgs.
+
 ## Let's Encrypt Certificate (optional)
 
 If you're using installation via docker, you can use `traefik`. Please refer to their documentation.
@@ -792,13 +795,13 @@ Thanks to vGPU community and all who uses this project and report bugs.
 
 Special thanks to:
 
-- @samicrusader who created build file for **ArchLinux**
-- @cyrus who wrote the section for **openSUSE**
-- @midi who wrote the section for **unRAID**
-- @polloloco who wrote the *[NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox)*
-- @DualCoder who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
-- Krutav Shah who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
-- Wim van 't Hoog for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
-- @mrzenc who wrote [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos)
+- `samicrusader` who created build file for **ArchLinux**
+- `cyrus` who wrote the section for **openSUSE**
+- `midi` who wrote the section for **unRAID**
+- `polloloco` who wrote the *[NVIDIA vGPU Guide](https://gitlab.com/polloloco/vgpu-proxmox)*
+- `DualCoder` who creates the `vgpu_unlock` functionality [vgpu_unlock](https://github.com/DualCoder/vgpu_unlock)
+- `Krutav Shah` who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
+- `Wim van 't Hoog` for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
+- `mrzenc` who wrote [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos)
 
 And thanks to all people who contributed to all these libraries!

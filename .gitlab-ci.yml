@@ -142,12 +142,13 @@ test:python:
   parallel:
     matrix:
       - IMAGE:
-#          - python:3.14-alpine
-          - python:3.13-alpine
-          - python:3.12-alpine
-          - python:3.11-alpine
-#          - python:3.10-alpine
-#          - python:3.9-alpine
+          # https://devguide.python.org/versions/#supported-versions
+          - python:3.14-alpine  # EOL 2030-10
+          - python:3.13-alpine  # EOL 2029-10
+          - python:3.12-alpine  # EOL 2028-10
+          - python:3.11-alpine  # EOL 2027-10
+          - python:3.10-alpine  # EOL 2026-10
+          - python:3.9-alpine  # EOL 2025-10
   before_script:
     - apk --no-cache add openssl
     - python3 -m venv venv

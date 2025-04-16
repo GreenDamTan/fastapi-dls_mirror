@@ -3,9 +3,10 @@
 Minimal Delegated License Service (DLS).
 
 > [!warning] Branch support \
-> Use FastAPI-DLS == 1.x until **17.x** releases. \
-> Use FastAPI-DLS == 2.x since **18.x** releases in combination
+> FastAPI-DLS Version 1.x supports up to **`17.x`** releases. \
+> FastAPI-DLS Version 2.x is backwards compatible to `17.x` and supports **`18.x`** releases in combination
 > with [gridd-unlock-patcher](https://git.collinwebdesigns.de/oscar.krause/gridd-unlock-patcher).
+> Other combinations of FastAPI-DLS and Driver-Branches may work but are not tested.
 
 > [!note] Compatibility
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
@@ -754,7 +755,7 @@ Successfully tested with this package versions.
 | FastAPI-DLS Version | vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
 |---------------------|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
 | `2.x`               |    `18.0`     |   **R570**    | `570.124.03`       | `570.124.06` | `572.60`       |    March 2025 |    March 2026 |
-| `1.x`               |    `17.5`     |               | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |     June 2025 |
+| `1.x` & `2.x`       |    `17.5`     |               | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |     June 2025 |
 |                     |    `17.4`     |               | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 |               |
 |                     |    `17.3`     |               | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
 |                     |    `17.2`     |               | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |

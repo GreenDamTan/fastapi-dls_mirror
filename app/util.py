@@ -1,5 +1,4 @@
 import logging
-from json import load as json_load
 from datetime import datetime, UTC, timedelta
 from json import loads as json_loads
 from os.path import join, dirname, isfile
@@ -338,9 +337,8 @@ class DriverMatrix:
 
     def __load(self):
         try:
-            file = open(DriverMatrix.__DRIVER_MATRIX_FILENAME)
-            DriverMatrix.__DRIVER_MATRIX = json_load(file)
-            file.close()
+            with open(DriverMatrix.__DRIVER_MATRIX_FILENAME, 'r') as f:
+                DriverMatrix.__DRIVER_MATRIX = json_loads(f.read())
             self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
         except Exception as e:
             DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app

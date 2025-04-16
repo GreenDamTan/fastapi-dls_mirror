@@ -30,8 +30,6 @@ pkgver() {
 check() {
     cd "$srcdir/$pkgname/test"
     mkdir "$srcdir/$pkgname/app/cert"
-    openssl genrsa -out "$srcdir/$pkgname/app/cert/instance.private.pem" 2048
-    openssl rsa -in "$srcdir/$pkgname/app/cert/instance.private.pem" -outform PEM -pubout -out "$srcdir/$pkgname/app/cert/instance.public.pem"
     python "$srcdir/$pkgname/test/main.py"
     rm -rf "$srcdir/$pkgname/app/cert"
 }

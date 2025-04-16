@@ -66,9 +66,6 @@ The images include database drivers for `postgres`, `mariadb` and `sqlite`.
 WORKING_DIR=/opt/docker/fastapi-dls/cert
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
-# create instance private and public key for singing JWT's
-openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
-openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
 ```
@@ -153,9 +150,6 @@ chown -R www-data:www-data $WORKING_DIR
 WORKING_DIR=/opt/fastapi-dls/app/cert
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
-# create instance private and public key for singing JWT's
-openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
-openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
 chown -R www-data:www-data $WORKING_DIR
@@ -255,9 +249,6 @@ CERT_DIR=${BASE_DIR}/app/cert
 SERVICE_USER=dls
 mkdir ${CERT_DIR}
 cd ${CERT_DIR}
-# create instance private and public key for singing JWT's
-openssl genrsa -out ${CERT_DIR}/instance.private.pem 2048 
-openssl rsa -in ${CERT_DIR}/instance.private.pem -outform PEM -pubout -out ${CERT_DIR}/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  ${CERT_DIR}/webserver.key -out ${CERT_DIR}/webserver.crt
 chown -R ${SERVICE_USER} ${CERT_DIR}
@@ -617,7 +608,7 @@ Please download a new client-token. The guest have to register within an hour af
 
 ### `jose.exceptions.JWTError: Signature verification failed.`
 
-- Did you recreate `instance.public.pem` / `instance.private.pem`?
+- Did you recreate any certificate or keypair?
 
 Then you have to download a **new** client-token on each of your guests.
 

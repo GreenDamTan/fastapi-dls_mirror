@@ -23,17 +23,24 @@ class CASetup:
     #
     ###
 
+    ROOT_PRIVATE_KEY_FILENAME = 'root_private_key.pem'
+    ROOT_CERTIFICATE_FILENAME = 'root_certificate.pem'
+    CA_PRIVATE_KEY_FILENAME = 'ca_private_key.pem'
+    CA_CERTIFICATE_FILENAME = 'ca_certificate.pem'
+    SI_PRIVATE_KEY_FILENAME = 'si_private_key.pem'
+    SI_CERTIFICATE_FILENAME = 'si_certificate.pem'
+
     def __init__(self, service_instance_ref: str):
         self.service_instance_ref = service_instance_ref
-        self.root_private_key_filename = join(dirname(__file__), 'cert/my_demo_root_private_key.pem')
-        self.root_certificate_filename = join(dirname(__file__), 'cert/my_demo_root_certificate.pem')
-        self.ca_private_key_filename = join(dirname(__file__), 'cert/my_demo_ca_private_key.pem')
-        self.ca_certificate_filename = join(dirname(__file__), 'cert/my_demo_ca_certificate.pem')
-        self.si_private_key_filename = join(dirname(__file__), 'cert/my_demo_si_private_key.pem')
-        self.si_public_key_filename = join(dirname(__file__), 'cert/my_demo_si_public_key.pem')
-        self.si_certificate_filename = join(dirname(__file__), 'cert/my_demo_si_certificate.pem')
+        self.root_private_key_filename = join(dirname(__file__), 'cert', CASetup.ROOT_PRIVATE_KEY_FILENAME)
+        self.root_certificate_filename = join(dirname(__file__), 'cert', CASetup.ROOT_CERTIFICATE_FILENAME)
+        self.ca_private_key_filename = join(dirname(__file__), 'cert', CASetup.CA_PRIVATE_KEY_FILENAME)
+        self.ca_certificate_filename = join(dirname(__file__), 'cert', CASetup.CA_CERTIFICATE_FILENAME)
+        self.si_private_key_filename = join(dirname(__file__), 'cert', CASetup.SI_PRIVATE_KEY_FILENAME)
+        self.si_certificate_filename = join(dirname(__file__), 'cert', CASetup.SI_CERTIFICATE_FILENAME)
 
         if not (isfile(self.root_private_key_filename)
+                and isfile(self.root_certificate_filename)
                 and isfile(self.ca_private_key_filename)
                 and isfile(self.ca_certificate_filename)
                 and isfile(self.si_private_key_filename)
@@ -156,8 +163,8 @@ class CASetup:
         with open(self.si_private_key_filename, 'wb') as f:
             f.write(my_si_private_key_as_pem)
 
-        with open(self.si_public_key_filename, 'wb') as f:
-            f.write(my_si_public_key_as_pem)
+        # with open(self.si_public_key_filename, 'wb') as f:
+        #    f.write(my_si_public_key_as_pem)
 
         # create si-certificate subject
         my_si_subject = x509.Name([
@@ -191,9 +198,6 @@ class CASetup:
                 x509.DNSName(self.service_instance_ref)
             ]), critical=False)
             .sign(my_ca_private_key, hashes.SHA256()))
-
-        my_si_public_key_exp = my_si_certificate.public_key().public_numbers().e
-        my_si_public_key_mod = f'{my_si_certificate.public_key().public_numbers().n:x}'  # hex value without "0x" prefix
 
         with open(self.si_certificate_filename, 'wb') as f:
             f.write(my_si_certificate.public_bytes(encoding=Encoding.PEM))

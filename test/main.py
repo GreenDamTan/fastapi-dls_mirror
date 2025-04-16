@@ -16,7 +16,7 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from util import CASetup, PrivateKey, PublicKey
+from util import CASetup, PrivateKey, PublicKey, Cert
 
 client = TestClient(main.app)
 
@@ -26,6 +26,7 @@ ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-00000
 
 # CA & Signing
 ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+my_root_certificate = Cert.from_file(ca_setup.root_certificate_filename)
 my_si_private_key = PrivateKey.from_file(ca_setup.si_private_key_filename)
 my_si_private_key_as_pem = my_si_private_key.pem()
 my_si_public_key = my_si_private_key.public_key()
@@ -72,6 +73,12 @@ def test_health():
 def test_config():
     response = client.get('/-/config')
     assert response.status_code == 200
+
+
+def test_config_root_ca():
+    response = client.get('/-/config/root-ca')
+    assert response.status_code == 200
+    assert response.content.decode('utf-8') == my_root_certificate.pem().decode('utf-8')
 
 
 def test_readme():

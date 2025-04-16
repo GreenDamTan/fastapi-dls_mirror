@@ -53,6 +53,7 @@ PRODUCT_MAPPING = ProductMapping(filename=join(dirname(__file__), 'static/produc
 
 # Create certificate chain and signing keys
 ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+my_root_certificate = Cert.from_file(ca_setup.root_certificate_filename)
 my_ca_certificate = Cert.from_file(ca_setup.ca_certificate_filename)
 my_si_certificate = Cert.from_file(ca_setup.si_certificate_filename)
 my_si_private_key = PrivateKey.from_file(ca_setup.si_private_key_filename)
@@ -146,6 +147,11 @@ async def _config():
         'CORS_ORIGINS': str(CORS_ORIGINS),
         'TZ': str(TZ),
     })
+
+
+@app.get('/-/config/root-ca', summary='* Root CA', description='returns Root-CA needed for patching nvidia-gridd')
+async def _config():
+    return Response(content=my_root_certificate.pem().decode('utf-8'), media_type='text/plain')
 
 
 @app.get('/-/readme', summary='* Readme')

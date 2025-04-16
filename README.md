@@ -541,6 +541,10 @@ Status endpoint, used for *healthcheck*.
 
 Shows current runtime environment variables and their values.
 
+**`GET /-/config/root-ca`**
+
+Returns the Root-CA Certificate which is used. This is required for patching `nvidia-gridd` on 18.x releases.
+
 **`GET /-/readme`**
 
 HTML rendered README.md.

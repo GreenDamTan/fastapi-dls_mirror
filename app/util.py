@@ -94,14 +94,17 @@ class DriverMatrix:
         self.log = logging.getLogger(self.__class__.__name__)
 
         if DriverMatrix.__DRIVER_MATRIX is None:
-            try:
-                file = open(DriverMatrix.__DRIVER_MATRIX_FILENAME)
-                DriverMatrix.__DRIVER_MATRIX = json_load(file)
-                file.close()
-                self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
-            except Exception as e:
-                DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
-                # self.log.warning(f'Failed to load "{NV.__DRIVER_MATRIX_FILENAME}": {e}')
+            self.__load()
+
+    def __load(self):
+        try:
+            file = open(DriverMatrix.__DRIVER_MATRIX_FILENAME)
+            DriverMatrix.__DRIVER_MATRIX = json_load(file)
+            file.close()
+            self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
+        except Exception as e:
+            DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
+            # self.log.warning(f'Failed to load "{NV.__DRIVER_MATRIX_FILENAME}": {e}')
 
     @staticmethod
     def find(version: str) -> dict | None:

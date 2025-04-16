@@ -104,7 +104,7 @@ class DriverMatrix:
             self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
         except Exception as e:
             DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
-            # self.log.warning(f'Failed to load "{NV.__DRIVER_MATRIX_FILENAME}": {e}')
+            # self.log.warning(f'Failed to load "{DriverMatrix.__DRIVER_MATRIX_FILENAME}": {e}')
 
     @staticmethod
     def find(version: str) -> dict | None:

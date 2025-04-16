@@ -11,7 +11,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session, relationship
 from sqlalchemy.schema import CreateTable
 
-from util import NV, PrivateKey, PublicKey
+from util import DriverMatrix, PrivateKey, PublicKey, DriverMatrix
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -148,7 +148,7 @@ class Origin(Base):
         return f'Origin(origin_ref={self.origin_ref}, hostname={self.hostname})'
 
     def serialize(self) -> dict:
-        _ = NV().find(self.guest_driver_version)
+        _ = DriverMatrix().find(self.guest_driver_version)
 
         return {
             'origin_ref': self.origin_ref,

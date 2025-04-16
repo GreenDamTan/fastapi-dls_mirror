@@ -2,12 +2,14 @@
 
 Minimal Delegated License Service (DLS).
 
+> [!warning] Branch support
+> Use FastAPI-DLS == 1.x until **17.x** releases.
+> Use FastAPI-DLS == 2.x since **18.x** releases in combination
+> with [gridd-unlock-patcher](https://git.collinwebdesigns.de/oscar.krause/gridd-unlock-patcher).
+
 > [!note] Compatibility
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 > see [compatibility matrix](#vgpu-software-compatibility-matrix).
-
-> [!warning] 18.x Drivers are not yet supported!
-> Drivers are only supported until **17.x releases**.
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -744,33 +746,32 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 # vGPU Software Compatibility Matrix
 
-**18.x Drivers are not supported on FastAPI-DLS Versions < 1.6.0**
-
 <details>
   <summary>Show Table</summary>
 
 Successfully tested with this package versions.
 
-| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
-|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
-|    `17.5`     |     R550      | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |     June 2025 |
-|    `17.4`     |     R550      | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 |               |
-|    `17.3`     |     R550      | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
-|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |
-|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
-|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
-|    `16.9`     |     R535      | `535.230.02`       | `535.216.01` | `539.19`       |  October 2024 |     July 2026 |
-|    `16.8`     |     R535      | `535.216.01`       | `535.216.01` | `538.95`       |  October 2024 |               |
-|    `16.7`     |     R535      | `535.183.04`       | `535.183.06` | `538.78`       |     July 2024 |               |
-|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |               |
-|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
-|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
-|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
-|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
-|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
-|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
-|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
-|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+| FastAPI-DLS Version | vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
+|---------------------|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
+| `2.x`               |    `18.0`     |     R570      | `570.124.03`       | `570.124.06` | `572.60`       |    March 2025 |    March 2026 |
+| `1.x`               |    `17.5`     |     R550      | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |     June 2025 |
+|                     |    `17.4`     |     R550      | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 |               |
+|                     |    `17.3`     |     R550      | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
+|                     |    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |
+|                     |    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
+|                     |    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
+| `1.x`               |    `16.9`     |     R535      | `535.230.02`       | `535.216.01` | `539.19`       |  October 2024 |     July 2026 |
+|                     |    `16.8`     |     R535      | `535.216.01`       | `535.216.01` | `538.95`       |  October 2024 |               |
+|                     |    `16.7`     |     R535      | `535.183.04`       | `535.183.06` | `538.78`       |     July 2024 |               |
+|                     |    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |               |
+|                     |    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
+|                     |    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
+|                     |    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
+|                     |    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
+|                     |    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
+|                     |    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
+| `1.x`               |    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
+| `1.x`               |    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
 
 </details>
 

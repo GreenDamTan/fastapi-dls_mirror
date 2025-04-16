@@ -143,9 +143,9 @@ test:python:
     matrix:
       - IMAGE:
 #          - python:3.14-alpine
-#          - python:3.13-alpine
+          - python:3.13-alpine
           - python:3.12-alpine
-#          - python:3.11-alpine
+          - python:3.11-alpine
 #          - python:3.10-alpine
 #          - python:3.9-alpine
   before_script:
@@ -163,7 +163,6 @@ test:python:
     - python -m pytest main.py --junitxml=report.xml
   artifacts:
     reports:
-      dotenv: version.env
       junit: ['**/report.xml']
 
 test:apt:

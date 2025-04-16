@@ -1,0 +1,70 @@
+{% extends 'layouts/bootstrap-dashboard.html' %}
+
+{% block title %}
+<title>Origins</title>
+{% endblock %}
+
+{% block content %}
+    <div>
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">Origins <small>with leases</small></h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <div class="btn-group me-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOrigin().finally(() => load())">
+                        delete origin
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteExpiredOrigins().finally(() => load())">
+                        delete all expired origins
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteOriginsWrapper()">
+                        delete all
+                    </button>
+                </div>
+
+                <button type="button" class="btn btn-sm btn-outline-secondary me-2" onclick="load()" title="refresh">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+                <button id="btn-auto-refresh" type="button" class="btn btn-sm active">auto-refresh</button>
+            </div>
+        </div>
+
+        <div id="origins" class="mt-3"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+    <script type="application/javascript">
+        let autoRefresh = true
+
+        function load() {
+            const origins = document.getElementById('origins')
+            fetchOriginsWithLeases(origins)
+        }
+
+        load()
+
+        function deleteOriginsWrapper() {
+            const response = confirm('Are you sure you want to delete all origins and their leases?');
+
+            if (response)
+                deleteOrigins().finally(() => load())
+        }
+
+        setInterval(() => {
+            if(autoRefresh)
+                load()
+        }, 5000);
+
+        const btnAutoRefresh = document.getElementById('btn-auto-refresh')
+        btnAutoRefresh.addEventListener("click", () => {
+            if(btnAutoRefresh.classList.contains('active')) {
+                autoRefresh = false
+                btnAutoRefresh.classList.remove('active')
+            } else {
+                autoRefresh = false
+                btnAutoRefresh.classList.add('active')
+            }
+        }, true);
+    </script>
+{% endblock %}

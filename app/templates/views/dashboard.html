@@ -1,0 +1,69 @@
+{% extends 'layouts/bootstrap-dashboard.html' %}
+
+{% block title %}
+<title>Dashboard</title>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group me-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="downloadClientToken()">
+                    <i class="bi bi-download"></i>
+                    Client Token
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5">
+            <h1 class="display-5 fw-bold">FastAPI-DLS</h1>
+            <p class="col-md-8 fs-4">Minimal Delegated License Service (DLS).</p>
+
+            <a href="https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/releases" class="btn btn-primary btn-lg" target="_blank">
+                Releases &raquo;
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Configuration</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">
+                Using timezone: {{ CONFIG.TZ }}. Make sure this is correct and match your clients!
+            </h6>
+            <p class="card-text">
+                Your clients renew their license every {{ CONFIG.LEASE_CALCULATED_RENEWAL }}.<br/>
+                If the renewal fails, the license is {{ CONFIG.LEASE_RENEWAL_DELTA }} valid.<br/>
+                <br/>
+                Your client-token file (.tok) is valid for {{ CONFIG.CLIENT_TOKEN_EXPIRE_DELTA }}.
+            </p>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <pre id="config"></pre>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script type="application/javascript">
+    function downloadClientToken() {
+        window.open('/-/client-token', "_blank")
+    }
+
+    function load() {
+        const config = document.getElementById('config')
+        fetchConfig(config)
+    }
+
+    load()
+</script>
+{% endblock %}

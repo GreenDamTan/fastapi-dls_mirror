@@ -2,8 +2,8 @@
 
 Minimal Delegated License Service (DLS).
 
-> [!warning] Branch support
-> Use FastAPI-DLS == 1.x until **17.x** releases.
+> [!warning] Branch support \
+> Use FastAPI-DLS == 1.x until **17.x** releases. \
 > Use FastAPI-DLS == 2.x since **18.x** releases in combination
 > with [gridd-unlock-patcher](https://git.collinwebdesigns.de/oscar.krause/gridd-unlock-patcher).
 

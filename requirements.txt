@@ -1,8 +1,8 @@
 fastapi==0.115.12
-uvicorn[standard]==0.34.0
+uvicorn[standard]==0.34.1
 python-jose[cryptography]==3.4.0
 cryptography==44.0.2
 python-dateutil==2.9.0
 sqlalchemy==2.0.40
-markdown==3.7
+markdown==3.8
 python-dotenv==1.1.0

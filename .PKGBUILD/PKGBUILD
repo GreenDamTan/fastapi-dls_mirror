@@ -17,7 +17,7 @@ source=("git+file://${CI_PROJECT_DIR}"
         "$pkgname.service"
         "$pkgname.tmpfiles")
 sha256sums=('SKIP'
-            'fbd015449a30c0ae82733289a56eb98151dcfab66c91b37fe8e202e39f7a5edb'
+            'a4776a0ae4671751065bf3e98aa707030b8b5ffe42dde942c51050dab5028c54'
             '2719338541104c537453a65261c012dda58e1dbee99154cf4f33b526ee6ca22e'
             '3dc60140c08122a8ec0e7fa7f0937eb8c1288058890ba09478420fc30ce9e30c')
 

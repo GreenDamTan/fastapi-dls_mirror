@@ -1,4 +1,5 @@
 import logging
+from json import load as json_load
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
@@ -84,29 +85,28 @@ def load_file(filename: str) -> bytes:
     return content
 
 
-class NV:
+class DriverMatrix:
     __DRIVER_MATRIX_FILENAME = 'static/driver_matrix.json'
     __DRIVER_MATRIX: None | dict = None  # https://docs.nvidia.com/grid/ => "Driver Versions"
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
 
-        if NV.__DRIVER_MATRIX is None:
-            from json import load as json_load
+        if DriverMatrix.__DRIVER_MATRIX is None:
             try:
-                file = open(NV.__DRIVER_MATRIX_FILENAME)
-                NV.__DRIVER_MATRIX = json_load(file)
+                file = open(DriverMatrix.__DRIVER_MATRIX_FILENAME)
+                DriverMatrix.__DRIVER_MATRIX = json_load(file)
                 file.close()
-                self.log.debug(f'Successfully loaded "{NV.__DRIVER_MATRIX_FILENAME}".')
+                self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
             except Exception as e:
-                NV.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
+                DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
                 # self.log.warning(f'Failed to load "{NV.__DRIVER_MATRIX_FILENAME}": {e}')
 
     @staticmethod
     def find(version: str) -> dict | None:
-        if NV.__DRIVER_MATRIX is None:
+        if DriverMatrix.__DRIVER_MATRIX is None:
             return None
-        for idx, (key, branch) in enumerate(NV.__DRIVER_MATRIX.items()):
+        for idx, (key, branch) in enumerate(DriverMatrix.__DRIVER_MATRIX.items()):
             for release in branch.get('$releases'):
                 linux_driver = release.get('Linux Driver')
                 windows_driver = release.get('Windows Driver')

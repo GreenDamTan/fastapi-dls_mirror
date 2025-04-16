@@ -143,12 +143,12 @@ test:python:
     matrix:
       - IMAGE:
           # https://devguide.python.org/versions/#supported-versions
-          - python:3.14-alpine  # EOL 2030-10
+          - python:3.14-rc-alpine  # EOL 2030-10
           - python:3.13-alpine  # EOL 2029-10
           - python:3.12-alpine  # EOL 2028-10
           - python:3.11-alpine  # EOL 2027-10
-          - python:3.10-alpine  # EOL 2026-10
-          - python:3.9-alpine  # EOL 2025-10
+#          - python:3.10-alpine  # EOL 2026-10 => ImportError: cannot import name 'UTC' from 'datetime'
+#          - python:3.9-alpine  # EOL 2025-10 => ImportError: cannot import name 'UTC' from 'datetime'
   before_script:
     - apk --no-cache add openssl
     - python3 -m venv venv

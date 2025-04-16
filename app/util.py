@@ -236,7 +236,7 @@ class PrivateKey:
         return PublicKey(data=data)
 
     def generate_signature(self, data: bytes) -> bytes:
-        return self.__key.sign(data, padding=PKCS1v15(), algorithm=SHA256())
+        return self.__key.sign(data=data, padding=PKCS1v15(), algorithm=SHA256())
 
     @staticmethod
     def generate(public_exponent: int = 65537, key_size: int = 2048) -> "PrivateKey":
@@ -281,8 +281,8 @@ class PublicKey:
     def exp(self):
         return int(self.__key.public_numbers().e)
 
-    def verify_signature(self, signature: bytes, data: bytes) -> bytes:
-        return self.__key.verify(signature, data, padding=PKCS1v15(), algorithm=SHA256())
+    def verify_signature(self, signature: bytes, data: bytes) -> None:
+        self.__key.verify(signature=signature, data=data, padding=PKCS1v15(), algorithm=SHA256())
 
 
 class Cert:

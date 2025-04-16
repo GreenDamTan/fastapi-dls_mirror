@@ -1,10 +1,19 @@
 import logging
+from json import load as json_load
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
 
 logging.basicConfig()
+
+
+def load_file(filename: str) -> bytes:
+    log = logging.getLogger(f'{__name__}')
+    log.debug(f'Loading contents of file "{filename}')
+    with open(filename, 'rb') as file:
+        content = file.read()
+    return content
 
 
 class PrivateKey:
@@ -76,37 +85,32 @@ class PublicKey:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
-def load_file(filename: str) -> bytes:
-    log = logging.getLogger(f'{__name__}')
-    log.debug(f'Loading contents of file "{filename}')
-    with open(filename, 'rb') as file:
-        content = file.read()
-    return content
 
-
-class NV:
+class DriverMatrix:
     __DRIVER_MATRIX_FILENAME = 'static/driver_matrix.json'
     __DRIVER_MATRIX: None | dict = None  # https://docs.nvidia.com/grid/ => "Driver Versions"
 
     def __init__(self):
         self.log = logging.getLogger(self.__class__.__name__)
 
-        if NV.__DRIVER_MATRIX is None:
-            from json import load as json_load
-            try:
-                file = open(NV.__DRIVER_MATRIX_FILENAME)
-                NV.__DRIVER_MATRIX = json_load(file)
-                file.close()
-                self.log.debug(f'Successfully loaded "{NV.__DRIVER_MATRIX_FILENAME}".')
-            except Exception as e:
-                NV.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
-                # self.log.warning(f'Failed to load "{NV.__DRIVER_MATRIX_FILENAME}": {e}')
+        if DriverMatrix.__DRIVER_MATRIX is None:
+            self.__load()
+
+    def __load(self):
+        try:
+            file = open(DriverMatrix.__DRIVER_MATRIX_FILENAME)
+            DriverMatrix.__DRIVER_MATRIX = json_load(file)
+            file.close()
+            self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
+        except Exception as e:
+            DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
+            # self.log.warning(f'Failed to load "{NV.__DRIVER_MATRIX_FILENAME}": {e}')
 
     @staticmethod
     def find(version: str) -> dict | None:
-        if NV.__DRIVER_MATRIX is None:
+        if DriverMatrix.__DRIVER_MATRIX is None:
             return None
-        for idx, (key, branch) in enumerate(NV.__DRIVER_MATRIX.items()):
+        for idx, (key, branch) in enumerate(DriverMatrix.__DRIVER_MATRIX.items()):
             for release in branch.get('$releases'):
                 linux_driver = release.get('Linux Driver')
                 windows_driver = release.get('Windows Driver')

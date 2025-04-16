@@ -132,7 +132,6 @@ test:python:
   interruptible: true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_TAG
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
@@ -150,7 +149,7 @@ test:python:
 #          - python:3.10-alpine
 #          - python:3.9-alpine
   before_script:
-    - apt-get update && apt-get install -y python3-dev python3-pip python3-venv gcc
+    - apk --no-cache add openssl
     - python3 -m venv venv
     - source venv/bin/activate
     - pip install --upgrade pip
@@ -385,7 +384,7 @@ deploy:pacman:
 release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   stage: .post
-  needs: [ test:python ]
+  needs: [ build:docker, build:apt, build:pacman ]
   rules:
     - if: $CI_COMMIT_TAG
   script:

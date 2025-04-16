@@ -8,6 +8,14 @@ from cryptography.hazmat.primitives.serialization import load_pem_private_key, l
 logging.basicConfig()
 
 
+def load_file(filename: str) -> bytes:
+    log = logging.getLogger(f'{__name__}')
+    log.debug(f'Loading contents of file "{filename}')
+    with open(filename, 'rb') as file:
+        content = file.read()
+    return content
+
+
 class PrivateKey:
 
     def __init__(self, data: bytes):
@@ -76,13 +84,6 @@ class PublicKey:
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
-
-def load_file(filename: str) -> bytes:
-    log = logging.getLogger(f'{__name__}')
-    log.debug(f'Loading contents of file "{filename}')
-    with open(filename, 'rb') as file:
-        content = file.read()
-    return content
 
 
 class DriverMatrix:

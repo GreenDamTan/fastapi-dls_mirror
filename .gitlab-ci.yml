@@ -298,15 +298,12 @@ gemnasium-python-dependency_scanning:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-.deploy:
-  rules:
-    - if: $CI_COMMIT_TAG
-
 deploy:docker:
-  extends: .deploy
   image: docker:dind
   stage: deploy
   tags: [ docker ]
+  rules:
+    - if: $CI_COMMIT_TAG
   before_script:
     - echo "Building docker image for commit $CI_COMMIT_SHA with version $CI_COMMIT_REF_NAME"
     - docker buildx inspect
@@ -325,9 +322,10 @@ deploy:docker:
 
 deploy:apt:
   # doc: https://git.collinwebdesigns.de/help/user/packages/debian_repository/index.md#install-a-package
-  extends: .deploy
   image: debian:bookworm-slim
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
     - job: build:apt
       artifacts: true
@@ -364,9 +362,10 @@ deploy:apt:
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file ${EXPORT_NAME} "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/${PACKAGE_NAME}/${PACKAGE_VERSION}/${EXPORT_NAME}"'
 
 deploy:pacman:
-  extends: .deploy
   image: archlinux:base-devel
   stage: deploy
+  rules:
+    - if: $CI_COMMIT_TAG
   needs:
     - job: build:pacman
       artifacts: true
@@ -387,7 +386,7 @@ deploy:pacman:
 release:
   image: registry.gitlab.com/gitlab-org/release-cli:latest
   stage: .post
-  needs: [ test ]
+  needs: [ test:python ]
   rules:
     - if: $CI_COMMIT_TAG
   script:

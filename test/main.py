@@ -96,7 +96,7 @@ def test_client_token():
     assert response.status_code == 200
 
 
-def test_config_token():  # todo: /leasing/v1/config-token
+def test_config_token():
     # https://git.collinwebdesigns.de/nvidia/nls/-/blob/main/src/test/test_config_token.py
 
     response = client.post('/leasing/v1/config-token', json={"service_instance_ref": INSTANCE_REF})

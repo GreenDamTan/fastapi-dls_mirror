@@ -162,7 +162,7 @@ class CASetup:
         # create si-certificate subject
         my_si_subject = x509.Name([
             # x509.NameAttribute(NameOID.COMMON_NAME, INSTANCE_REF),
-            x509.NameAttribute(NameOID.COMMON_NAME, j.get('service_instance_ref')),
+            x509.NameAttribute(NameOID.COMMON_NAME, self.service_instance_ref),
         ])
 
         # create self-signed si-certificate

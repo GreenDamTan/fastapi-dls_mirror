@@ -4,7 +4,6 @@ from base64 import b64encode as b64enc
 from calendar import timegm
 from datetime import datetime, UTC
 from hashlib import sha256
-from os.path import dirname, join
 from uuid import uuid4, UUID
 
 from dateutil.relativedelta import relativedelta
@@ -17,21 +16,23 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from util import PrivateKey, PublicKey
+from util import CASetup, PrivateKey, PublicKey
 
 client = TestClient(main.app)
 
+# Instance
 INSTANCE_REF = '10000000-0000-0000-0000-000000000001'
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
 
-# INSTANCE_KEY_RSA = generate_key()
-# INSTANCE_KEY_PUB = INSTANCE_KEY_RSA.public_key()
+# CA & Signing
+ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+my_si_private_key = PrivateKey.from_file(ca_setup.si_private_key_filename)
+my_si_private_key_as_pem = my_si_private_key.pem()
+my_si_public_key = my_si_private_key.public_key()
+my_si_public_key_as_pem = my_si_private_key.public_key().pem()
 
-INSTANCE_KEY_RSA = PrivateKey.from_file(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
-INSTANCE_KEY_PUB = PublicKey.from_file(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
-
-jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.pem(), algorithm=ALGORITHMS.RS256)
-jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.pem(), algorithm=ALGORITHMS.RS256)
+jwt_encode_key = jwk.construct(my_si_private_key_as_pem, algorithm=ALGORITHMS.RS256)
+jwt_decode_key = jwk.construct(my_si_public_key_as_pem, algorithm=ALGORITHMS.RS256)
 
 
 def __bearer_token(origin_ref: str) -> str:
@@ -41,10 +42,10 @@ def __bearer_token(origin_ref: str) -> str:
 
 
 def test_signing():
-    signature_set_header = INSTANCE_KEY_RSA.generate_signature(b'Hello')
+    signature_set_header = my_si_private_key.generate_signature(b'Hello')
 
     # test plain
-    INSTANCE_KEY_PUB.verify_signature(signature_set_header, b'Hello')
+    my_si_public_key.verify_signature(signature_set_header, b'Hello')
 
     # test "X-NLS-Signature: b'....'
     x_nls_signature_header_value = f'{signature_set_header.hex().encode()}'
@@ -54,7 +55,7 @@ def test_signing():
     # test eval
     signature_get_header = eval(x_nls_signature_header_value)
     signature_get_header = bytes.fromhex(signature_get_header.decode('ascii'))
-    INSTANCE_KEY_PUB.verify_signature(signature_get_header, b'Hello')
+    my_si_public_key.verify_signature(signature_get_header, b'Hello')
 
 
 def test_index():
@@ -233,7 +234,7 @@ def test_leasing_v1_lessor():
     assert len(signature) == 512
     signature = bytes.fromhex(signature.decode('ascii'))
     assert len(signature) == 256
-    INSTANCE_KEY_PUB.verify_signature(signature, response.content)
+    my_si_public_key.verify_signature(signature, response.content)
 
     lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1
@@ -271,7 +272,7 @@ def test_leasing_v1_lease_renew():
     assert len(signature) == 512
     signature = bytes.fromhex(signature.decode('ascii'))
     assert len(signature) == 256
-    INSTANCE_KEY_PUB.verify_signature(signature, response.content)
+    my_si_public_key.verify_signature(signature, response.content)
 
     lease_ref = response.json().get('lease_ref')
     assert len(lease_ref) == 36

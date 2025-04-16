@@ -435,17 +435,13 @@ After first success you have to replace `--issue` with `--renew`.
 | `CORS_ORIGINS`           | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                                                              |
 | `SITE_KEY_XID`           | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                                                            |
 | `INSTANCE_REF`           | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                                                        |
-| `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       |
-| `INSTANCE_KEY_RSA`       | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                                                      |
-| `INSTANCE_KEY_PUB`       | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                                                            |
+| `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       | |
 
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
 \*2 Always use `https`, since guest-drivers only support secure connections!
-
-\*3 If you recreate your instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 

@@ -19,10 +19,6 @@ DATABASE="sqlite:////var/lib/fastapi-dls/db.sqlite"
 SITE_KEY_XID="<<sitekey>>"
 INSTANCE_REF="<<instanceref>>"
 
-# Site-wide signing keys
-INSTANCE_KEY_RSA="/var/lib/fastapi-dls/instance.private.pem"
-INSTANCE_KEY_PUB="/var/lib/fastapi-dls/instance.public.pem"
-
 # TLS certificate
 INSTANCE_SSL_CERT="/var/lib/fastapi-dls/cert/webserver.crt"
 INSTANCE_SSL_KEY="/var/lib/fastapi-dls/cert/webserver.key"

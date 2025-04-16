@@ -167,7 +167,8 @@ test:python:
       dotenv: version.env
       junit: ['**/report.xml']
 
-.test:apt:
+test:apt:
+  image: $IMAGE
   stage: test
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
@@ -175,6 +176,14 @@ test:python:
         - app/**/*
         - .DEBIAN/**/*
     - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+  parallel:
+    matrix:
+      - IMAGE:
+          - debian:trixie-slim # EOL: t.b.a.
+          - debian:bookworm-slim # EOL: June 06, 2026
+          - debian:bookworm-slim # EOL: June 06, 2026
+          - ubuntu:24.04 # EOL: April 2036
+          - ubuntu:24.10
   needs:
     - job: build:apt
       artifacts: true
@@ -205,16 +214,6 @@ test:python:
     - kill $FASTAPI_DLS_PID
     - apt-get purge -qq -y fastapi-dls
     - apt-get autoremove -qq -y && apt-get clean -qq
-
-test:apt:
-  extends: .test:apt
-  image: $IMAGE
-  parallel:
-    matrix:
-      - IMAGE:
-          - debian:bookworm-slim # EOL: June 06, 2026
-          - ubuntu:24.04 # EOL: April 2036
-          - ubuntu:24.10
 
 test:pacman:archlinux:
   image: archlinux:base

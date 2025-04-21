@@ -471,8 +471,8 @@ async def leasing_v1_config_token(request: Request):
     my_jwt_encode_key = jwk.construct(my_si_private_key.pem().decode('utf-8'), algorithm=ALGORITHMS.RS256)
     config_token = jws.sign(payload, key=my_jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
-    response_ca_chain = my_ca_certificate.pem().decode('utf-8')
-    response_si_certificate = my_si_certificate.pem().decode('utf-8')
+    response_ca_chain = my_ca_certificate.pem().decode('utf-8').strip().replace('\n', '\r\n')
+    response_si_certificate = my_si_certificate.pem().decode('utf-8').strip().replace('\n', '\r\n')
 
     response = {
         "certificateConfiguration": {

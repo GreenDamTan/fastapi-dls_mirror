@@ -472,26 +472,29 @@ async def leasing_v1_config_token(request: Request):
     my_jwt_encode_key = jwk.construct(my_si_private_key.pem().decode('utf-8'), algorithm=ALGORITHMS.RS256)
     config_token = jws.sign(payload, key=my_jwt_encode_key, headers=None, algorithm=ALGORITHMS.RS256)
 
-    response_ca_chain = my_ca_certificate.pem().decode('utf-8').strip()  # .replace('\n', '\r\n')
+    response_ca_chain = my_ca_certificate.pem().decode('utf-8').strip()  # .replace('\n', '\r\n')  # 76 chars per line on original response
+    """
     response_ca_chain = response_ca_chain.replace('-----BEGIN CERTIFICATE-----', '')
     response_ca_chain = response_ca_chain.replace('-----END CERTIFICATE-----', '')
     response_ca_chain = response_ca_chain.replace('\n', '')
     response_ca_chain = wrap(response_ca_chain, 76)
     response_ca_chain = '\r\n'.join(response_ca_chain)
     response_ca_chain = f'-----BEGIN CERTIFICATE-----\r\n{response_ca_chain}\r\n-----END CERTIFICATE-----'
-
-    response_si_certificate = my_si_certificate.pem().decode('utf-8').strip()  # .replace('\n', '\r\n')
+    """
+    response_si_certificate = my_si_certificate.pem().decode('utf-8').strip()  # .replace('\n', '\r\n')  # 76 chars per line on original response
+    """
     response_si_certificate = response_si_certificate.replace('-----BEGIN CERTIFICATE-----', '')
     response_si_certificate = response_si_certificate.replace('-----END CERTIFICATE-----', '')
     response_si_certificate = response_si_certificate.replace('\n', '')
     response_si_certificate = wrap(response_si_certificate, 76)
     response_si_certificate = '\r\n'.join(response_si_certificate)
     response_si_certificate = f'-----BEGIN CERTIFICATE-----\r\n{response_si_certificate}\r\n-----END CERTIFICATE-----'
+    """
 
     response = {
         "certificateConfiguration": {
-            "caChain": [response_ca_chain],  # 76 chars per line on original response
-            "publicCert": response_si_certificate,  # 76 chars per line on original response
+            "caChain": [response_ca_chain],
+            "publicCert": response_si_certificate,
             "publicKey": {
                 "exp": my_si_public_key.exp(),
                 "mod": [my_si_public_key.mod()],

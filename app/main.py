@@ -498,8 +498,8 @@ async def leasing_v1_config_token(request: Request):
             "caChain": [response_ca_chain],
             "publicCert": response_si_certificate,
             "publicKey": {
-                "exp": my_root_public_key.exp(),
-                "mod": [my_root_public_key.mod()],
+                "exp": my_si_certificate.public_key().exp(),
+                "mod": [my_si_certificate.public_key().mod()],
             },
         },
         "configToken": config_token,

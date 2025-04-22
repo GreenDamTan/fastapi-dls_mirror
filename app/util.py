@@ -326,16 +326,22 @@ class Cert:
     def pem(self) -> bytes:
         return self.__cert.public_bytes(encoding=serialization.Encoding.PEM)
 
+    def public_key(self) -> "PublicKey":
+        data = self.__cert.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return PublicKey(data=data)
+
     def signature(self) -> bytes:
         return self.__cert.signature
 
+    def subject_key_identifier(self):
+        return self.__cert.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value.key_identifier
 
-def load_file(filename: str) -> bytes:
-    log = logging.getLogger(f'{__name__}')
-    log.debug(f'Loading contents of file "{filename}')
-    with open(filename, 'rb') as file:
-        content = file.read()
-    return content
+    def authority_key_identifier(self):
+        return self.__cert.extensions.get_extension_for_class(x509.AuthorityKeyIdentifier).value.key_identifier
+
 
 class DriverMatrix:
     __DRIVER_MATRIX_FILENAME = 'static/driver_matrix.json'

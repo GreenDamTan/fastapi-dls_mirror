@@ -26,11 +26,15 @@ ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-00000
 
 # CA & Signing
 ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+my_root_private_key = PrivateKey.from_file(ca_setup.root_private_key_filename)
 my_root_certificate = Cert.from_file(ca_setup.root_certificate_filename)
+my_ca_certificate = Cert.from_file(ca_setup.ca_certificate_filename)
+my_ca_private_key = PrivateKey.from_file(ca_setup.ca_private_key_filename)
 my_si_private_key = PrivateKey.from_file(ca_setup.si_private_key_filename)
 my_si_private_key_as_pem = my_si_private_key.pem()
 my_si_public_key = my_si_private_key.public_key()
 my_si_public_key_as_pem = my_si_private_key.public_key().pem()
+my_si_certificate = Cert.from_file(ca_setup.si_certificate_filename)
 
 jwt_encode_key = jwk.construct(my_si_private_key_as_pem, algorithm=ALGORITHMS.RS256)
 jwt_decode_key = jwk.construct(my_si_public_key_as_pem, algorithm=ALGORITHMS.RS256)
@@ -59,6 +63,19 @@ def test_signing():
     my_si_public_key.verify_signature(signature_get_header, b'Hello')
 
 
+def test_keypair_and_certificates():
+    assert my_root_certificate.public_key().mod() == my_root_private_key.public_key().mod()
+    assert my_ca_certificate.public_key().mod() == my_ca_private_key.public_key().mod()
+    assert my_si_certificate.public_key().mod() == my_si_public_key.mod()
+
+    assert len(my_root_certificate.public_key().mod()) == 1024
+    assert len(my_ca_certificate.public_key().mod()) == 1024
+    assert len(my_si_certificate.public_key().mod()) == 512
+
+    #assert my_si_certificate.public_key().mod() != my_si_public_key.mod()
+
+
+
 def test_index():
     response = client.get('/')
     assert response.status_code == 200
@@ -78,7 +95,7 @@ def test_config():
 def test_config_root_ca():
     response = client.get('/-/config/root-certificate')
     assert response.status_code == 200
-    assert response.content.decode('utf-8') == my_root_certificate.pem().decode('utf-8')
+    assert response.content.decode('utf-8').strip() == my_root_certificate.pem().decode('utf-8').strip()
 
 
 def test_readme():
@@ -103,7 +120,17 @@ def test_config_token():
     assert response.status_code == 200
 
     nv_response_certificate_configuration = response.json().get('certificateConfiguration')
+
+    nv_ca_chain = nv_response_certificate_configuration.get('caChain')[0].encode('utf-8')
+    nv_ca_chain = Cert(nv_ca_chain)
+
     nv_response_public_cert = nv_response_certificate_configuration.get('publicCert').encode('utf-8')
+    nv_response_public_key = nv_response_certificate_configuration.get('publicKey')
+
+    nv_si_certificate = Cert(nv_response_public_cert)
+    assert nv_si_certificate.public_key().mod() == nv_response_public_key.get('mod')[0]
+    assert nv_si_certificate.authority_key_identifier() == nv_ca_chain.subject_key_identifier()
+
     nv_jwt_decode_key = jwk.construct(nv_response_public_cert, algorithm=ALGORITHMS.RS256)
 
     nv_response_config_token = response.json().get('configToken')

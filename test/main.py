@@ -6,6 +6,8 @@ from datetime import datetime, UTC
 from hashlib import sha256
 from uuid import uuid4, UUID
 
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.hashes import SHA256
 from dateutil.relativedelta import relativedelta
 from jose import jwt, jwk, jws
 from jose.constants import ALGORITHMS
@@ -74,6 +76,18 @@ def test_keypair_and_certificates():
 
     #assert my_si_certificate.public_key().mod() != my_si_public_key.mod()
 
+    my_root_certificate.public_key().raw().verify(
+        my_ca_certificate.raw().signature,
+        my_ca_certificate.raw().tbs_certificate_bytes,
+        PKCS1v15(),
+        SHA256(),
+    )
+    my_ca_certificate.public_key().raw().verify(
+        my_si_certificate.raw().signature,
+        my_si_certificate.raw().tbs_certificate_bytes,
+        PKCS1v15(),
+        SHA256(),
+    )
 
 
 def test_index():

@@ -151,10 +151,9 @@ async def _config():
     return Response(content=json_dumps(response), media_type='application/json', status_code=200)
 
 
-
-@app.get('/-/config/root-ca', summary='* Root CA', description='returns Root-CA needed for patching nvidia-gridd')
+@app.get('/-/config/root-certificate', summary='* Root Certificate', description='returns Root--Certificate needed for patching nvidia-gridd')
 async def _config():
-    return Response(content=my_root_certificate.pem().decode('utf-8'), media_type='text/plain')
+    return Response(content=my_root_certificate.pem().decode('ascii'), media_type='text/plain')
 
 
 @app.get('/-/readme', summary='* Readme')

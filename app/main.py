@@ -490,10 +490,8 @@ async def leasing_v1_config_token(request: Request):
 
     response = {
         "certificateConfiguration": {
-            # 76 chars per line
-            "caChain": [response_ca_chain],
-            # 76 chars per line
-            "publicCert": response_si_certificate,
+            "caChain": [response_ca_chain],  # 76 chars per line on original response
+            "publicCert": response_si_certificate,  # 76 chars per line on original response
             "publicKey": {
                 "exp": my_si_public_key.exp(),
                 "mod": [my_si_public_key.mod()],

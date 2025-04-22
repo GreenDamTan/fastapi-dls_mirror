@@ -417,19 +417,20 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable                 | Default                                | Usage                                                                                                                               |
-|--------------------------|----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `DEBUG`                  | `false`                                | Toggles `fastapi` debug mode                                                                                                        |
-| `DLS_URL`                | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                                                           |
-| `DLS_PORT`               | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                                                           |
-| `TOKEN_EXPIRE_DAYS`      | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)                                         |
-| `LEASE_EXPIRE_DAYS`      | `90`                                   | Lease time in days                                                                                                                  |
-| `LEASE_RENEWAL_PERIOD`   | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1                                |
-| `DATABASE`               | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                                                 |
-| `CORS_ORIGINS`           | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                                                              |
-| `SITE_KEY_XID`           | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                                                            |
-| `INSTANCE_REF`           | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                                                        |
-| `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       | |
+| Variable               | Default                                | Usage                                                                                                |
+|------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------|
+| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
+| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `CERT_PATH`            | `None`                                 | Path to a Directory where generated Certificates are stored. Defaults to `/<app-dir>/cert`.          |
+| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)          |
+| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
+| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
+| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |
+| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                               |
+| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
+| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                         |
+| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                        |
 
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the

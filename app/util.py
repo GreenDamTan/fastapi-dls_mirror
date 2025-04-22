@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime, UTC, timedelta
 from json import loads as json_loads
-from os.path import join, dirname, isfile
+from os.path import join, dirname, isfile, isdir
 
 from cryptography import x509
 from cryptography.hazmat._oid import NameOID
@@ -38,9 +38,13 @@ class CASetup:
     SI_PRIVATE_KEY_FILENAME = 'si_private_key.pem'
     SI_CERTIFICATE_FILENAME = 'si_certificate.pem'
 
-    def __init__(self, service_instance_ref: str):
+    def __init__(self, service_instance_ref: str, cert_path: str = None):
+        cert_path_prefix = join(dirname(__file__), 'cert')
+        if cert_path is not None and len(cert_path) > 0 and isdir(cert_path):
+            cert_path_prefix = cert_path
+
         self.service_instance_ref = service_instance_ref
-        self.root_private_key_filename = join(dirname(__file__), 'cert', CASetup.ROOT_PRIVATE_KEY_FILENAME)
+        self.root_private_key_filename = join(cert_path_prefix, CASetup.ROOT_PRIVATE_KEY_FILENAME)
         self.root_certificate_filename = join(dirname(__file__), 'cert', CASetup.ROOT_CERTIFICATE_FILENAME)
         self.ca_private_key_filename = join(dirname(__file__), 'cert', CASetup.CA_PRIVATE_KEY_FILENAME)
         self.ca_certificate_filename = join(dirname(__file__), 'cert', CASetup.CA_CERTIFICATE_FILENAME)

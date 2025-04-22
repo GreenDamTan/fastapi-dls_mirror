@@ -40,6 +40,7 @@ db_init(db), migrate(db)
 # Load DLS variables (all prefixed with "INSTANCE_*" is used as "SERVICE_INSTANCE_*" or "SI_*" in official dls service)
 DLS_URL = str(env('DLS_URL', 'localhost'))
 DLS_PORT = int(env('DLS_PORT', '443'))
+CERT_PATH = str(env('CERT_PATH', None))
 SITE_KEY_XID = str(env('SITE_KEY_XID', '00000000-0000-0000-0000-000000000000'))
 INSTANCE_REF = str(env('INSTANCE_REF', '10000000-0000-0000-0000-000000000001'))
 ALLOTMENT_REF = str(env('ALLOTMENT_REF', '20000000-0000-0000-0000-000000000001'))
@@ -53,7 +54,7 @@ DT_FORMAT = '%Y-%m-%dT%H:%M:%S.%fZ'
 PRODUCT_MAPPING = ProductMapping(filename=join(dirname(__file__), 'static/product_mapping.json'))
 
 # Create certificate chain and signing keys
-ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+ca_setup = CASetup(service_instance_ref=INSTANCE_REF, cert_path=CERT_PATH)
 my_root_private_key = PrivateKey.from_file(ca_setup.root_private_key_filename)
 my_root_public_key = my_root_private_key.public_key()
 my_root_certificate = Cert.from_file(ca_setup.root_certificate_filename)

@@ -287,7 +287,7 @@ async def _client_token():
                 "mod": my_si_public_key.mod(),
                 "exp": my_si_public_key.exp(),
             },
-            "service_instance_public_key_pem": my_si_private_key.public_key().pem().decode('utf-8'),
+            "service_instance_public_key_pem": my_si_public_key.pem().decode('utf-8').strip(),
             "key_retention_mode": "LATEST_ONLY"
         },
     }
@@ -462,8 +462,7 @@ async def leasing_v1_config_token(request: Request):
                 "mod": my_si_public_key.mod(),
                 "exp": my_si_public_key.exp(),
             },
-            # 64 chars per line (pem default)
-            "service_instance_public_key_pem": my_si_private_key.public_key().pem().decode('utf-8').strip(),
+            "service_instance_public_key_pem": my_si_public_key.pem().decode('utf-8').strip(),
             "key_retention_mode": "LATEST_ONLY"
         },
     }

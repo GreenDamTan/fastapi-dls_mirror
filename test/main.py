@@ -76,7 +76,7 @@ def test_config():
 
 
 def test_config_root_ca():
-    response = client.get('/-/config/root-ca')
+    response = client.get('/-/config/root-certificate')
     assert response.status_code == 200
     assert response.content.decode('utf-8') == my_root_certificate.pem().decode('utf-8')
 
@@ -116,8 +116,8 @@ def test_config_token():
 
     nv_si_public_key_configuration = payload.get('service_instance_public_key_configuration')
     nv_si_public_key_me = nv_si_public_key_configuration.get('service_instance_public_key_me')
-    # assert nv_si_public_key_me.get('mod') == 1  #nv_si_public_key_mod
-    assert len(nv_si_public_key_me.get('mod')) == 512
+
+    assert len(nv_si_public_key_me.get('mod')) == 512 # nv_si_public_key_mod
     assert nv_si_public_key_me.get('exp') == 65537  # nv_si_public_key_exp
 
 

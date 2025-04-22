@@ -493,8 +493,8 @@ async def leasing_v1_config_token(request: Request):
             # 76 chars per line
             "publicCert": response_si_certificate,
             "publicKey": {
-                "exp": my_si_private_key.public_key().mod(),
-                "mod": [my_si_private_key.public_key().exp()],
+                "exp": my_si_public_key.exp(),
+                "mod": [my_si_public_key.mod()],
             },
         },
         "configToken": config_token,

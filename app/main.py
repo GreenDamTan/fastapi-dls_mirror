@@ -157,7 +157,7 @@ async def _config():
 
 @app.get('/-/config/root-certificate', summary='* Root Certificate', description='returns Root--Certificate needed for patching nvidia-gridd')
 async def _config():
-    return Response(content=my_root_certificate.pem().decode('ascii').strip(), media_type='text/plain')
+    return Response(content=my_root_certificate.pem().decode('utf-8').strip(), media_type='text/plain')
 
 
 @app.get('/-/readme', summary='* Readme')

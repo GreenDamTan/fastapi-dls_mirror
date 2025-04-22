@@ -54,6 +54,8 @@ PRODUCT_MAPPING = ProductMapping(filename=join(dirname(__file__), 'static/produc
 
 # Create certificate chain and signing keys
 ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+my_root_private_key = PrivateKey.from_file(ca_setup.root_private_key_filename)
+my_root_public_key = my_root_private_key.public_key()
 my_root_certificate = Cert.from_file(ca_setup.root_certificate_filename)
 my_ca_certificate = Cert.from_file(ca_setup.ca_certificate_filename)
 my_si_certificate = Cert.from_file(ca_setup.si_certificate_filename)
@@ -493,8 +495,8 @@ async def leasing_v1_config_token(request: Request):
             # 76 chars per line
             "publicCert": response_si_certificate,
             "publicKey": {
-                "exp": my_si_public_key.exp(),
-                "mod": [my_si_public_key.mod()],
+                "exp": my_root_public_key.exp(),
+                "mod": [my_root_public_key.mod()],
             },
         },
         "configToken": config_token,

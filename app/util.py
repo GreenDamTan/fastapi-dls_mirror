@@ -81,7 +81,20 @@ class CASetup:
             .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
             .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
             .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+            .add_extension(x509.KeyUsage(
+                digital_signature=False,
+                key_encipherment=False,
+                key_cert_sign=True,
+                key_agreement=False,
+                content_commitment=False,
+                data_encipherment=False,
+                crl_sign=True,
+                encipher_only=False,
+                decipher_only=False),
+                critical=True
+            )
             .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_root_public_key), critical=False)
+            .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(my_root_public_key), critical=False)
             .sign(my_root_private_key, hashes.SHA256()))
 
         my_root_private_key_as_pem = my_root_private_key.private_bytes(
@@ -134,7 +147,6 @@ class CASetup:
                 critical=True
             )
             .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_ca_public_key), critical=False)
-            # .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(my_root_public_key), critical=False)
             .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
                 my_root_certificate.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value
             ), critical=False)

@@ -15,7 +15,7 @@ services:
       <<: *dls-variables
     volumes:
       - /etc/timezone:/etc/timezone:ro
-      - /opt/docker/fastapi-dls/cert:/app/cert  # instance.private.pem, instance.public.pem
+      - /opt/docker/fastapi-dls/cert:/app/cert
       - db:/app/database
     entrypoint: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--app-dir", "/app", "--proxy-headers"]
     healthcheck:

@@ -2,12 +2,15 @@
 
 Minimal Delegated License Service (DLS).
 
+> [!warning] Branch support \
+> FastAPI-DLS Version 1.x supports up to **`17.x`** releases. \
+> FastAPI-DLS Version 2.x is backwards compatible to `17.x` and supports **`18.x`** releases in combination
+> with [gridd-unlock-patcher](https://git.collinwebdesigns.de/oscar.krause/gridd-unlock-patcher).
+> Other combinations of FastAPI-DLS and Driver-Branches may work but are not tested.
+
 > [!note] Compatibility
 > Compatibility tested with official NLS 2.0.1, 2.1.0, 3.1.0, 3.3.1, 3.4.0. For Driver compatibility
 > see [compatibility matrix](#vgpu-software-compatibility-matrix).
-
-> [!warning] 18.x Drivers are not yet supported!
-> Drivers are only supported until **17.x releases**.
 
 This service can be used without internet connection.
 Only the clients need a connection to this service on configured port.
@@ -66,9 +69,6 @@ The images include database drivers for `postgres`, `mariadb` and `sqlite`.
 WORKING_DIR=/opt/docker/fastapi-dls/cert
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
-# create instance private and public key for singing JWT's
-openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
-openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
 ```
@@ -153,9 +153,6 @@ chown -R www-data:www-data $WORKING_DIR
 WORKING_DIR=/opt/fastapi-dls/app/cert
 mkdir -p $WORKING_DIR
 cd $WORKING_DIR
-# create instance private and public key for singing JWT's
-openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 
-openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt
 chown -R www-data:www-data $WORKING_DIR
@@ -255,9 +252,6 @@ CERT_DIR=${BASE_DIR}/app/cert
 SERVICE_USER=dls
 mkdir ${CERT_DIR}
 cd ${CERT_DIR}
-# create instance private and public key for singing JWT's
-openssl genrsa -out ${CERT_DIR}/instance.private.pem 2048 
-openssl rsa -in ${CERT_DIR}/instance.private.pem -outform PEM -pubout -out ${CERT_DIR}/instance.public.pem
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  ${CERT_DIR}/webserver.key -out ${CERT_DIR}/webserver.crt
 chown -R ${SERVICE_USER} ${CERT_DIR}
@@ -423,29 +417,26 @@ After first success you have to replace `--issue` with `--renew`.
 
 # Configuration
 
-| Variable                 | Default                                | Usage                                                                                                                               |
-|--------------------------|----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
-| `DEBUG`                  | `false`                                | Toggles `fastapi` debug mode                                                                                                        |
-| `DLS_URL`                | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                                                           |
-| `DLS_PORT`               | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                                                           |
-| `TOKEN_EXPIRE_DAYS`      | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)                                         |
-| `LEASE_EXPIRE_DAYS`      | `90`                                   | Lease time in days                                                                                                                  |
-| `LEASE_RENEWAL_PERIOD`   | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1                                |
-| `DATABASE`               | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                                                 |
-| `CORS_ORIGINS`           | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                                                              |
-| `SITE_KEY_XID`           | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                                                            |
-| `INSTANCE_REF`           | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                                                        |
-| `ALLOTMENT_REF`          | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                                                       |
-| `INSTANCE_KEY_RSA`       | `<app-dir>/cert/instance.private.pem`  | Site-wide private RSA key for singing JWTs \*3                                                                                      |
-| `INSTANCE_KEY_PUB`       | `<app-dir>/cert/instance.public.pem`   | Site-wide public key \*3                                                                                                            |
+| Variable               | Default                                | Usage                                                                                                |
+|------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------|
+| `DEBUG`                | `false`                                | Toggles `fastapi` debug mode                                                                         |
+| `DLS_URL`              | `localhost`                            | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `DLS_PORT`             | `443`                                  | Used in client-token to tell guest driver where dls instance is reachable                            |
+| `CERT_PATH`            | `None`                                 | Path to a Directory where generated Certificates are stored. Defaults to `/<app-dir>/cert`.          |
+| `TOKEN_EXPIRE_DAYS`    | `1`                                    | Client auth-token validity (used for authenticate client against api, **not `.tok` file!**)          |
+| `LEASE_EXPIRE_DAYS`    | `90`                                   | Lease time in days                                                                                   |
+| `LEASE_RENEWAL_PERIOD` | `0.15`                                 | The percentage of the lease period that must elapse before a licensed client can renew a license \*1 |
+| `DATABASE`             | `sqlite:///db.sqlite`                  | See [official SQLAlchemy docs](https://docs.sqlalchemy.org/en/14/core/engines.html)                  |
+| `CORS_ORIGINS`         | `https://{DLS_URL}`                    | Sets `Access-Control-Allow-Origin` header (comma separated string) \*2                               |
+| `SITE_KEY_XID`         | `00000000-0000-0000-0000-000000000000` | Site identification uuid                                                                             |
+| `INSTANCE_REF`         | `10000000-0000-0000-0000-000000000001` | Instance identification uuid                                                                         |
+| `ALLOTMENT_REF`        | `20000000-0000-0000-0000-000000000001` | Allotment identification uuid                                                                        |
 
 \*1 For example, if the lease period is one day and the renewal period is 20%, the client attempts to renew its license
 every 4.8 hours. If network connectivity is lost, the loss of connectivity is detected during license renewal and the
 client has 19.2 hours in which to re-establish connectivity before its license expires.
 
 \*2 Always use `https`, since guest-drivers only support secure connections!
-
-\*3 If you recreate your instance keys you need to **recreate client-token for each guest**!
 
 # Setup (Client)
 
@@ -545,6 +536,10 @@ Status endpoint, used for *healthcheck*.
 
 Shows current runtime environment variables and their values.
 
+**`GET /-/config/root-certificate`**
+
+Returns the Root-Certificate Certificate which is used. This is required for patching `nvidia-gridd` on 18.x releases.
+
 **`GET /-/readme`**
 
 HTML rendered README.md.
@@ -617,7 +612,7 @@ Please download a new client-token. The guest have to register within an hour af
 
 ### `jose.exceptions.JWTError: Signature verification failed.`
 
-- Did you recreate `instance.public.pem` / `instance.private.pem`?
+- Did you recreate any certificate or keypair?
 
 Then you have to download a **new** client-token on each of your guests.
 
@@ -753,33 +748,25 @@ The error message can safely be ignored (since we have no license limitation :P)
 
 # vGPU Software Compatibility Matrix
 
-**18.x Drivers are not supported on FastAPI-DLS Versions < 1.6.0**
-
 <details>
   <summary>Show Table</summary>
 
 Successfully tested with this package versions.
 
-| vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
-|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
-|    `17.5`     |     R550      | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |     June 2025 |
-|    `17.4`     |     R550      | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 |               |
-|    `17.3`     |     R550      | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
-|    `17.2`     |     R550      | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |
-|    `17.1`     |     R550      | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
-|    `17.0`     |     R550      | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
-|    `16.9`     |     R535      | `535.230.02`       | `535.216.01` | `539.19`       |  October 2024 |     July 2026 |
-|    `16.8`     |     R535      | `535.216.01`       | `535.216.01` | `538.95`       |  October 2024 |               |
-|    `16.7`     |     R535      | `535.183.04`       | `535.183.06` | `538.78`       |     July 2024 |               |
-|    `16.6`     |     R535      | `535.183.04`       | `535.183.01` | `538.67`       |     June 2024 |               |
-|    `16.5`     |     R535      | `535.161.05`       | `535.161.08` | `538.46`       | February 2024 |               |
-|    `16.4`     |     R535      | `535.161.05`       | `535.161.07` | `538.33`       | February 2024 |               |
-|    `16.3`     |     R535      | `535.154.02`       | `535.154.05` | `538.15`       |  January 2024 |               |
-|    `16.2`     |     R535      | `535.129.03`       | `535.129.03` | `537.70`       |  October 2023 |               |
-|    `16.1`     |     R535      | `535.104.06`       | `535.104.05` | `537.13`       |   August 2023 |               |
-|    `16.0`     |     R535      | `535.54.06`        | `535.54.03`  | `536.22`       |     July 2023 |               |
-|    `15.4`     |     R525      | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
-|    `14.4`     |     R510      | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
+| FastAPI-DLS Version | vGPU Suftware | Driver Branch | Linux vGPU Manager | Linux Driver | Windows Driver |  Release Date |      EOL Date |
+|---------------------|:-------------:|:-------------:|--------------------|--------------|----------------|--------------:|--------------:|
+| `2.x`               |    `18.1`     |   **R570**    | `570.133.08`       | `570.133.07` | `572.83`       |    April 2025 |    March 2026 |
+|                     |    `18.0`     |   **R570**    | `570.124.03`       | `570.124.06` | `572.60`       |    March 2025 |    March 2026 |
+| `1.x` & `2.x`       |    `17.6`     |   **R550**    | `550.163.02`       | `550.63.01`  | `553.74`       |    April 2025 |     June 2025 |
+|                     |    `17.5`     |               | `550.144.02`       | `550.144.03` | `553.62`       |  January 2025 |               |
+|                     |    `17.4`     |               | `550.127.06`       | `550.127.05` | `553.24`       |  October 2024 |               |
+|                     |    `17.3`     |               | `550.90.05`        | `550.90.07`  | `552.74`       |     July 2024 |               |
+|                     |    `17.2`     |               | `550.90.05`        | `550.90.07`  | `552.55`       |     June 2024 |               |
+|                     |    `17.1`     |               | `550.54.16`        | `550.54.15`  | `551.78`       |    March 2024 |               |
+|                     |    `17.0`     |   **R550**    | `550.54.10`        | `550.54.14`  | `551.61`       | February 2024 |               |
+| `1.x`               |    `16.10`    |   **R535**    | `535.247.02`       | `535.247.01` | `539.28`       |    April 2025 |     July 2026 |
+| `1.x`               |    `15.4`     |   **R525**    | `525.147.01`       | `525.147.05` | `529.19`       |     June 2023 | December 2023 |
+| `1.x`               |    `14.4`     |   **R510**    | `510.108.03`       | `510.108.03` | `514.08`       | December 2022 | February 2023 |
 
 </details>
 
@@ -803,5 +790,6 @@ Special thanks to:
 - `Krutav Shah` who wrote the [vGPU_Unlock Wiki](https://docs.google.com/document/d/1pzrWJ9h-zANCtyqRgS7Vzla0Y8Ea2-5z2HEi4X75d2Q/)
 - `Wim van 't Hoog` for the [Proxmox All-In-One Installer Script](https://wvthoog.nl/proxmox-vgpu-v3/)
 - `mrzenc` who wrote [fastapi-dls-nixos](https://github.com/mrzenc/fastapi-dls-nixos)
+- `electricsheep49` who wrote [gridd-unlock-patcher](https://git.collinwebdesigns.de/oscar.krause/gridd-unlock-patcher)
 
 And thanks to all people who contributed to all these libraries!

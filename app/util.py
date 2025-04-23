@@ -1,9 +1,17 @@
 import logging
-from json import load as json_load
+from datetime import datetime, UTC, timedelta
+from json import loads as json_loads
+from os.path import join, dirname, isfile, isdir
 
-from cryptography.hazmat.primitives import serialization
+from cryptography import x509
+from cryptography.hazmat._oid import NameOID
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey, generate_private_key
+from cryptography.hazmat.primitives.hashes import SHA256
+from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives.serialization import load_pem_private_key, load_pem_public_key
+from cryptography.x509 import load_pem_x509_certificate, Certificate
 
 logging.basicConfig()
 
@@ -14,6 +22,209 @@ def load_file(filename: str) -> bytes:
     with open(filename, 'rb') as file:
         content = file.read()
     return content
+
+
+class CASetup:
+    ###
+    #
+    # https://git.collinwebdesigns.de/nvidia/nls/-/blob/main/src/test/test_config_token.py
+    #
+    ###
+
+    ROOT_PRIVATE_KEY_FILENAME = 'root_private_key.pem'
+    ROOT_CERTIFICATE_FILENAME = 'root_certificate.pem'
+    CA_PRIVATE_KEY_FILENAME = 'ca_private_key.pem'
+    CA_CERTIFICATE_FILENAME = 'ca_certificate.pem'
+    SI_PRIVATE_KEY_FILENAME = 'si_private_key.pem'
+    SI_CERTIFICATE_FILENAME = 'si_certificate.pem'
+
+    def __init__(self, service_instance_ref: str, cert_path: str = None):
+        cert_path_prefix = join(dirname(__file__), 'cert')
+        if cert_path is not None and len(cert_path) > 0 and isdir(cert_path):
+            cert_path_prefix = cert_path
+
+        self.service_instance_ref = service_instance_ref
+        self.root_private_key_filename = join(cert_path_prefix, CASetup.ROOT_PRIVATE_KEY_FILENAME)
+        self.root_certificate_filename = join(dirname(__file__), 'cert', CASetup.ROOT_CERTIFICATE_FILENAME)
+        self.ca_private_key_filename = join(dirname(__file__), 'cert', CASetup.CA_PRIVATE_KEY_FILENAME)
+        self.ca_certificate_filename = join(dirname(__file__), 'cert', CASetup.CA_CERTIFICATE_FILENAME)
+        self.si_private_key_filename = join(dirname(__file__), 'cert', CASetup.SI_PRIVATE_KEY_FILENAME)
+        self.si_certificate_filename = join(dirname(__file__), 'cert', CASetup.SI_CERTIFICATE_FILENAME)
+
+        if not (isfile(self.root_private_key_filename)
+                and isfile(self.root_certificate_filename)
+                and isfile(self.ca_private_key_filename)
+                and isfile(self.ca_certificate_filename)
+                and isfile(self.si_private_key_filename)
+                and isfile(self.si_certificate_filename)):
+            self.init_config_token_demo()
+
+    def init_config_token_demo(self):
+        """ Create Root Key and Certificate """
+
+        # create root keypair
+        my_root_private_key = generate_private_key(public_exponent=65537, key_size=4096)
+        my_root_public_key = my_root_private_key.public_key()
+
+        # create root-certificate subject
+        my_root_subject = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, u'US'),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u'California'),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Nvidia'),
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'Nvidia Licensing Service (NLS)'),
+            x509.NameAttribute(NameOID.COMMON_NAME, u'NLS Root CA'),
+        ])
+
+        # create self-signed root-certificate
+        my_root_certificate = (
+            x509.CertificateBuilder()
+            .subject_name(my_root_subject)
+            .issuer_name(my_root_subject)
+            .public_key(my_root_public_key)
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
+            .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
+            .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+            .add_extension(x509.KeyUsage(
+                digital_signature=False,
+                key_encipherment=False,
+                key_cert_sign=True,
+                key_agreement=False,
+                content_commitment=False,
+                data_encipherment=False,
+                crl_sign=True,
+                encipher_only=False,
+                decipher_only=False),
+                critical=True
+            )
+            .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_root_public_key), critical=False)
+            .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(my_root_public_key), critical=False)
+            .sign(my_root_private_key, hashes.SHA256()))
+
+        my_root_private_key_as_pem = my_root_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
+        with open(self.root_private_key_filename, 'wb') as f:
+            f.write(my_root_private_key_as_pem)
+
+        with open(self.root_certificate_filename, 'wb') as f:
+            f.write(my_root_certificate.public_bytes(encoding=Encoding.PEM))
+
+        """ Create CA (Intermediate) Key and Certificate """
+
+        # create ca keypair
+        my_ca_private_key = generate_private_key(public_exponent=65537, key_size=4096)
+        my_ca_public_key = my_ca_private_key.public_key()
+
+        # create ca-certificate subject
+        my_ca_subject = x509.Name([
+            x509.NameAttribute(NameOID.COUNTRY_NAME, u'US'),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, u'California'),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, u'Nvidia'),
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, u'Nvidia Licensing Service (NLS)'),
+            x509.NameAttribute(NameOID.COMMON_NAME, u'NLS Intermediate CA'),
+        ])
+
+        # create self-signed ca-certificate
+        my_ca_certificate = (
+            x509.CertificateBuilder()
+            .subject_name(my_ca_subject)
+            .issuer_name(my_root_subject)
+            .public_key(my_ca_public_key)
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
+            .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
+            .add_extension(x509.BasicConstraints(ca=True, path_length=None), critical=True)
+            .add_extension(x509.KeyUsage(
+                digital_signature=False,
+                key_encipherment=False,
+                key_cert_sign=True,
+                key_agreement=False,
+                content_commitment=False,
+                data_encipherment=False,
+                crl_sign=True,
+                encipher_only=False,
+                decipher_only=False),
+                critical=True
+            )
+            .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_ca_public_key), critical=False)
+            .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
+                my_root_certificate.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value
+            ), critical=False)
+            .sign(my_root_private_key, hashes.SHA256()))
+
+        my_ca_private_key_as_pem = my_ca_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
+        with open(self.ca_private_key_filename, 'wb') as f:
+            f.write(my_ca_private_key_as_pem)
+
+        with open(self.ca_certificate_filename, 'wb') as f:
+            f.write(my_ca_certificate.public_bytes(encoding=Encoding.PEM))
+
+        """ Create Service-Instance Key and Certificate """
+
+        # create si keypair
+        my_si_private_key = generate_private_key(public_exponent=65537, key_size=2048)
+        my_si_public_key = my_si_private_key.public_key()
+
+        my_si_private_key_as_pem = my_si_private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+        my_si_public_key_as_pem = my_si_public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        )
+
+        with open(self.si_private_key_filename, 'wb') as f:
+            f.write(my_si_private_key_as_pem)
+
+        # with open(self.si_public_key_filename, 'wb') as f:
+        #    f.write(my_si_public_key_as_pem)
+
+        # create si-certificate subject
+        my_si_subject = x509.Name([
+            # x509.NameAttribute(NameOID.COMMON_NAME, INSTANCE_REF),
+            x509.NameAttribute(NameOID.COMMON_NAME, self.service_instance_ref),
+        ])
+
+        # create self-signed si-certificate
+        my_si_certificate = (
+            x509.CertificateBuilder()
+            .subject_name(my_si_subject)
+            .issuer_name(my_ca_subject)
+            .public_key(my_si_public_key)
+            .serial_number(x509.random_serial_number())
+            .not_valid_before(datetime.now(tz=UTC) - timedelta(days=1))
+            .not_valid_after(datetime.now(tz=UTC) + timedelta(days=365 * 10))
+            .add_extension(x509.KeyUsage(digital_signature=True, key_encipherment=True, key_cert_sign=False,
+                                         key_agreement=True, content_commitment=False, data_encipherment=False,
+                                         crl_sign=False, encipher_only=False, decipher_only=False), critical=True)
+            .add_extension(x509.ExtendedKeyUsage([
+                x509.oid.ExtendedKeyUsageOID.SERVER_AUTH,
+                x509.oid.ExtendedKeyUsageOID.CLIENT_AUTH]
+            ), critical=False)
+            .add_extension(x509.SubjectKeyIdentifier.from_public_key(my_si_public_key), critical=False)
+            # .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(my_ca_public_key), critical=False)
+            .add_extension(x509.AuthorityKeyIdentifier.from_issuer_subject_key_identifier(
+                my_ca_certificate.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value
+            ), critical=False)
+            .add_extension(x509.SubjectAlternativeName([
+                # x509.DNSName(INSTANCE_REF)
+                x509.DNSName(self.service_instance_ref)
+            ]), critical=False)
+            .sign(my_ca_private_key, hashes.SHA256()))
+
+        with open(self.si_certificate_filename, 'wb') as f:
+            f.write(my_si_certificate.public_bytes(encoding=Encoding.PEM))
 
 
 class PrivateKey:
@@ -47,6 +258,9 @@ class PrivateKey:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
         return PublicKey(data=data)
+
+    def generate_signature(self, data: bytes) -> bytes:
+        return self.__key.sign(data=data, padding=PKCS1v15(), algorithm=SHA256())
 
     @staticmethod
     def generate(public_exponent: int = 65537, key_size: int = 2048) -> "PrivateKey":
@@ -85,6 +299,53 @@ class PublicKey:
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         )
 
+    def mod(self) -> str:
+        return hex(self.__key.public_numbers().n)[2:]
+
+    def exp(self):
+        return int(self.__key.public_numbers().e)
+
+    def verify_signature(self, signature: bytes, data: bytes) -> None:
+        self.__key.verify(signature=signature, data=data, padding=PKCS1v15(), algorithm=SHA256())
+
+
+class Cert:
+
+    def __init__(self, data: bytes):
+        self.__cert = load_pem_x509_certificate(data)
+
+    @staticmethod
+    def from_file(filename: str) -> "Cert":
+        log = logging.getLogger(__name__)
+        log.debug(f'Importing Certificate from "{filename}"')
+
+        with open(filename, 'rb') as f:
+            data = f.read()
+
+        return Cert(data=data.strip())
+
+    def raw(self) -> Certificate:
+        return self.__cert
+
+    def pem(self) -> bytes:
+        return self.__cert.public_bytes(encoding=serialization.Encoding.PEM)
+
+    def public_key(self) -> "PublicKey":
+        data = self.__cert.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo
+        )
+        return PublicKey(data=data)
+
+    def signature(self) -> bytes:
+        return self.__cert.signature
+
+    def subject_key_identifier(self):
+        return self.__cert.extensions.get_extension_for_class(x509.SubjectKeyIdentifier).value.key_identifier
+
+    def authority_key_identifier(self):
+        return self.__cert.extensions.get_extension_for_class(x509.AuthorityKeyIdentifier).value.key_identifier
+
 
 class DriverMatrix:
     __DRIVER_MATRIX_FILENAME = 'static/driver_matrix.json'
@@ -98,9 +359,8 @@ class DriverMatrix:
 
     def __load(self):
         try:
-            file = open(DriverMatrix.__DRIVER_MATRIX_FILENAME)
-            DriverMatrix.__DRIVER_MATRIX = json_load(file)
-            file.close()
+            with open(DriverMatrix.__DRIVER_MATRIX_FILENAME, 'r') as f:
+                DriverMatrix.__DRIVER_MATRIX = json_loads(f.read())
             self.log.debug(f'Successfully loaded "{DriverMatrix.__DRIVER_MATRIX_FILENAME}".')
         except Exception as e:
             DriverMatrix.__DRIVER_MATRIX = {}  # init empty dict to not try open file everytime, just when restarting app
@@ -130,3 +390,34 @@ class DriverMatrix:
                         'is_latest': is_latest,
                     }
         return None
+
+
+class ProductMapping:
+
+    def __init__(self, filename: str):
+        with open(filename, 'r') as file:
+            self.data = json_loads(file.read())
+
+
+    def get_feature_name(self, product_name: str) -> (str, str):
+        product = self.__get_product(product_name)
+        product_fulfillment = self.__get_product_fulfillment(product.get('xid'))
+        feature = self.__get_product_fulfillment_feature(product_fulfillment.get('xid'))
+
+        return feature.get('feature_identifier')
+
+
+    def __get_product(self, product_name: str):
+        product_list = self.data.get('product')
+        return next(filter(lambda _: _.get('identifier') == product_name, product_list))
+
+
+    def __get_product_fulfillment(self, product_xid: str):
+        product_fulfillment_list = self.data.get('product_fulfillment')
+        return next(filter(lambda _: _.get('product_xid') == product_xid, product_fulfillment_list))
+
+    def __get_product_fulfillment_feature(self, product_fulfillment_xid: str):
+        feature_list = self.data.get('product_fulfillment_feature')
+        features = list(filter(lambda _: _.get('product_fulfillment_xid') == product_fulfillment_xid, feature_list))
+        features.sort(key=lambda _: _.get('evaluation_order_index'))
+        return features[0]

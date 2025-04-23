@@ -18,9 +18,6 @@ Make sure you create these certificates before starting the container for the fi
 WORKING_DIR=/mnt/user/appdata/fastapi-dls/cert&#xD;
 mkdir -p $WORKING_DIR&#xD;
 cd $WORKING_DIR&#xD;
-# create instance private and public key for singing JWT's&#xD;
-openssl genrsa -out $WORKING_DIR/instance.private.pem 2048 &#xD;
-openssl rsa -in $WORKING_DIR/instance.private.pem -outform PEM -pubout -out $WORKING_DIR/instance.public.pem&#xD;
 # create ssl certificate for integrated webserver (uvicorn) - because clients rely on ssl&#xD;
 openssl req -x509 -nodes -days 3650 -newkey rsa:2048 -keyout  $WORKING_DIR/webserver.key -out $WORKING_DIR/webserver.crt&#xD;
 ```&#xD;

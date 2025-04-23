@@ -151,8 +151,6 @@ test:python:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov pytest-custom_exit_code httpx
     - mkdir -p app/cert
-    - openssl genrsa -out app/cert/instance.private.pem 2048
-    - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
     - cd test
   script:
     - python -m pytest main.py --junitxml=report.xml
@@ -263,8 +261,6 @@ test_coverage:
     - pip install -r requirements.txt
     - pip install pytest pytest-cov pytest-custom_exit_code httpx
     - mkdir -p app/cert
-    - openssl genrsa -out app/cert/instance.private.pem 2048
-    - openssl rsa -in app/cert/instance.private.pem -outform PEM -pubout -out app/cert/instance.public.pem
     - cd test
   script:
     - coverage run -m pytest main.py --junitxml=report.xml --suppress-no-test-exit-code

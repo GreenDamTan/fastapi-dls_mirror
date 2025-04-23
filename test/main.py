@@ -1,13 +1,15 @@
+import json
 import sys
 from base64 import b64encode as b64enc
 from calendar import timegm
 from datetime import datetime, UTC
 from hashlib import sha256
-from os.path import dirname, join
 from uuid import uuid4, UUID
 
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.hashes import SHA256
 from dateutil.relativedelta import relativedelta
-from jose import jwt, jwk
+from jose import jwt, jwk, jws
 from jose.constants import ALGORITHMS
 from starlette.testclient import TestClient
 
@@ -16,26 +18,76 @@ sys.path.append('../')
 sys.path.append('../app')
 
 from app import main
-from util import PrivateKey, PublicKey
+from util import CASetup, PrivateKey, PublicKey, Cert
 
 client = TestClient(main.app)
 
+# Instance
+INSTANCE_REF = '10000000-0000-0000-0000-000000000001'
 ORIGIN_REF, ALLOTMENT_REF, SECRET = str(uuid4()), '20000000-0000-0000-0000-000000000001', 'HelloWorld'
 
-# INSTANCE_KEY_RSA = generate_key()
-# INSTANCE_KEY_PUB = INSTANCE_KEY_RSA.public_key()
+# CA & Signing
+ca_setup = CASetup(service_instance_ref=INSTANCE_REF)
+my_root_private_key = PrivateKey.from_file(ca_setup.root_private_key_filename)
+my_root_certificate = Cert.from_file(ca_setup.root_certificate_filename)
+my_ca_certificate = Cert.from_file(ca_setup.ca_certificate_filename)
+my_ca_private_key = PrivateKey.from_file(ca_setup.ca_private_key_filename)
+my_si_private_key = PrivateKey.from_file(ca_setup.si_private_key_filename)
+my_si_private_key_as_pem = my_si_private_key.pem()
+my_si_public_key = my_si_private_key.public_key()
+my_si_public_key_as_pem = my_si_private_key.public_key().pem()
+my_si_certificate = Cert.from_file(ca_setup.si_certificate_filename)
 
-INSTANCE_KEY_RSA = PrivateKey.from_file(str(join(dirname(__file__), '../app/cert/instance.private.pem')))
-INSTANCE_KEY_PUB = PublicKey.from_file(str(join(dirname(__file__), '../app/cert/instance.public.pem')))
-
-jwt_encode_key = jwk.construct(INSTANCE_KEY_RSA.pem(), algorithm=ALGORITHMS.RS256)
-jwt_decode_key = jwk.construct(INSTANCE_KEY_PUB.pem(), algorithm=ALGORITHMS.RS256)
+jwt_encode_key = jwk.construct(my_si_private_key_as_pem, algorithm=ALGORITHMS.RS256)
+jwt_decode_key = jwk.construct(my_si_public_key_as_pem, algorithm=ALGORITHMS.RS256)
 
 
 def __bearer_token(origin_ref: str) -> str:
     token = jwt.encode({"origin_ref": origin_ref}, key=jwt_encode_key, algorithm=ALGORITHMS.RS256)
     token = f'Bearer {token}'
     return token
+
+
+def test_signing():
+    signature_set_header = my_si_private_key.generate_signature(b'Hello')
+
+    # test plain
+    my_si_public_key.verify_signature(signature_set_header, b'Hello')
+
+    # test "X-NLS-Signature: b'....'
+    x_nls_signature_header_value = f'{signature_set_header.hex().encode()}'
+    assert f'{x_nls_signature_header_value}'.startswith('b\'')
+    assert f'{x_nls_signature_header_value}'.endswith('\'')
+
+    # test eval
+    signature_get_header = eval(x_nls_signature_header_value)
+    signature_get_header = bytes.fromhex(signature_get_header.decode('ascii'))
+    my_si_public_key.verify_signature(signature_get_header, b'Hello')
+
+
+def test_keypair_and_certificates():
+    assert my_root_certificate.public_key().mod() == my_root_private_key.public_key().mod()
+    assert my_ca_certificate.public_key().mod() == my_ca_private_key.public_key().mod()
+    assert my_si_certificate.public_key().mod() == my_si_public_key.mod()
+
+    assert len(my_root_certificate.public_key().mod()) == 1024
+    assert len(my_ca_certificate.public_key().mod()) == 1024
+    assert len(my_si_certificate.public_key().mod()) == 512
+
+    #assert my_si_certificate.public_key().mod() != my_si_public_key.mod()
+
+    my_root_certificate.public_key().raw().verify(
+        my_ca_certificate.raw().signature,
+        my_ca_certificate.raw().tbs_certificate_bytes,
+        PKCS1v15(),
+        SHA256(),
+    )
+    my_ca_certificate.public_key().raw().verify(
+        my_si_certificate.raw().signature,
+        my_si_certificate.raw().tbs_certificate_bytes,
+        PKCS1v15(),
+        SHA256(),
+    )
 
 
 def test_index():
@@ -54,6 +106,12 @@ def test_config():
     assert response.status_code == 200
 
 
+def test_config_root_ca():
+    response = client.get('/-/config/root-certificate')
+    assert response.status_code == 200
+    assert response.content.decode('utf-8').strip() == my_root_certificate.pem().decode('utf-8').strip()
+
+
 def test_readme():
     response = client.get('/-/readme')
     assert response.status_code == 200
@@ -67,6 +125,41 @@ def test_manage():
 def test_client_token():
     response = client.get('/-/client-token')
     assert response.status_code == 200
+
+
+def test_config_token():
+    # https://git.collinwebdesigns.de/nvidia/nls/-/blob/main/src/test/test_config_token.py
+
+    response = client.post('/leasing/v1/config-token', json={"service_instance_ref": INSTANCE_REF})
+    assert response.status_code == 200
+
+    nv_response_certificate_configuration = response.json().get('certificateConfiguration')
+
+    nv_ca_chain = nv_response_certificate_configuration.get('caChain')[0].encode('utf-8')
+    nv_ca_chain = Cert(nv_ca_chain)
+
+    nv_response_public_cert = nv_response_certificate_configuration.get('publicCert').encode('utf-8')
+    nv_response_public_key = nv_response_certificate_configuration.get('publicKey')
+
+    nv_si_certificate = Cert(nv_response_public_cert)
+    assert nv_si_certificate.public_key().mod() == nv_response_public_key.get('mod')[0]
+    assert nv_si_certificate.authority_key_identifier() == nv_ca_chain.subject_key_identifier()
+
+    nv_jwt_decode_key = jwk.construct(nv_response_public_cert, algorithm=ALGORITHMS.RS256)
+
+    nv_response_config_token = response.json().get('configToken')
+
+    payload = jws.verify(nv_response_config_token, key=nv_jwt_decode_key, algorithms=ALGORITHMS.RS256)
+    payload = json.loads(payload)
+    assert payload.get('iss') == 'NLS Service Instance'
+    assert payload.get('aud') == 'NLS Licensed Client'
+    assert payload.get('service_instance_ref') == INSTANCE_REF
+
+    nv_si_public_key_configuration = payload.get('service_instance_public_key_configuration')
+    nv_si_public_key_me = nv_si_public_key_configuration.get('service_instance_public_key_me')
+
+    assert len(nv_si_public_key_me.get('mod')) == 512 # nv_si_public_key_mod
+    assert nv_si_public_key_me.get('exp') == 65537  # nv_si_public_key_exp
 
 
 def test_origins():
@@ -168,12 +261,13 @@ def test_auth_v1_token():
 
 def test_leasing_v1_lessor():
     payload = {
+        'client_challenge': 'my_unique_string',
         'fulfillment_context': {
             'fulfillment_class_ref_list': []
         },
         'lease_proposal_list': [{
             'license_type_qualifiers': {'count': 1},
-            'product': {'name': 'NVIDIA RTX Virtual Workstation'}
+            'product': {'name': 'NVIDIA Virtual Applications'}
         }],
         'proposal_evaluation_mode': 'ALL_OF',
         'scope_ref_list': [ALLOTMENT_REF]
@@ -182,10 +276,21 @@ def test_leasing_v1_lessor():
     response = client.post('/leasing/v1/lessor', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
 
+    client_challenge = response.json().get('client_challenge')
+    assert client_challenge == payload.get('client_challenge')
+    signature = eval(response.headers.get('X-NLS-Signature'))
+    assert len(signature) == 512
+    signature = bytes.fromhex(signature.decode('ascii'))
+    assert len(signature) == 256
+    my_si_public_key.verify_signature(signature, response.content)
+
     lease_result_list = response.json().get('lease_result_list')
     assert len(lease_result_list) == 1
     assert len(lease_result_list[0]['lease']['ref']) == 36
     assert str(UUID(lease_result_list[0]['lease']['ref'])) == lease_result_list[0]['lease']['ref']
+    assert lease_result_list[0]['lease']['product_name'] == 'NVIDIA Virtual Applications'
+    assert lease_result_list[0]['lease']['feature_name'] == 'GRID-Virtual-Apps'
+
 
 
 def test_leasing_v1_lessor_lease():
@@ -205,8 +310,17 @@ def test_leasing_v1_lease_renew():
 
     ###
 
-    response = client.put(f'/leasing/v1/lease/{active_lease_ref}', headers={'authorization': __bearer_token(ORIGIN_REF)})
+    payload = {'client_challenge': 'my_unique_string'}
+    response = client.put(f'/leasing/v1/lease/{active_lease_ref}', json=payload, headers={'authorization': __bearer_token(ORIGIN_REF)})
     assert response.status_code == 200
+
+    client_challenge = response.json().get('client_challenge')
+    assert client_challenge == payload.get('client_challenge')
+    signature = eval(response.headers.get('X-NLS-Signature'))
+    assert len(signature) == 512
+    signature = bytes.fromhex(signature.decode('ascii'))
+    assert len(signature) == 256
+    my_si_public_key.verify_signature(signature, response.content)
 
     lease_ref = response.json().get('lease_ref')
     assert len(lease_ref) == 36
@@ -236,7 +350,7 @@ def test_leasing_v1_lessor_lease_remove():
         },
         'lease_proposal_list': [{
             'license_type_qualifiers': {'count': 1},
-            'product': {'name': 'NVIDIA RTX Virtual Workstation'}
+            'product': {'name': 'NVIDIA Virtual Applications'}
         }],
         'proposal_evaluation_mode': 'ALL_OF',
         'scope_ref_list': [ALLOTMENT_REF]

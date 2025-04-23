@@ -393,4 +393,4 @@ release:
         - name: 'Package Registry'
           url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/-/packages'
         - name: 'Container Registry'
-          url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry/40'
+          url: 'https://git.collinwebdesigns.de/oscar.krause/fastapi-dls/container_registry/70'

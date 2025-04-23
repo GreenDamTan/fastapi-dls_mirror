@@ -2,7 +2,7 @@
 
 Minimal Delegated License Service (DLS).
 
-> [!warning] Branch support \
+> [!warning] Branch support
 > FastAPI-DLS Version 1.x supports up to **`17.x`** releases. \
 > FastAPI-DLS Version 2.x is backwards compatible to `17.x` and supports **`18.x`** releases in combination
 > with [gridd-unlock-patcher](https://git.collinwebdesigns.de/oscar.krause/gridd-unlock-patcher).

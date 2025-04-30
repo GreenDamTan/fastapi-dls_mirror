@@ -212,8 +212,7 @@ test:apt:
 test:pacman:archlinux:
   image: archlinux:base
   rules:
-    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: ($CI_PIPELINE_SOURCE == 'merge_request_event') || ($CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH)
       changes:
         - app/**/*
         - .PKGBUILD/**/*

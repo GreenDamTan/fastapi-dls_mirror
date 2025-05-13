@@ -334,12 +334,13 @@ Successful tested with (**LTS Version**):
 - *Ubuntu 23.04 (Lunar Lobster)* (EOL: January 2024)
 - *Ubuntu 23.10 (Mantic Minotaur)* (EOL: July 2024)
 - **Ubuntu 24.04 (Noble Numbat)** (EOL: Apr 2029)
-- *Ubuntu 24.10 (Oracular Oriole)* (EOL: Jul 2025)
 
 Not working with:
 
 - Debian 11 (Bullseye) and lower (missing `python-jose` dependency)
+- Debian 13 (Trixie) (missing `python-jose` dependency)
 - Ubuntu 22.04 (Jammy Jellyfish) (not supported as for 15.01.2023 due to [fastapi - uvicorn version missmatch](https://bugs.launchpad.net/ubuntu/+source/fastapi/+bug/1970557))
+- Ubuntu 24.10 (Oracular Oriole) (missing `python-jose` dependency)
 
 **Run this on your server instance**
 

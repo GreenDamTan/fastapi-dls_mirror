@@ -173,11 +173,12 @@ test:apt:
   parallel:
     matrix:
       - IMAGE:
-          - debian:trixie-slim # EOL: t.b.a.
+          # - debian:trixie-slim # EOL: t.b.a.; "python3-jose" not available, but "python3-josepy"
           - debian:bookworm-slim # EOL: June 06, 2026
           - debian:bookworm-slim # EOL: June 06, 2026
           - ubuntu:24.04 # EOL: April 2036
-          - ubuntu:24.10
+          # - ubuntu:24.10 # EOL: t.b.a.; "python3-jose" not available, but "python3-josepy"
+          # - ubuntu:25.04 # EOL: t.b.a.; "python3-jose" not available, but "python3-josepy"
   needs:
     - job: build:apt
       artifacts: true
